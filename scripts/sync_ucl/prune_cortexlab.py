@@ -10,6 +10,8 @@ from data.models import Dataset, DatasetType, DataRepository, FileRecord
 from experiments.models import ProbeInsertion, TrajectoryEstimate
 from jobs.models import Task
 
+#TIMOTHE NOTE : do not change the PK '4027da48-7be3-43ec-a222-f75dffe36872' HERE. This CODE IS USED TO REMOVE LEGACY CORTEX LAB SESSIONS. 
+#WE DO NOt WANT THAT TO HAPPEND TO OUR OWN SESSIONS LOCALLY
 CORTEX_LAB_PK = '4027da48-7be3-43ec-a222-f75dffe36872'
 json_file_out = '../scripts/sync_ucl/cortexlab_pruned.json'
 
