@@ -1,8 +1,13 @@
 from django.conf.urls import include
 from django.urls import path
 from django.contrib import admin
+from django.views.generic.base import RedirectView
+from django.contrib.staticfiles.storage import staticfiles_storage
+
+
 from rest_framework.authtoken import views as authv
 from rest_framework.documentation import include_docs_urls
+
 
 admin.site.site_header = 'Alyx'
 
@@ -18,6 +23,7 @@ urlpatterns = [
     path('auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('auth-token', authv.obtain_auth_token),
     path('docs/', include_docs_urls(title='Alyx REST API documentation')),
+    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')))
 ]
 
 # this is an optional app
