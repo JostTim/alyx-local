@@ -3,7 +3,7 @@ from textwrap import dedent
 # ALYX-SPECIFIC
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'DE'
+TIME_ZONE = 'GB'
 GLOBUS_CLIENT_ID = '525cc543-8ccb-4d11-8036-af332da5eafd'
 SUBJECT_REQUEST_EMAIL_FROM = 'timothe.jost-mousseau@pasteur.fr'
 DEFAULT_SOURCE = 'IBL'
