@@ -174,6 +174,6 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('name', 'description', 'users')
+        fields = ('name', 'description', 'users', 'json')
         lookup_field = 'name'
         extra_kwargs = {'url': {'view_name': 'project-detail', 'lookup_field': 'name'}}
