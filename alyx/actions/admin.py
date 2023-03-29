@@ -483,7 +483,7 @@ class SessionAdmin(BaseActionAdmin):
         'repo_url', 'qc', 'extended_qc', 'projects', ('type', 'task_protocol', ), 'number',
         'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime']
     list_filter = [('users', RelatedDropdownFilter),
-                   ('subject_l', RelatedDropdownFilter),
+                   ('subject', RelatedDropdownFilter),
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
                    ('lab', RelatedDropdownFilter),
