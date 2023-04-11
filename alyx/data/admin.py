@@ -31,7 +31,6 @@ class DataRepositoryTypeAdmin(BaseAdmin):
     list_display = ('name',)
     ordering = ('name',)
 
-
 class DataRepositoryAdmin(BaseAdmin):
     fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_path', 'data_url')
     readonly_fields=('data_path',)
@@ -43,7 +42,6 @@ class DataFormatAdmin(BaseAdmin):
               'matlab_loader_function', 'python_loader_function']
     list_display = fields[:-1]
     ordering = ('name',)
-
 
 class DatasetTypeAdmin(BaseAdmin):
     fields = ('name', 'description', 'filename_pattern', 'created_by')

@@ -85,7 +85,7 @@ class DatasetFileRecordsSerializer(serializers.ModelSerializer):
     data_repository_path = serializers.SerializerMethodField()
 
     def get_data_repository_path(self, obj):
-        return obj.data_repository.globus_path
+        return obj.data_repository.data_path
 
     class Meta:
         model = FileRecord
