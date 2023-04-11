@@ -65,7 +65,7 @@ class DataRepository(BaseModel):
         help_text="URL of the data repository, if it is accessible via HTTP (WebDav)")
 
     @property
-    def data_root(self):
+    def data_path(self):
         hostname = self.hostname.strip('/').strip("\\")#removing back or forward slashes on both sides
         root = os.path.join('//' + hostname, self.globus_path)
         return root
@@ -80,11 +80,11 @@ class DataRepository(BaseModel):
         help_text="path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation")
     
     globus_endpoint_id = models.UUIDField(
-        blank=True, null=True, help_text="UUID of the globus endpoint", editable=False)
+        blank=True, null=True, help_text="UUID of the globus endpoint")
     
     globus_is_personal = models.BooleanField(
         null=True, blank=True, help_text="whether the Globus endpoint is personal or not. "
-        "By default, Globus cannot transfer a file between two personal endpoints.", editable=False)
+        "By default, Globus cannot transfer a file between two personal endpoints.")
 
     def __str__(self):
         return "<DataRepository '%s'>" % self.name
