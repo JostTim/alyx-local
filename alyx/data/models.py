@@ -6,6 +6,7 @@ from alyx.settings import TIME_ZONE, AUTH_USER_MODEL
 from actions.models import Session
 from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField
 
+import os
 
 def _related_string(field):
     return "%(app_label)s_%(class)s_" + field + "_related"
@@ -48,29 +49,42 @@ class DataRepository(BaseModel):
     objects = NameManager()
 
     name = models.CharField(max_length=255, unique=True)
+
     repository_type = models.ForeignKey(
         DataRepositoryType, null=True, blank=True, on_delete=models.CASCADE)
+    
     hostname = models.CharField(
         max_length=200, blank=True,
         validators=[RegexValidator(r'^[a-zA-Z0-9\.\-\_]+$',
                                    message='Invalid hostname',
                                    code='invalid_hostname')],
-        help_text="Host name of the network drive")
+        help_text="Host name of the network drive. e.g. Mountcastle")
+    
     data_url = models.URLField(
         blank=True, null=True,
-        help_text="URL of the data repository, if it is accessible via HTTP")
+        help_text="URL of the data repository, if it is accessible via HTTP (WebDav)")
+
+    @property
+    def data_root(self):
+        hostname = self.hostname.strip('/').strip("\\")#removing back or forward slashes on both sides
+        root = os.path.join('//' + hostname, self.globus_path)
+        return root
+
     timezone = models.CharField(
         max_length=64, blank=True, default=TIME_ZONE,
         help_text="Timezone of the server "
         "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)")
+    
     globus_path = models.CharField(
         max_length=1000, blank=True,
-        help_text="absolute path to the repository on the server e.g. /mnt/something/")
+        help_text="path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation")
+    
     globus_endpoint_id = models.UUIDField(
-        blank=True, null=True, help_text="UUID of the globus endpoint")
+        blank=True, null=True, help_text="UUID of the globus endpoint", editable=False)
+    
     globus_is_personal = models.BooleanField(
         null=True, blank=True, help_text="whether the Globus endpoint is personal or not. "
-        "By default, Globus cannot transfer a file between two personal endpoints.")
+        "By default, Globus cannot transfer a file between two personal endpoints.", editable=False)
 
     def __str__(self):
         return "<DataRepository '%s'>" % self.name
@@ -78,7 +92,6 @@ class DataRepository(BaseModel):
     class Meta:
         verbose_name_plural = "data repositories"
         ordering = ('name',)
-
 
 # Datasets
 # ------------------------------------------------------------------------------------------------
