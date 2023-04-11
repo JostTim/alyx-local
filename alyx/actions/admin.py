@@ -474,7 +474,6 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-
 class SessionAdmin(BaseActionAdmin):
     list_display = ['subject_l', 'start_time', 'number', 'lab', 'dataset_count',
                     'task_protocol', 'qc', 'user_list', 'project_']
