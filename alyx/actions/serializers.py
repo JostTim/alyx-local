@@ -12,7 +12,6 @@ from misc.models import LabLocation, Lab
 from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetSerializer
 from misc.serializers import NoteSerializer
 
-
 SESSION_FIELDS = ('subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
                   'parent_session', 'n_correct_trials', 'n_trials', 'url', 'extended_qc', 'qc',

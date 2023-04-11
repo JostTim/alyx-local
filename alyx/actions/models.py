@@ -10,7 +10,6 @@ from django.utils import timezone
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
-
 logger = structlog.get_logger(__name__)
 
 
@@ -271,6 +270,13 @@ class Session(BaseAction):
 
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
                                          verbose_name='last updated')
+
+    data_repository = models.ForeignKey("DataRepository", on_delete=models.CASCADE)
+
+    @property
+    def relative_path(self):
+        import os
+        return os.path.join( self.subject.nickname , self.auto_datetime.strftime('%Y-%m-%d'), str(self.number).zfill(3) )
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.

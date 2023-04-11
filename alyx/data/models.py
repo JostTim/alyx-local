@@ -313,6 +313,12 @@ class Dataset(BaseExperimentalData):
     revision = models.ForeignKey(
         Revision, blank=True, null=True, on_delete=models.SET_NULL)
 
+    @property
+    def relative_path(self):
+        revision = "#" + self.revision + "#" if self.revision else ""
+        collection = self.collection if self.collection else ""
+        return os.path.join(collection,revision)
+
     tags = models.ManyToManyField('data.Tag', blank=True, related_name='datasets')
 
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
@@ -375,6 +381,7 @@ class Dataset(BaseExperimentalData):
                 self.probe_insertion.set(pis.values_list('pk', flat=True))
 
 
+
 # Files
 # ------------------------------------------------------------------------------------------------
 class FileRecordManager(models.Manager):
@@ -397,12 +404,26 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
+    file_name = models.CharField(max_length=1000,
+                                validators=[RegexValidator(r'_?(?P<namespace>(?<=_)[a-zA-Z0-9]+)?_?(?P<object>\w+)\.(?P<attribute>(?:_[a-z]+_)?[a-zA-Z0-9]+(?:_times(?=[_.])|_intervals(?=[_.]))?)(?:_(?P<timescale>\w+))?(?:\.(?P<extra>[.\w-]+))*\.(?P<extension>\w+)$',
+                                                        message='Invalid alyx file name.',
+                                                        code='invalid_alf')],
+                                help_text="file name within repository. Cannot contain a directory path")
+
     relative_path = models.CharField(
         max_length=1000,
         validators=[RegexValidator(r'^[a-zA-Z0-9\_][^\\\:]+$',
                                    message='Invalid path',
                                    code='invalid_path')],
         help_text="path name within repository")
+    
+    # @property
+    # def absolute_path(self):
+    #     os.path.join( self.dataset.session.data_repository.data_path , self.relative_path )
+
+    # @property
+    # def relative_path(self):
+    #     os.path.join( self.dataset.session.relative_path , self.dataset.relative_path , self.file_name )
 
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
