@@ -66,8 +66,8 @@ class DataRepository(BaseModel):
 
     @property
     def data_path(self):
-        #hostname = self.hostname#.strip('/').strip("\\")#removing back or forward slashes on both sides
-        root = os.path.join(self.hostname, self.globus_path)
+        hostname = self.hostname.strip('/').strip("\\")#removing back or forward slashes on both sides
+        root = os.path.join( "//" + hostname, self.globus_path.strip('/').strip("\\"))
         return root
 
     timezone = models.CharField(
