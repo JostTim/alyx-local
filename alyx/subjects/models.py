@@ -146,7 +146,11 @@ class Subject(BaseModel):
 
     nickname = models.CharField(max_length=64,
                                 default='-',
-                                help_text="Easy-to-remember name (e.g. 'Hercules').",
+                                help_text="""Please follow the standard format : 
+Two or three initials of the person in charge + number of the animal for that person, in chronological order. 
+e.g. wm25 => Wilson Mena mouse n°25. 
+For following the identity of the mouses in term of genotype/injected viruses and the correspunding number in mayakind, 
+please use the Zygosities fields below, and the description field to put more details that you want to remember.""",
                                 validators=[nickname_validator])
     species = models.ForeignKey('Species', null=True, blank=True, on_delete=models.SET_NULL,
                                 default=default_species)
