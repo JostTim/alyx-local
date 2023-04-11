@@ -33,7 +33,7 @@ class DataRepositoryTypeAdmin(BaseAdmin):
 
 
 class DataRepositoryAdmin(BaseAdmin):
-    fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_url', 'data_path')
+    fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_path', 'data_url')
     readonly_fields=('data_path',)
     list_display = fields
     ordering = ('name',)
