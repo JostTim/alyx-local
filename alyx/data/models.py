@@ -62,11 +62,11 @@ class DataRepository(BaseModel):
     
     data_url = models.URLField(
         blank=True, null=True,
-        help_text="URL of the data repository, if it is accessible via HTTP (WebDav)")
+        help_text="URL of the data repository, if it is accessible via HTTP (WebDav). You can leave it unspecified as it is currentely not used.")
 
     @property
     def data_path(self):
-        hostname = self.hostname.strip('/').strip("\\")#removing back or forward slashes on both sides
+        hostname = str(self.hostname).strip('/').strip("\\")#removing back or forward slashes on both sides
         root = os.path.join('//' + hostname, self.globus_path)
         return root
 
