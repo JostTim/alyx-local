@@ -405,7 +405,7 @@ class FileRecord(BaseModel):
         'DataRepository', on_delete=models.CASCADE)
 
     file_name = models.CharField(max_length=1000,
-                                validators=[RegexValidator(r'_?(?P<namespace>(?<=_)[a-zA-Z0-9]+)?_?(?P<object>\w+)\.(?P<attribute>(?:_[a-z]+_)?[a-zA-Z0-9]+(?:_times(?=[_.])|_intervals(?=[_.]))?)(?:_(?P<timescale>\w+))?(?:\.(?P<extra>[.\w-]+))*\.(?P<extension>\w+)$',
+                                validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
                                                         message='Invalid alyx file name.',
                                                         code='invalid_alf')],
                                 help_text="file name within repository. Cannot contain a directory path")
