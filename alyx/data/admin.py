@@ -79,6 +79,24 @@ class FileRecordInline(BaseInlineAdmin):
     fields = ('data_repository', 'relative_path', 'exists')
 
 
+class IsOnlineListFilter(BooleanFieldListFilter):
+    title = 'Is Online'
+    parameter_name = '_online'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('Yes', 'Yes'),
+            ('No', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'Yes':
+            return queryset.filter(_online__exact=True)
+        elif value == 'No':
+            return queryset.exclude(_online__exact=False)
+        return queryset
+
 class DatasetAdmin(BaseExperimentalDataAdmin):
     fields = ['name', '_online', 'version', 'dataset_type', 'file_size', 'hash',
               'session_ro', 'collection', 'auto_datetime', 'revision_', 'default_dataset',
@@ -91,7 +109,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
     list_filter = [('created_by', RelatedDropdownFilter),
                    ('created_datetime', DateRangeFilter),
                    ('dataset_type', RelatedDropdownFilter),
-                   ('_online', BooleanFieldListFilter),
+                   IsOnlineListFilter
                    ]
     search_fields = ('session__id', 'name', 'collection', 'dataset_type__name',
                      'dataset_type__filename_pattern', 'version')
