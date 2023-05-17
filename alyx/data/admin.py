@@ -2,7 +2,7 @@ from django.db.models import Count
 from django.contrib import admin
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
-from django.contrib.admin.filters import BooleanFieldListFilter
+from django.contrib.admin.filters import SimpleListFilter
 from rangefilter.filter import DateRangeFilter
 
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
@@ -79,7 +79,7 @@ class FileRecordInline(BaseInlineAdmin):
     fields = ('data_repository', 'relative_path', 'exists')
 
 
-class IsOnlineListFilter(BooleanFieldListFilter):
+class IsOnlineListFilter(SimpleListFilter):
     title = 'Is Online'
     parameter_name = '_online'
 
