@@ -80,8 +80,8 @@ class FileRecordInline(BaseInlineAdmin):
 
 
 class IsOnlineListFilter(SimpleListFilter):
-    title = 'Is Online'
-    parameter_name = '_online'
+    title = 'Is Empty'
+    parameter_name = '_is_empty'
 
     def lookups(self, request, model_admin):
         return (
@@ -94,7 +94,7 @@ class IsOnlineListFilter(SimpleListFilter):
         if value == 'Yes':
             return queryset.filter(file_records__gt=0)
         elif value == 'No':
-            return queryset.exclude(file_records__exact=0)
+            return queryset.exclude(file_records__gt=0)
         return queryset
 
 class DatasetAdmin(BaseExperimentalDataAdmin):
