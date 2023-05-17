@@ -2,6 +2,7 @@ from django.db.models import Count
 from django.contrib import admin
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django.contrib.admin.filters import BooleanFieldListFilter
 from rangefilter.filter import DateRangeFilter
 
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
@@ -90,6 +91,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
     list_filter = [('created_by', RelatedDropdownFilter),
                    ('created_datetime', DateRangeFilter),
                    ('dataset_type', RelatedDropdownFilter),
+                   ('_online', BooleanFieldListFilter),
                    ]
     search_fields = ('session__id', 'name', 'collection', 'dataset_type__name',
                      'dataset_type__filename_pattern', 'version')
