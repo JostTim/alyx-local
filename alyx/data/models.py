@@ -83,8 +83,8 @@ class DataRepository(BaseModel):
         blank=True, null=True, help_text="UUID of the globus endpoint")
     
     globus_is_personal = models.BooleanField(
-        null=True, blank=True, help_text="whether the Globus endpoint is personal or not. "
-        "By default, Globus cannot transfer a file between two personal endpoints.")
+        null=True, blank=True, default = False, help_text="whether the Globus endpoint is personal or not. "
+        "By default, Globus cannot transfer a file between two personal endpoints. The default value is False")
 
     def __str__(self):
         return "<DataRepository '%s'>" % self.name
