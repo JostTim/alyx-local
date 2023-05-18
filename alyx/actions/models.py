@@ -251,7 +251,7 @@ class Session(BaseAction):
     type = models.CharField(max_length=255, null=True, blank=True,
                             help_text="User-defined session type (e.g. Base, Experiment)")
     number = models.IntegerField(null=True, blank=True,
-                                 help_text="Optional session number for this level")
+                                 help_text="Necessary session number for this subject, this day. Must be unique")
     task_protocol = models.CharField(max_length=1023, blank=True, default='')
     n_trials = models.IntegerField(blank=True, null=True)
     n_correct_trials = models.IntegerField(blank=True, null=True)
@@ -284,9 +284,10 @@ class Session(BaseAction):
                                       start_time__date=self.start_time.date(),
                                       number=self.number,
                                       subject=self.subject).count() 
+        #TODO : if number is null, autoincrement when setting
         if existing_day_sessions :
             raise ValidationError("Two session with same subject, date and number cannot exist")
-
+        #TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
         return super(Session, self).save(*args, **kwargs)
 
     def __str__(self):
