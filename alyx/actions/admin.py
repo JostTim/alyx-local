@@ -480,7 +480,7 @@ class SessionAdmin(BaseActionAdmin):
                     'task_protocol', 'qc', 'user_list', 'project_']
     list_display_links = ['start_time']
     fields = BaseActionAdmin.fields + [
-        'repo_url', 'qc', 'extended_qc', 'projects', ('type', 'task_protocol', ), 'number',
+        'number','repo_url', 'qc', 'extended_qc', 'projects', ('type', 'task_protocol', ),
         'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime']
     list_filter = [('users', RelatedDropdownFilter),
                    ('subject', RelatedDropdownFilter),

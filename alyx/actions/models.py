@@ -4,6 +4,7 @@ from math import inf
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -278,6 +279,14 @@ class Session(BaseAction):
             self.project = self.subject.projects.first()
         if not self.lab:
             self.lab = self.subject.lab
+
+        existing_day_sessions = self.__class__.objects.filter(
+                                      start_time__date=self.start_time.date(),
+                                      number=self.number,
+                                      subject=self.subject).count() 
+        if existing_day_sessions :
+            raise ValidationError("Two session with same subject, date and number cannot exist")
+
         return super(Session, self).save(*args, **kwargs)
 
     def __str__(self):
