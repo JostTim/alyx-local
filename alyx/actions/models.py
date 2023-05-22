@@ -285,8 +285,8 @@ class Session(BaseAction):
                                       number=self.number,
                                       subject=self.subject)
         
-        if self.instance.pk is not None:
-            query_set = query_set.exclude(pk=self.instance.pk)
+        if self.id is not None:
+            query_set = query_set.exclude(id=self.id)
 
         existing_day_sessions = query_set.count() 
         #TODO : if number is null, autoincrement when setting
