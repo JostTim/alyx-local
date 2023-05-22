@@ -280,10 +280,15 @@ class Session(BaseAction):
         if not self.lab:
             self.lab = self.subject.lab
 
-        existing_day_sessions = self.__class__.objects.filter(
+        query_set = self.__class__.objects.filter(
                                       start_time__date=self.start_time.date(),
                                       number=self.number,
-                                      subject=self.subject).count() 
+                                      subject=self.subject)
+        
+        if self.instance.pk is not None:
+            query_set = query_set.exclude(pk=self.instance.pk)
+
+        existing_day_sessions = query_set.count() 
         #TODO : if number is null, autoincrement when setting
         if existing_day_sessions :
             raise ValidationError("Two session with same subject, date and number cannot exist")
