@@ -145,7 +145,7 @@ class BaseAction(BaseModel):
                                         help_text="The procedure(s) performed")
     narrative = models.TextField(blank=True)
     start_time = models.DateTimeField(
-        null=True, blank=True, default=timezone.now)
+        null=True, blank=False, default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -250,7 +250,7 @@ class Session(BaseAction):
                                       verbose_name='Session Projects')
     type = models.CharField(max_length=255, null=True, blank=True,
                             help_text="User-defined session type (e.g. Base, Experiment)")
-    number = models.IntegerField(null=True, blank=True,
+    number = models.IntegerField(null=True, blank=False,
                                  help_text="Necessary session number for this subject, this day. Must be unique")
     task_protocol = models.CharField(max_length=1023, blank=True, default='')
     n_trials = models.IntegerField(blank=True, null=True)
@@ -297,12 +297,20 @@ class Session(BaseAction):
 
     def __str__(self):
         try:
-            string = "%s %s/%s/%s" % (str(self.pk),
-                                      self.subject,
-                                      str(self.start_time)[:10],
-                                      str(self.number).zfill(3))
+            string = "%s %s" % (str(self.pk), #"%s %s/%s/%s"
+                                      self.alias)
+                                      #self.subject,
+                                      #str(self.start_time)[:10],
+                                      #str(self.number).zfill(3))
         except Exception:
             string = "%s %s" % (str(self.pk), self.subject)
+        return string
+
+    @property
+    def alias(self):
+        string = "%s/%s/%s" % (self.subject,
+                                str(self.start_time)[:10],
+                                str(self.number).zfill(3))
         return string
 
     @property
