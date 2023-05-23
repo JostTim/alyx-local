@@ -208,7 +208,7 @@ class SessionFilter(BaseFilterSet):
     projects = django_filters.CharFilter(field_name='projects__name', lookup_expr=('icontains'))
     # below is an alias to keep compatibility after moving project FK field to projects M2M
     project = django_filters.CharFilter(field_name='projects__name', lookup_expr=('icontains'))
-    procedures = django_filters.CharFilter(field_name='procedures__name', lookup_expr=('icontains'))
+    procedures = django_filters.CharFilter(field_name='procedures__name', method='filter_procedures')
     # brain region filters
     atlas_name = django_filters.CharFilter(field_name='name__icontains', method='atlas')
     atlas_acronym = django_filters.CharFilter(field_name='acronym__iexact', method='atlas')
@@ -271,6 +271,14 @@ class SessionFilter(BaseFilterSet):
         queryset = queryset.annotate(
             dtypes_count=Count('data_dataset_session_related__dataset_type', distinct=True))
         queryset = queryset.filter(dtypes_count__gte=len(dtypes))
+        return queryset
+    
+    def filter_procedures(self, queryset, name, value):
+        procedures_names = value.split(',')
+        queryset = queryset.filter(procedures__name=procedures_names)
+        queryset = queryset.annotate(
+            procedures_names_count=Count('procedures__name', distinct=True))
+        queryset = queryset.filter(procedures_names_count__gte=len(procedures_names))
         return queryset
 
     def filter_performance_gte(self, queryset, name, perf):
