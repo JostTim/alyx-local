@@ -476,7 +476,7 @@ def _pass_narrative_templates(context):
 
 
 class SessionAdmin(BaseActionAdmin):
-    list_display = ['alias', 'subject_l', 'start_time', 'number', 'lab', 'dataset_count',
+    list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
                     'task_protocol', 'qc', 'user_list', 'project_']
     list_display_links = ['alias']
     fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:] +[

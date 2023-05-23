@@ -297,7 +297,7 @@ class Session(BaseAction):
 
     def __str__(self):
         try:
-            string = "%s %s" % (str(self.pk), #"%s %s/%s/%s"
+            string = "Session : %s with primary key : %s" % (str(self.pk), #"%s %s/%s/%s"
                                       self.alias)
                                       #self.subject,
                                       #str(self.start_time)[:10],
