@@ -486,7 +486,8 @@ class SessionAdmin(BaseActionAdmin):
                    ('subject', RelatedDropdownFilter),
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
-                   ('lab', RelatedDropdownFilter),
+                   ('procedures', RelatedDropdownFilter),
+                   #('lab', RelatedDropdownFilter),
                    ]
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
