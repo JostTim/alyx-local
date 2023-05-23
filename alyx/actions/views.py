@@ -275,6 +275,7 @@ class SessionFilter(BaseFilterSet):
     
     def filter_procedures(self, queryset, name, value):
         procedures_names = value.split(',')
+        print(procedures_names)
         queryset = queryset.filter(procedures__name=procedures_names)
         queryset = queryset.annotate(
             procedures_names_count=Count('procedures__name', distinct=True))
