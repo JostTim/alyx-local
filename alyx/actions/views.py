@@ -275,9 +275,9 @@ class SessionFilter(BaseFilterSet):
         return queryset
     
     def filter_procedures(self, queryset, name, value):
-        logger = logging.getLogger("filter_procedures")
+        #logger = logging.getLogger("filter_procedures")
         procedures_names = value.split(',')
-        logger.warning("procedures names = " + str(procedures_names))
+        #logger.debug("procedures names = " + str(procedures_names))
         queryset = queryset.filter(procedures__name__in=procedures_names)
         queryset = queryset.annotate(
             procedures_names_count=Count('procedures__name', distinct=True))
