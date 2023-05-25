@@ -477,7 +477,8 @@ def _pass_narrative_templates(context):
 
 class SessionAdmin(BaseActionAdmin):
     list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
-                    'procedures', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we are in a single lab environment
+                    'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
+    # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
     list_display_links = ['alias']
     fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:] +[
@@ -518,6 +519,10 @@ class SessionAdmin(BaseActionAdmin):
         context = extra_context or {}
         context = _pass_narrative_templates(context)
         return super(SessionAdmin, self).add_view(request, extra_context=context)
+
+    def procedures_(self, obj):
+        return [getattr(p, 'name', None) for p in obj.procedures.all()]
+    procedures_.short_description = 'Procedures'
 
     def project_(self, obj):
         return [getattr(p, 'name', None) for p in obj.projects.all()]
