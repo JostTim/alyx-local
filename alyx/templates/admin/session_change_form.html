@@ -1,0 +1,8 @@
+{% extends 'change_form.html' %}
+{% load static %}
+
+{% block after_field_sets %}
+<div>
+    <a id="go-to-result-manager" href="http://127.0.0.1:5000/images/{{uuid}}">Result Manager</a>
+</div>
+{% endblock %}

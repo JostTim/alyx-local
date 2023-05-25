@@ -476,6 +476,7 @@ def _pass_narrative_templates(context):
 
 
 class SessionAdmin(BaseActionAdmin):
+    change_form_template = 'admin/session_change_form.html'
 
     list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
                     'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
@@ -512,6 +513,7 @@ class SessionAdmin(BaseActionAdmin):
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         context = extra_context or {}
+        context['uuid'] = object_id
         context = _pass_narrative_templates(context)
         return super(SessionAdmin, self).change_view(
             request, object_id, extra_context=context, **kwargs)
