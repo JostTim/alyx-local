@@ -1,19 +1,21 @@
 {% extends 'admin/change_form.html' %}
 {% load static %}
 
-{% block extrahead %}
+{% block content %}
 
 	<div>
 		<a id="go-to-result-manager" href="http://127.0.0.1:5000/images/{{uuid}}">Open in Result Manager</a>
+    <style>
+      #go-to-result-manager {
+        display: inline;
+        margin-top: 5;
+        margin-bottom: 5;
+        padding: 0;
+        background-color: #f44336;
+        color: white;
+      }
+    </style>
 	</div>
-	<style>
-		#go-to-result-manager {
-      display: inline;
-      margin-top: 5;
-      margin-bottom: 5;
-      padding: 0;
-      background-color: #f44336;
-      color: white;
-		}
-	</style>
+  
+  {{ block.super }}
 {% endblock %}
