@@ -476,13 +476,14 @@ def _pass_narrative_templates(context):
 
 
 class SessionAdmin(BaseActionAdmin):
+
     list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
                     'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
     # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
     list_display_links = ['alias']
-    fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:] +[
-        'repo_url', 'qc', 'extended_qc', 'projects', 'type', 'task_protocol',
+    fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:] +[# removed 'repo_url' as we are not web based but samba based
+        'projects', 'qc', 'extended_qc', 'type', 'task_protocol',
         'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime']
     list_filter = [('users', RelatedDropdownFilter),
                    ('subject', RelatedDropdownFilter),
