@@ -2,9 +2,9 @@
 {% load static %}
 
 {% block extrahead %}
-  {% block super_extrahead %}
-    {{ block.super }}
-  {% endblock %}
+  {% capture existing_extrahead %}{{ block.super }}{% endcapture %}
+  {{ existing_extrahead }}
+  
 	<div>
 		<a id="go-to-result-manager" href="http://127.0.0.1:5000/images/{{uuid}}">Open in Result Manager</a>
 	</div>
