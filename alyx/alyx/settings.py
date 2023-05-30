@@ -284,4 +284,4 @@ structlog.configure(
 )
 
 # ADDED BY TIMOTHE ON 13/04/2023 TO CONNECT FROM VARIOUS LOCATIONS IN THE LAB
-ALLOWED_HOSTS = ['127.0.0.1','localhost','157.99.138.172','haiss-alyx']
+ALLOWED_HOSTS = ['127.0.0.1','localhost','157.99.138.172','haiss-alyx','haiss-alyx.local']
