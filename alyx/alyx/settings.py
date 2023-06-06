@@ -151,8 +151,10 @@ if not DEBUG:
 INSTALLED_APPS = (
     # 'dal',
     # 'dal_select2',
-    'jsoneditor',
-    'django_admin_listfilter_dropdown',
+    'material',
+    'material.admin',
+    'jsoneditor', #https://github.com/nnseva/django-jsoneditor
+    'django_admin_listfilter_dropdown', #https://github.com/mrts/django-admin-list-filter-dropdown
     'django_filters',
     'django.contrib.admin',
     'django.contrib.admindocs',
