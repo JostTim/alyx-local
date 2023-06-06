@@ -23,6 +23,8 @@ from misc.admin import NoteInline
 from subjects.models import Subject
 from .water_control import WaterControl
 from experiments.models import ProbeInsertion
+from jsoneditor.forms import JSONEditor
+from django.db.models.fields.json import JSONField
 
 logger = structlog.get_logger(__name__)
 
@@ -498,7 +500,9 @@ class SessionAdmin(BaseActionAdmin):
     ordering = ('-start_time', 'task_protocol', 'lab')
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
-
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditor},
+    }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
         from django.db.models import Q
@@ -566,7 +570,7 @@ class SessionAdmin(BaseActionAdmin):
         return format_html('<b><a href="{url}" ">{} g </a></b>', wei[0].weight, url=url)
     weighing.short_description = 'weight before session'
 
-
+    
 class ProbeInsertionInline(TabularInline):
     fk_name = "session"
     show_change_link = True
