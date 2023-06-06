@@ -151,6 +151,7 @@ if not DEBUG:
 INSTALLED_APPS = (
     # 'dal',
     # 'dal_select2',
+    'jsoneditor',
     'django_admin_listfilter_dropdown',
     'django_filters',
     'django.contrib.admin',
@@ -177,6 +178,9 @@ INSTALLED_APPS = (
     'subjects',
     'django_cleanup.apps.CleanupConfig',  # needs to be last in the list
 )
+
+JSON_EDITOR_JS = 'https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.2/jsoneditor.js'
+JSON_EDITOR_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.2/jsoneditor.css'
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
