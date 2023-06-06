@@ -151,8 +151,10 @@ if not DEBUG:
 INSTALLED_APPS = (
     # 'dal',
     # 'dal_select2',
-    'material',
-    'material.admin',
+    'viewflow',
+    'viewflow.workflow',
+    #'material', #https://github.com/kmmbvnr/django-material 
+    #'material.admin', Decided to remove it because it is less clear than the original theme
     'jsoneditor', #https://github.com/nnseva/django-jsoneditor
     'django_admin_listfilter_dropdown', #https://github.com/mrts/django-admin-list-filter-dropdown
     'django_filters',
