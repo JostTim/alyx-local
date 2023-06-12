@@ -28,6 +28,9 @@ from experiments.models import ProbeInsertion
 from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 
+from django.db.models.fields.__init__ import TextField
+from mdeditor.widgets import MDeditorWidget
+
 logger = structlog.get_logger(__name__)
 
 
@@ -504,6 +507,7 @@ class SessionAdmin(BaseActionAdmin):
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
+        TextField: {'widget': MDeditorWidget}
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
