@@ -156,7 +156,8 @@ INSTALLED_APPS = (
     #'material', #https://github.com/kmmbvnr/django-material 
     #'material.admin', Decided to remove it because it is less clear than the original theme
     #'martor', #https://github.com/agusmakmun/django-markdown-editor #removed, not for admin page but for custom forms.
-    'mdeditor', #https://pypi.org/project/django-mdeditor-widget/
+    #'mdeditor', #https://pypi.org/project/django-mdeditor-widget/ # removed, simply doesn't work
+    'markdownx', #https://github.com/neutronX/django-markdownx
     'jsoneditor', #https://github.com/nnseva/django-jsoneditor
     'django_admin_listfilter_dropdown', #https://github.com/mrts/django-admin-list-filter-dropdown
     'django_filters',

@@ -29,7 +29,9 @@ from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 
 from django.db.models.fields.__init__ import TextField
-from mdeditor.widgets import MDeditorWidget
+#from mdeditor.widgets import MDeditorWidget
+
+
 
 logger = structlog.get_logger(__name__)
 

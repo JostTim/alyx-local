@@ -15,6 +15,8 @@ from misc.models import Lab, LabLocation, LabMember, Note
 #from markdownfield.validators import VALIDATOR_STANDARD
 #https://pypi.org/project/django-markdownfield/
 
+from markdownx.models import MarkdownxField
+
 logger = structlog.get_logger(__name__)
 
 def _default_water_type():
@@ -146,7 +148,8 @@ class BaseAction(BaseModel):
     procedures = models.ManyToManyField('ProcedureType', blank=True,
                                         help_text="The procedure(s) performed")
     #narrative was TextField before
-    narrative = models.TextField(blank = True)
+    #narrative = models.TextField(blank = True)
+    narrative = MarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)") 
     #narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
     #rendered_narrative = RenderedMarkdownField()
 
