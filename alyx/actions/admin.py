@@ -508,8 +508,7 @@ class SessionAdmin(BaseActionAdmin):
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
-        JSONField: {'widget': JSONEditor},
-        TextField: {'widget': MDeditorWidget}
+        JSONField: {'widget': JSONEditor}
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
