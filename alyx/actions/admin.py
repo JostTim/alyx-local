@@ -23,6 +23,8 @@ from misc.admin import NoteInline
 from subjects.models import Subject
 from .water_control import WaterControl
 from experiments.models import ProbeInsertion
+
+#https://github.com/nnseva/django-jsoneditor
 from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 

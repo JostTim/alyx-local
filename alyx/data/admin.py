@@ -9,6 +9,9 @@ from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType
                      Dataset, FileRecord, Download, Revision, Tag)
 from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
+#https://github.com/nnseva/django-jsoneditor
+from django.db.models.fields.json import JSONField
+from jsoneditor.forms import JSONEditor
 
 class CreatedByListFilter(DefaultListFilter):
     title = 'created by'
@@ -50,6 +53,10 @@ class DatasetTypeAdmin(BaseAdmin):
     ordering = ('name',)
     search_fields = ('name', 'description', 'filename_pattern', 'created_by__username')
     list_filter = [('created_by', RelatedDropdownFilter)]
+
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditor},
+    }
 
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)

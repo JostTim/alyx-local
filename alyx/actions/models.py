@@ -11,6 +11,9 @@ from django.utils import timezone
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
+from markdownfield.models import MarkdownField, RenderedMarkdownField
+from markdownfield.validators import VALIDATOR_STANDARD
+#https://pypi.org/project/django-markdownfield/
 
 logger = structlog.get_logger(__name__)
 
@@ -143,7 +146,10 @@ class BaseAction(BaseModel):
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
     procedures = models.ManyToManyField('ProcedureType', blank=True,
                                         help_text="The procedure(s) performed")
-    narrative = models.TextField(blank=True)
+    #narrative was TextField before
+    narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD, blank=True)
+    rendered_narrative = RenderedMarkdownField()
+
     start_time = models.DateTimeField(
         null=True, blank=False, default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
