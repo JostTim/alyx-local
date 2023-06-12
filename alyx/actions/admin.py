@@ -27,8 +27,10 @@ from experiments.models import ProbeInsertion
 #https://github.com/nnseva/django-jsoneditor
 from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
-
 from django.db.models.fields.__init__ import TextField
+
+
+from markdownx.widgets import AdminMarkdownxWidget
 #from mdeditor.widgets import MDeditorWidget
 
 
@@ -508,7 +510,8 @@ class SessionAdmin(BaseActionAdmin):
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
-        JSONField: {'widget': JSONEditor}
+        JSONField: {'widget': JSONEditor},
+        TextField: {'widget': AdminMarkdownxWidget},
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
@@ -578,6 +581,8 @@ class SessionAdmin(BaseActionAdmin):
     weighing.short_description = 'weight before session'
 
     
+
+
 class ProbeInsertionInline(TabularInline):
     fk_name = "session"
     show_change_link = True
