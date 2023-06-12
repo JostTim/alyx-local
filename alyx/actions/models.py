@@ -147,7 +147,7 @@ class BaseAction(BaseModel):
     procedures = models.ManyToManyField('ProcedureType', blank=True,
                                         help_text="The procedure(s) performed")
     #narrative was TextField before
-    narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD, blank=True)
+    narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
     rendered_narrative = RenderedMarkdownField()
 
     start_time = models.DateTimeField(
