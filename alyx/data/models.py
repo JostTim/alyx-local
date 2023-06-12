@@ -11,7 +11,6 @@ import os
 def _related_string(field):
     return "%(app_label)s_%(class)s_" + field + "_related"
 
-
 # Data repositories
 # ------------------------------------------------------------------------------------------------
 
@@ -158,7 +157,8 @@ class DatasetType(BaseModel):
         related_name=_related_string('created_by'),
         help_text="The creator of the data.")
 
-    description = models.CharField(
+    # changed this to TextField
+    description = models.TextField(
         max_length=1023, blank=True,
         help_text="Human-readable description of data type. Should say what is in the file, and "
         "how to read it. For DataCollections, it should list what Datasets are expected in the "
@@ -172,6 +172,9 @@ class DatasetType(BaseModel):
         "would include all files starting with the word 'spikes'. NB: Case-insensitive matching."
         "If null, the name field must match the object.attribute part of the filename."
     )
+
+    file_location_template = models.JSONField(null=True, blank=True,
+                            help_text="Template to tell how the data of this type should be stored inside the session folder")
 
     class Meta:
         ordering = ('name',)
