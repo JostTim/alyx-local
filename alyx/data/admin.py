@@ -48,7 +48,8 @@ class DataFormatAdmin(BaseAdmin):
     ordering = ('name',)
 
 class DatasetTypeAdmin(BaseAdmin):
-    fields = ('composed_name','object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
+    fields = ('object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
+    readonly_fields=('composed_name',)
     list_display = ('name', 'fcount', 'description', 'filename_pattern', 'created_by')
     ordering = ('name',)
     search_fields = ('name','object','attribute', 'composed_name', 'description', 'filename_pattern', 'created_by__username')
