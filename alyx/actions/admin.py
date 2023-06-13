@@ -29,7 +29,7 @@ from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 from django.db.models.fields.__init__ import TextField
 
-
+from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
 #from mdeditor.widgets import MDeditorWidget
 
@@ -516,6 +516,7 @@ class SessionAdmin(BaseActionAdmin):
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
         TextField: {'widget': SideBySideMarkdownWidget},
+        MarkdownxField: {'widget': SideBySideMarkdownWidget},
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
