@@ -58,6 +58,9 @@ class UniqueObjectFilter(FieldListFilter):
 
     def queryset(self, request, queryset):
         return queryset.filter(object__icontains=self.value())
+    
+    def expected_parameters(self):
+        return [self.lookup_kwarg]
 
 class DatasetTypeAdmin(BaseAdmin):
     fields = ('composed_name','object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
