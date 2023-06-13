@@ -61,9 +61,9 @@ class UniqueObjectFilter(DropdownFilter):
     
 
 class DatasetTypeAdmin(BaseAdmin):
-    fields = ('composed_name','object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
-    readonly_fields=('composed_name',)
-    list_display = ('composed_name', 'name', 'fcount', 'description', 'filename_pattern', 'created_by')
+    fields = ('name','object','attribute','description', 'created_by', 'file_location_template')
+    readonly_fields=('name',)
+    list_display = ('name', 'fcount', 'description', 'created_by')
     ordering = ('name',)
     search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
     list_filter = [('created_by', RelatedDropdownFilter) , ('object', DropdownFilter)]
@@ -75,9 +75,6 @@ class DatasetTypeAdmin(BaseAdmin):
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)
         qs = qs.select_related('created_by')
-        #qs = qs.annotate(
-        #    composed_name=Concat("object", Value("."), "attribute")
-        #)
         return qs
 
     def save_model(self, request, obj, form, change):

@@ -193,12 +193,8 @@ class DatasetType(BaseModel):
             models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
         ]#this is redundant with the fact that name is unique=True but as name is set in save(), we still prefer to have this
 
-    @property
-    def composed_name(self):
-        return self.object + "." + self.attribute
-
     def __str__(self):
-        return "<DatasetType %s>" % self.composed_name
+        return "<DatasetType %s>" % self.name
 
     def save(self, *args, **kwargs):
         """Ensure filename_pattern is lower case."""
