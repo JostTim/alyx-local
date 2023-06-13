@@ -57,7 +57,7 @@ class UniqueObjectFilter(DropdownFilter):
         return [(c.id, c.name) for c in objects]
 
     def queryset(self, request, queryset):
-        return queryset.filter(object__icontains=self.value())
+        return queryset.filter(object__icontains=self.lookup_val)
     
 
 class DatasetTypeAdmin(BaseAdmin):
