@@ -189,9 +189,9 @@ class DatasetType(BaseModel):
 
     class Meta:
         ordering = ('name',)
-        #constraints = [
-        #    models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
-        #]
+        constraints = [
+            models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
+        ]#this is redundant with the fact that name is unique=True but as name is set in save(), we still prefer to have this
 
     @property
     def composed_name(self):
@@ -204,10 +204,10 @@ class DatasetType(BaseModel):
         """Ensure filename_pattern is lower case."""
         if self.filename_pattern:
             self.filename_pattern = self.filename_pattern.lower()
-        if self.object :
-            self.object = self.object.replace(".",'')
-        if self.attribute :
-            self.attribute = self.attribute.replace(".",'')
+ 
+        self.object = self.object.replace(".",'')
+        self.attribute = self.attribute.replace(".",'')
+        self.name = self.object + "." + self.attribute
         return super().save(*args, **kwargs)
 
 class BaseExperimentalData(BaseModel):
