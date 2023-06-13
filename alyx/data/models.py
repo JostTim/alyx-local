@@ -189,9 +189,9 @@ class DatasetType(BaseModel):
 
     class Meta:
         ordering = ('name',)
-        constraints = [
-            models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
-        ]
+        #constraints = [
+        #    models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
+        #]
 
     @property
     def composed_name(self):
