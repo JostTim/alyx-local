@@ -29,7 +29,7 @@ from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 from django.db.models.fields.__init__ import TextField
 
-
+from markdownx.admin import MarkdownxModelAdmin
 #from mdeditor.widgets import MDeditorWidget
 
 
@@ -484,7 +484,7 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-class SessionAdmin(BaseActionAdmin):
+class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     change_form_template = 'admin/session_change_form.html'
 
     list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
