@@ -461,7 +461,7 @@ class DatasetInline(BaseInlineAdmin):
     show_change_link = True
     model = Dataset
     extra = 1
-    fields = ('name', 'dataset_type', 'collection', '_online', 'version', 'created_by',
+    fields = ('name', 'collection', '_online', 'version', 'created_by',
               'created_datetime')
     readonly_fields = fields
     ordering = ("name",)
@@ -565,6 +565,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
             return '-'
         col = '008000' if cr == cs else '808080'  # green if all files uploaded on server
         return format_html('<b><a style="color: #{};">{}</a></b>', col, '{:2.0f}'.format(cr))
+    
     dataset_count.short_description = '# datasets'
     dataset_count.admin_order_field = '_dataset_count'
 
