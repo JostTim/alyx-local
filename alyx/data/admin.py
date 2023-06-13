@@ -3,7 +3,7 @@ from django.db.models.functions import Concat
 from django.db.models.fields.json import JSONField
 from django.contrib import admin
 from django.utils.html import format_html
-from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, DropdownFilter
 from django.contrib.admin.filters import SimpleListFilter, FieldListFilter
 from rangefilter.filter import DateRangeFilter
 
@@ -48,7 +48,7 @@ class DataFormatAdmin(BaseAdmin):
     list_display = fields[:-1]
     ordering = ('name',)
 
-class UniqueObjectFilter(SimpleListFilter):
+class UniqueObjectFilter(DropdownFilter):
     title = 'Object' # or use _('country') for translated title
     parameter_name = 'Object'
 
@@ -57,7 +57,7 @@ class UniqueObjectFilter(SimpleListFilter):
         return [(c.id, c.name) for c in objects]
 
     def queryset(self, request, queryset):
-        return queryset.filter(object__icontains=self.value())
+        return queryset.filter(object__icontains=request.value())
     
 
 class DatasetTypeAdmin(BaseAdmin):
