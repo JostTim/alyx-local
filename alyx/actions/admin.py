@@ -485,8 +485,6 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-
-from django import forms
 class SideBySideMarkdownWidget(AdminMarkdownxWidget):
     template_name = 'markdownx/widget.html'
 

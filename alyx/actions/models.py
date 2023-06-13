@@ -149,7 +149,8 @@ class BaseAction(BaseModel):
                                         help_text="The procedure(s) performed")
     #narrative was TextField before
     #narrative = models.TextField(blank = True)
-    narrative = MarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", blank = True) 
+    narrative = MarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 
+                               blank = True) 
     #narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
     #rendered_narrative = RenderedMarkdownField()
 
