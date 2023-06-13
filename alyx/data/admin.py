@@ -1,4 +1,6 @@
-from django.db.models import Count
+from django.db.models import Count, Value
+from django.db.models.functions import Concat
+from django.db.models.fields.json import JSONField
 from django.contrib import admin
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
@@ -10,7 +12,6 @@ from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType
 from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
 #https://github.com/nnseva/django-jsoneditor
-from django.db.models.fields.json import JSONField
 from jsoneditor.forms import JSONEditor
 
 class CreatedByListFilter(DefaultListFilter):
@@ -52,7 +53,7 @@ class DatasetTypeAdmin(BaseAdmin):
     readonly_fields=('composed_name',)
     list_display = ('composed_name', 'name', 'fcount', 'description', 'filename_pattern', 'created_by')
     ordering = ('name',)
-    search_fields = ('name','object','attribute', 'composed_name', 'description', 'filename_pattern', 'created_by__username')
+    search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
     list_filter = [('created_by', RelatedDropdownFilter)]
     
     formfield_overrides = {
@@ -62,6 +63,9 @@ class DatasetTypeAdmin(BaseAdmin):
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)
         qs = qs.select_related('created_by')
+        queryset = queryset.annotate(
+            composed_name=Concat("object", Value("."), "attribute")
+        )
         return qs
 
     def save_model(self, request, obj, form, change):
