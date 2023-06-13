@@ -485,7 +485,7 @@ def _pass_narrative_templates(context):
     return context
 
 class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
-    change_form_template = 'admin/session_change_form.html'
+    change_form_template = r'admin/session_change_form.html'
 
     list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
                     'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
@@ -509,8 +509,6 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
-        #TextField: {'widget': SideBySideMarkdownWidget},
-        #MarkdownxField: {'widget': SideBySideMarkdownWidget},
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
