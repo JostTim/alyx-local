@@ -461,7 +461,7 @@ class DatasetInline(BaseInlineAdmin):
     show_change_link = True
     model = Dataset
     extra = 1
-    fields = ('name', 'collection', '_online', 'version', 'created_by',
+    fields = ('name', 'dataset_type', 'collection', '_online', 'version', 'created_by',
               'created_datetime')
     readonly_fields = fields
     ordering = ("name",)
@@ -505,11 +505,12 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
     ordering = ('-start_time', 'task_protocol', 'lab')
-    inlines = [WaterAdminInline, DatasetInline, NoteInline]
+    #inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
     }
+
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
         from django.db.models import Q
