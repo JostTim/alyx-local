@@ -48,13 +48,24 @@ class DataFormatAdmin(BaseAdmin):
     list_display = fields[:-1]
     ordering = ('name',)
 
+class UniqueObjectFilter(SimpleListFilter):
+    title = 'Object' # or use _('country') for translated title
+    parameter_name = 'Object'
+
+    def lookups(self, request, model_admin):
+        objects = set([c.object for c in model_admin.model.objects.all()])
+        return [(c.id, c.name) for c in objects]
+
+    def queryset(self, request, queryset):
+        return queryset.filter(object__icontains=self.value())
+
 class DatasetTypeAdmin(BaseAdmin):
     fields = ('composed_name','object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
     readonly_fields=('composed_name',)
     list_display = ('composed_name', 'name', 'fcount', 'description', 'filename_pattern', 'created_by')
     ordering = ('name',)
     search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
-    list_filter = [('created_by', RelatedDropdownFilter)]
+    list_filter = [('created_by', RelatedDropdownFilter) , ('object', UniqueObjectFilter)]
     
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
