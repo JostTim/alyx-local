@@ -201,9 +201,10 @@ class DatasetType(BaseModel):
         if self.filename_pattern:
             self.filename_pattern = self.filename_pattern.lower()
  
-        self.object = self.object.replace(".",'')
-        self.attribute = self.attribute.replace(".",'')
-        self.name = self.object + "." + self.attribute
+        if self.object and self.attribute :
+            self.object = self.object.replace(".",'')
+            self.attribute = self.attribute.replace(".",'')
+            self.name = self.object + "." + self.attribute
         return super().save(*args, **kwargs)
 
 class BaseExperimentalData(BaseModel):

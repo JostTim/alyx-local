@@ -476,7 +476,6 @@ class DatasetInline(BaseInlineAdmin):
             kwargs["queryset"] = DatasetType.objects.all()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-
 class WaterAdminInline(BaseInlineAdmin):
     model = WaterAdministration
     extra = 0
