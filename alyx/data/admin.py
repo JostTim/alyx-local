@@ -4,7 +4,7 @@ from django.db.models.fields.json import JSONField
 from django.contrib import admin
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
-from django.contrib.admin.filters import SimpleListFilter
+from django.contrib.admin.filters import SimpleListFilter, FieldListFilter
 from rangefilter.filter import DateRangeFilter
 
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
@@ -48,7 +48,7 @@ class DataFormatAdmin(BaseAdmin):
     list_display = fields[:-1]
     ordering = ('name',)
 
-class UniqueObjectFilter(SimpleListFilter):
+class UniqueObjectFilter(FieldListFilter):
     title = 'Object' # or use _('country') for translated title
     parameter_name = 'Object'
 
