@@ -486,6 +486,10 @@ def _pass_narrative_templates(context):
     return context
 
 
+from django import forms
+class SideBySideMarkdownWidget(AdminMarkdownxWidget):
+    template_name = 'markdownx/widget.html'
+
 class SessionAdmin(BaseActionAdmin):
     change_form_template = 'admin/session_change_form.html'
 
@@ -511,7 +515,7 @@ class SessionAdmin(BaseActionAdmin):
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
-        TextField: {'widget': AdminMarkdownxWidget},
+        TextField: {'widget': SideBySideMarkdownWidget},
     }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
