@@ -505,7 +505,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
     ordering = ('-start_time', 'task_protocol', 'lab')
-    #inlines = [WaterAdminInline, DatasetInline, NoteInline]
+    inlines = [WaterAdminInline, NoteInline]#, DatasetInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
