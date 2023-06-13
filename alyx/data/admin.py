@@ -48,7 +48,7 @@ class DataFormatAdmin(BaseAdmin):
     list_display = fields[:-1]
     ordering = ('name',)
 
-class UniqueObjectFilter(FieldListFilter):
+class UniqueObjectFilter(SimpleListFilter):
     title = 'Object' # or use _('country') for translated title
     parameter_name = 'Object'
 
@@ -59,8 +59,6 @@ class UniqueObjectFilter(FieldListFilter):
     def queryset(self, request, queryset):
         return queryset.filter(object__icontains=self.value())
     
-    def expected_parameters(self):
-        return [self.lookup_kwarg]
 
 class DatasetTypeAdmin(BaseAdmin):
     fields = ('composed_name','object','attribute','name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
