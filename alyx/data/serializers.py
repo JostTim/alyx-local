@@ -52,7 +52,7 @@ class DatasetTypeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DatasetType
-        fields = ('id', 'name', 'created_by', 'description', 'filename_pattern')
+        fields = ('id', 'name', 'created_by', 'description', 'filename_pattern', 'object', 'attribute')
         extra_kwargs = {'url': {'view_name': 'datasettype-detail', 'lookup_field': 'name'}}
 
 
