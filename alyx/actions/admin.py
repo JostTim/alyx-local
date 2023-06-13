@@ -24,6 +24,16 @@ from subjects.models import Subject
 from .water_control import WaterControl
 from experiments.models import ProbeInsertion
 
+#https://github.com/nnseva/django-jsoneditor
+from jsoneditor.forms import JSONEditor
+from django.db.models.fields.json import JSONField
+from django.db.models.fields.__init__ import TextField
+
+from markdownx.admin import MarkdownxModelAdmin
+#from mdeditor.widgets import MDeditorWidget
+
+
+
 logger = structlog.get_logger(__name__)
 
 
@@ -474,25 +484,32 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-class SessionAdmin(BaseActionAdmin):
-    list_display = ['subject_l', 'start_time', 'number', 'lab', 'dataset_count',
-                    'task_protocol', 'qc', 'user_list', 'project_']
-    list_display_links = ['start_time']
-    fields = BaseActionAdmin.fields + [
-        'repo_url', 'qc', 'extended_qc', 'projects', ('type', 'task_protocol', ), 'number',
+class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
+    change_form_template = r'admin/session_change_form.html'
+
+    list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', #removed 'lab' as we are in a single lab environment
+                    'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
+    # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
+                   
+    list_display_links = ['alias']
+    fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:-1] +[# removed 'repo_url' as we are not web based but samba based
+        'projects'] + [BaseActionAdmin.fields[-1]] + [ 'qc', 'extended_qc', 'type', 'task_protocol',
         'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime']
     list_filter = [('users', RelatedDropdownFilter),
                    ('subject', RelatedDropdownFilter),
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
-                   ('lab', RelatedDropdownFilter),
+                   ('procedures', RelatedDropdownFilter),
+                   #('lab', RelatedDropdownFilter),
                    ]
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
     ordering = ('-start_time', 'task_protocol', 'lab')
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
-
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditor},
+    }
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
         from django.db.models import Q
@@ -507,6 +524,7 @@ class SessionAdmin(BaseActionAdmin):
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         context = extra_context or {}
+        context['uuid'] = object_id
         context = _pass_narrative_templates(context)
         return super(SessionAdmin, self).change_view(
             request, object_id, extra_context=context, **kwargs)
@@ -515,6 +533,10 @@ class SessionAdmin(BaseActionAdmin):
         context = extra_context or {}
         context = _pass_narrative_templates(context)
         return super(SessionAdmin, self).add_view(request, extra_context=context)
+
+    def procedures_(self, obj):
+        return [getattr(p, 'name', None) for p in obj.procedures.all()]
+    procedures_.short_description = 'Procedures'
 
     def project_(self, obj):
         return [getattr(p, 'name', None) for p in obj.projects.all()]
@@ -554,6 +576,8 @@ class SessionAdmin(BaseActionAdmin):
                       args=[wei[0].id])
         return format_html('<b><a href="{url}" ">{} g </a></b>', wei[0].weight, url=url)
     weighing.short_description = 'weight before session'
+
+    
 
 
 class ProbeInsertionInline(TabularInline):

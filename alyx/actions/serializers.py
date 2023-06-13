@@ -131,7 +131,7 @@ class SessionListSerializer(BaseActionSerializer):
     class Meta:
         model = Session
         fields = ('id', 'subject', 'start_time', 'number', 'lab', 'projects', 'url',
-                  'task_protocol')
+                  'task_protocol','procedures')
 
 
 class SessionDetailSerializer(BaseActionSerializer):

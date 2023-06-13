@@ -2,12 +2,16 @@ from django.db.models import Count
 from django.contrib import admin
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django.contrib.admin.filters import SimpleListFilter
 from rangefilter.filter import DateRangeFilter
 
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
                      Dataset, FileRecord, Download, Revision, Tag)
 from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
+#https://github.com/nnseva/django-jsoneditor
+from django.db.models.fields.json import JSONField
+from jsoneditor.forms import JSONEditor
 
 class CreatedByListFilter(DefaultListFilter):
     title = 'created by'
@@ -44,11 +48,15 @@ class DataFormatAdmin(BaseAdmin):
     ordering = ('name',)
 
 class DatasetTypeAdmin(BaseAdmin):
-    fields = ('name', 'description', 'filename_pattern', 'created_by')
+    fields = ('name', 'description', 'filename_pattern', 'created_by', 'file_location_template')
     list_display = ('name', 'fcount', 'description', 'filename_pattern', 'created_by')
     ordering = ('name',)
     search_fields = ('name', 'description', 'filename_pattern', 'created_by__username')
     list_filter = [('created_by', RelatedDropdownFilter)]
+
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditor},
+    }
 
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)
@@ -78,6 +86,24 @@ class FileRecordInline(BaseInlineAdmin):
     fields = ('data_repository', 'relative_path', 'exists')
 
 
+class IsOnlineListFilter(SimpleListFilter):
+    title = 'Is Empty'
+    parameter_name = '_is_empty'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('Yes', 'Yes'),
+            ('No', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'Yes':
+            return queryset.exclude(file_records__gt=0)
+        elif value == 'No':
+            return queryset.filter(file_records__gt=0)
+        return queryset
+
 class DatasetAdmin(BaseExperimentalDataAdmin):
     fields = ['name', '_online', 'version', 'dataset_type', 'file_size', 'hash',
               'session_ro', 'collection', 'auto_datetime', 'revision_', 'default_dataset',
@@ -90,6 +116,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
     list_filter = [('created_by', RelatedDropdownFilter),
                    ('created_datetime', DateRangeFilter),
                    ('dataset_type', RelatedDropdownFilter),
+                   IsOnlineListFilter
                    ]
     search_fields = ('session__id', 'name', 'collection', 'dataset_type__name',
                      'dataset_type__filename_pattern', 'version')
