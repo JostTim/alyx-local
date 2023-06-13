@@ -63,9 +63,9 @@ class DatasetTypeAdmin(BaseAdmin):
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)
         qs = qs.select_related('created_by')
-        qs = qs.annotate(
-            composed_name=Concat("object", Value("."), "attribute")
-        )
+        #qs = qs.annotate(
+        #    composed_name=Concat("object", Value("."), "attribute")
+        #)
         return qs
 
     def save_model(self, request, obj, form, change):
