@@ -64,7 +64,7 @@ class DatasetTypeAdmin(BaseAdmin):
     fields = ('name','object','attribute','description', 'created_by', 'file_location_template')
     readonly_fields=('name',)
     list_display = ('name', 'object', 'attribute', 'fcount' ,'description', 'created_by')
-    ordering = ('name','object','attribute')
+    ordering = ('name',)
     search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
     list_filter = [('created_by', RelatedDropdownFilter) , ('object', DropdownFilter)]
     

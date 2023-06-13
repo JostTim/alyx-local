@@ -44,3 +44,91 @@ background-color: #FF9D95;
 {% block extrahead %}
     <script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
 {% endblock %}
+
+<style>
+/* Material design style for Django Admin templates */
+
+/* Typography */
+body, input, textarea, select, label {
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Colours */
+.h1, h2, h3, h4, h5, h6 {
+  color: #212121;
+}
+.text-muted {
+  color: #757575;
+}
+.text-primary {
+  color: #6200EE;
+}
+.bg-primary {
+  background-color: #6200EE;
+}
+
+/* Buttons */
+input[type=submit], input[type=button], button {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: .375rem .75rem;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: .25rem;
+  transition: all .15s ease-in-out;
+}
+
+/* Input fields */
+input[type=text], input[type=password], input[type=email], input[type=search], textarea, select {
+  display: block;
+  width: 100%;
+  height: calc(1.5em + .75rem + 2px);
+  padding: .375rem .75rem;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+table th {
+  background: #F5F5F5;
+  font-weight: 500;
+}
+table th, table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
+/* Visual enhancements */
+.button:focus, input[type=submit]:focus, input[type=button]:focus, button:focus {
+  box-shadow: 0 0 0 0.1rem rgba(98, 0, 238, 0.25);
+}
+input[type=submit]:hover, input[type=button]:hover, button:hover {
+  background-color: #4b3d91;
+}
+input[type=text]:focus, input[type=password]:focus, input[type=email]:focus, input[type=search]:focus, textarea:focus, select:focus {
+  border-color: #6200EE;
+  outline: none;
+  box-shadow: 0 0 0 0.1rem rgba(98, 0, 238, 0.25);
+}
+</style>
