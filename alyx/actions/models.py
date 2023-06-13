@@ -131,7 +131,9 @@ class WaterAdministration(BaseModel):
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
 class SideBySideMarkdownWidget(AdminMarkdownxWidget):
-    template_name = r'markdownx/widget.html'
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        self.template_name = r'markdownx/widget.html'
 
 class SideBySideMarkdownxField(MarkdownxField):
     def formfield(self, **kwargs):
