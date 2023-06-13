@@ -18,7 +18,7 @@ from .models import (OtherAction, ProcedureType, Session, EphysSession, Surgery,
                      WaterAdministration, WaterRestriction, Weighing, WaterType,
                      Notification, NotificationRule, Cull, CullReason, CullMethod,
                      )
-from data.models import Dataset, FileRecord
+from data.models import Dataset, FileRecord, DatasetType
 from misc.admin import NoteInline
 from subjects.models import Subject
 from .water_control import WaterControl
@@ -471,6 +471,11 @@ class DatasetInline(BaseInlineAdmin):
     _online.short_description = 'On server'
     _online.boolean = True
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "dataset_type":
+            kwargs["queryset"] = DatasetType.objects.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class WaterAdminInline(BaseInlineAdmin):
     model = WaterAdministration
@@ -505,7 +510,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
     ordering = ('-start_time', 'task_protocol', 'lab')
-    inlines = [WaterAdminInline, NoteInline]#, DatasetInline]
+    inlines = [WaterAdminInline, DatasetInline, NoteInline ]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
