@@ -128,6 +128,15 @@ class WaterAdministration(BaseModel):
         else:
             return 'Water adlib for %s' % str(self.subject)
 
+from markdownx.models import MarkdownxField
+from markdownx.widgets import AdminMarkdownxWidget
+class SideBySideMarkdownWidget(AdminMarkdownxWidget):
+    template_name = 'markdownx/widget.html'
+
+class SideBySideMarkdownxField(MarkdownxField):
+    def formfield(self, **kwargs):
+        kwargs['widget'] = SideBySideMarkdownWidget
+        return super().formfield(**kwargs)
 
 class BaseAction(BaseModel):
     """
@@ -149,7 +158,7 @@ class BaseAction(BaseModel):
                                         help_text="The procedure(s) performed")
     #narrative was TextField before
     #narrative = models.TextField(blank = True)
-    narrative = MarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 
+    narrative = SideBySideMarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 
                                blank = True) 
     #narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
     #rendered_narrative = RenderedMarkdownField()
