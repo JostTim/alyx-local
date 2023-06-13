@@ -47,7 +47,7 @@ class DataRepository(BaseModel):
     """
     objects = NameManager()
 
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, help_text = "Nickname of the repository, to identify it")
 
     repository_type = models.ForeignKey(
         DataRepositoryType, null=True, blank=True, on_delete=models.CASCADE)
@@ -76,13 +76,13 @@ class DataRepository(BaseModel):
     
     globus_path = models.CharField(
         max_length=1000, blank=True,
-        help_text="path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation")
+        help_text="relative root path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation")
     
     globus_endpoint_id = models.UUIDField(
         blank=True, null=True, help_text="UUID of the globus endpoint")
     
     globus_is_personal = models.BooleanField(
-        null=True, blank=True, default = False, help_text="whether the Globus endpoint is personal or not. "
+        null=False, blank=True, default = False, help_text="whether the Globus endpoint is personal or not. "
         "By default, Globus cannot transfer a file between two personal endpoints. The default value is False")
 
     def __str__(self):
@@ -144,12 +144,23 @@ class DatasetType(BaseModel):
     movie as mj2", etc. Normally each DatasetType will correspond to a specific 3-part alf name
     (for individual files) or the first word of the alf names (for DataCollections)
     """
-
     objects = NameManager()
 
     name = models.CharField(
         max_length=255, unique=True, blank=True, null=False,
         help_text="Short identifying nickname, e.g. 'spikes.times'")
+
+    object = models.CharField(max_length=255, 
+                              unique=False,
+                              blank=False,
+                              null=False,
+                              help_text="object (first part of the name) as per alf convention described here : https://int-brain-lab.github.io/ONE/alf_intro.html#dataset-name")
+    
+    attribute = models.CharField(max_length=255, 
+                                 unique=False,
+                                 blank=False,
+                                 null=False,
+                                 help_text="attribute (second part of the name) as per alf convention")
 
     created_by = models.ForeignKey(
         AUTH_USER_MODEL, blank=True, null=True,
@@ -178,16 +189,26 @@ class DatasetType(BaseModel):
 
     class Meta:
         ordering = ('name',)
+        constraints = [
+            models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
+        ]
+
+    @property
+    def composed_name(self):
+        return self.object + "." + self.attribute
 
     def __str__(self):
-        return "<DatasetType %s>" % self.name
+        return "<DatasetType %s>" % self.composed_name
 
     def save(self, *args, **kwargs):
         """Ensure filename_pattern is lower case."""
         if self.filename_pattern:
             self.filename_pattern = self.filename_pattern.lower()
+        if self.object :
+            self.object = self.object.replace(".",'')
+        if self.attribute :
+            self.attribute = self.attribute.replace(".",'')
         return super().save(*args, **kwargs)
-
 
 class BaseExperimentalData(BaseModel):
     """
