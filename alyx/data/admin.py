@@ -66,7 +66,7 @@ class DatasetTypeAdmin(BaseAdmin):
     list_display = ('composed_name', 'name', 'fcount', 'description', 'filename_pattern', 'created_by')
     ordering = ('name',)
     search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
-    list_filter = [('created_by', RelatedDropdownFilter) , ('composed_name', RelatedDropdownFilter)]
+    list_filter = [('created_by', RelatedDropdownFilter) , ('object', RelatedDropdownFilter)]
     
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
