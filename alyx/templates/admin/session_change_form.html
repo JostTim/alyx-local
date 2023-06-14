@@ -1,0 +1,33 @@
+{% extends 'admin/change_form.html' %}
+{% load static %}
+
+{% block content %}
+
+	<div style="padding-top: 20px; padding-bottom: 20px;">
+		<a id="go-to-result-manager" href="http://haiss-alyx.local:5000/images/{{uuid}}">Open in Result Manager</a>
+    <style>
+      #go-to-result-manager {
+        display: inline;
+        margin: 0 0 5px 5px;
+        padding: 10px;
+        background-color: #9b1e80;
+        border-radius: 4px;
+        color: white;
+        height: 35px;
+        line-height: 15px;
+      }
+
+      #go-to-result-manager:link, #go-to-result-manager:visited {
+        text-decoration: none;
+        transition: color 0.15s ease 0s, background-color 0.15s ease 0s;
+      }
+
+      #go-to-result-manager:hover, #go-to-result-manager:focus, #go-to-result-manager:active {
+        color: #d4d4d4; /* replace with desired color */
+        background-color: #791864; /* replace with desired background color */
+      }
+    </style>
+	</div>
+
+  {{ block.super }}
+{% endblock %}

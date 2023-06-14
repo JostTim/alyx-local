@@ -4,15 +4,20 @@ from math import inf
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
+#from markdownfield.models import MarkdownField, RenderedMarkdownField
+#from markdownfield.validators import VALIDATOR_STANDARD
+#https://pypi.org/project/django-markdownfield/
+
+from markdownx.models import MarkdownxField
 
 logger = structlog.get_logger(__name__)
-
 
 def _default_water_type():
     s = WaterType.objects.filter(name='Water')
@@ -123,6 +128,18 @@ class WaterAdministration(BaseModel):
         else:
             return 'Water adlib for %s' % str(self.subject)
 
+from markdownx.models import MarkdownxField
+from markdownx.widgets import AdminMarkdownxWidget
+class SideBySideMarkdownWidget(AdminMarkdownxWidget):
+    def __init__(self, attrs=None):
+        super().__init__(attrs)
+        self.template_name = r'markdownx/widget.html'
+
+class SideBySideMarkdownxField(MarkdownxField):
+    def formfield(self, **kwargs):
+        kwargs['widget'] = SideBySideMarkdownWidget
+        logger.warning(str(kwargs['widget']))
+        return super().formfield(**kwargs)
 
 class BaseAction(BaseModel):
     """
@@ -142,9 +159,15 @@ class BaseAction(BaseModel):
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
     procedures = models.ManyToManyField('ProcedureType', blank=True,
                                         help_text="The procedure(s) performed")
-    narrative = models.TextField(blank=True)
+    #narrative was TextField before
+    #narrative = models.TextField(blank = True)
+    narrative = SideBySideMarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 
+                               blank = True) 
+    #narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
+    #rendered_narrative = RenderedMarkdownField()
+
     start_time = models.DateTimeField(
-        null=True, blank=True, default=timezone.now)
+        null=True, blank=False, default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
@@ -249,8 +272,8 @@ class Session(BaseAction):
                                       verbose_name='Session Projects')
     type = models.CharField(max_length=255, null=True, blank=True,
                             help_text="User-defined session type (e.g. Base, Experiment)")
-    number = models.IntegerField(null=True, blank=True,
-                                 help_text="Optional session number for this level")
+    number = models.IntegerField(null=True, blank=False,
+                                 help_text="Necessary session number for this subject, this day. Must be unique")
     task_protocol = models.CharField(max_length=1023, blank=True, default='')
     n_trials = models.IntegerField(blank=True, null=True)
     n_correct_trials = models.IntegerField(blank=True, null=True)
@@ -265,6 +288,7 @@ class Session(BaseAction):
 
     qc = models.IntegerField(default=0, choices=QC_CHOICES,
                              help_text=' / '.join([str(q[0]) + ': ' + q[1] for q in QC_CHOICES]))
+    
     extended_qc = models.JSONField(null=True, blank=True,
                                    help_text="Structured data about session QC,"
                                              "formatted in a user-defined way")
@@ -278,16 +302,37 @@ class Session(BaseAction):
             self.project = self.subject.projects.first()
         if not self.lab:
             self.lab = self.subject.lab
+
+        query_set = self.__class__.objects.filter(
+                                      start_time__date=self.start_time.date(),
+                                      number=self.number,
+                                      subject=self.subject)
+        
+        if self.id is not None:
+            query_set = query_set.exclude(id=self.id)
+
+        existing_day_sessions = query_set.count() 
+        #TODO : if number is null, autoincrement when setting
+        if existing_day_sessions :
+            raise ValidationError("Two session with same subject, date and number cannot exist")
+        #TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
         return super(Session, self).save(*args, **kwargs)
 
     def __str__(self):
         try:
-            string = "%s %s/%s/%s" % (str(self.pk),
-                                      self.subject,
-                                      str(self.start_time)[:10],
-                                      str(self.number).zfill(3))
+            string = "%s with primary key : %s" % (self.alias, str(self.pk)) #"%s %s/%s/%s"
+                                      #self.subject,
+                                      #str(self.start_time)[:10],
+                                      #str(self.number).zfill(3))
         except Exception:
             string = "%s %s" % (str(self.pk), self.subject)
+        return string
+
+    @property
+    def alias(self):
+        string = "%s/%s/%s" % (self.subject,
+                                str(self.start_time)[:10],
+                                str(self.number).zfill(3))
         return string
 
     @property

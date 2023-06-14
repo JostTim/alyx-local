@@ -38,7 +38,7 @@ sudo chown www-data:www-data -fR uploaded
 
 Clone the repository and install the environment
 ```shell
-git clone https://github.com/cortex-lab/alyx.git 
+git clone https://github.com/JostTim/alyx.git
 virtualenv alyxvenv --python=python3
 source ./alyxvenv/bin/activate
 pip install -r requirements.txt

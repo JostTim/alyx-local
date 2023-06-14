@@ -12,10 +12,10 @@ from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField, Base
 
 logger = structlog.get_logger(__name__)
 
+import os
 
 def _related_string(field):
     return "%(app_label)s_%(class)s_" + field + "_related"
-
 
 # Data repositories
 # ------------------------------------------------------------------------------------------------
@@ -53,30 +53,43 @@ class DataRepository(BaseModel):
     """
     objects = NameManager()
 
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=True, help_text = "Nickname of the repository, to identify it")
+
     repository_type = models.ForeignKey(
         DataRepositoryType, null=True, blank=True, on_delete=models.CASCADE)
+    
     hostname = models.CharField(
         max_length=200, blank=True,
         validators=[RegexValidator(r'^[a-zA-Z0-9\.\-\_]+$',
                                    message='Invalid hostname',
                                    code='invalid_hostname')],
-        help_text="Host name of the network drive")
+        help_text="Host name of the network drive. e.g. Mountcastle")
+    
     data_url = models.URLField(
         blank=True, null=True,
-        help_text="URL of the data repository, if it is accessible via HTTP")
+        help_text="URL of the data repository, if it is accessible via HTTP (WebDav). You can leave it unspecified as it is currentely not used.")
+
+    @property
+    def data_path(self):
+        hostname = self.hostname.strip('/').strip("\\")#removing back or forward slashes on both sides
+        root = os.path.join( "//" + hostname, self.globus_path.strip('/').strip("\\"))
+        return root
+
     timezone = models.CharField(
         max_length=64, blank=True, default=TIME_ZONE,
         help_text="Timezone of the server "
         "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)")
+    
     globus_path = models.CharField(
         max_length=1000, blank=True,
-        help_text="absolute path to the repository on the server e.g. /mnt/something/")
+        help_text="relative root path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation")
+    
     globus_endpoint_id = models.UUIDField(
         blank=True, null=True, help_text="UUID of the globus endpoint")
+    
     globus_is_personal = models.BooleanField(
-        null=True, blank=True, help_text="whether the Globus endpoint is personal or not. "
-        "By default, Globus cannot transfer a file between two personal endpoints.")
+        null=False, blank=True, default = False, help_text="whether the Globus endpoint is personal or not. "
+        "By default, Globus cannot transfer a file between two personal endpoints. The default value is False")
 
     def __str__(self):
         return "<DataRepository '%s'>" % self.name
@@ -84,7 +97,6 @@ class DataRepository(BaseModel):
     class Meta:
         verbose_name_plural = "data repositories"
         ordering = ('name',)
-
 
 # Datasets
 # ------------------------------------------------------------------------------------------------
@@ -138,12 +150,23 @@ class DatasetType(BaseModel):
     movie as mj2", etc. Normally each DatasetType will correspond to a specific 3-part alf name
     (for individual files) or the first word of the alf names (for DataCollections)
     """
-
     objects = NameManager()
 
     name = models.CharField(
         max_length=255, unique=True, blank=True, null=False,
         help_text="Short identifying nickname, e.g. 'spikes.times'")
+
+    object = models.CharField(max_length=255, 
+                              unique=False,
+                              blank=False,
+                              null=False,
+                              help_text="object (first part of the name) as per alf convention described here : https://int-brain-lab.github.io/ONE/alf_intro.html#dataset-name")
+    
+    attribute = models.CharField(max_length=255, 
+                                 unique=False,
+                                 blank=False,
+                                 null=False,
+                                 help_text="attribute (second part of the name) as per alf convention")
 
     created_by = models.ForeignKey(
         AUTH_USER_MODEL, blank=True, null=True,
@@ -151,7 +174,8 @@ class DatasetType(BaseModel):
         related_name=_related_string('created_by'),
         help_text="The creator of the data.")
 
-    description = models.CharField(
+    # changed this to TextField
+    description = models.TextField(
         max_length=1023, blank=True,
         help_text="Human-readable description of data type. Should say what is in the file, and "
         "how to read it. For DataCollections, it should list what Datasets are expected in the "
@@ -166,8 +190,14 @@ class DatasetType(BaseModel):
         "If null, the name field must match the object.attribute part of the filename."
     )
 
+    file_location_template = models.JSONField(null=True, blank=True,
+                            help_text="Template to tell how the data of this type should be stored inside the session folder")
+
     class Meta:
         ordering = ('name',)
+        constraints = [
+            models.UniqueConstraint(fields=['object', 'attribute'], name='unique_dataset_type')
+        ]#this is redundant with the fact that name is unique=True but as name is set in save(), we still prefer to have this
 
     def __str__(self):
         return "<DatasetType %s>" % self.name
@@ -176,8 +206,12 @@ class DatasetType(BaseModel):
         """Ensure filename_pattern is lower case."""
         if self.filename_pattern:
             self.filename_pattern = self.filename_pattern.lower()
+ 
+        if self.object and self.attribute :
+            self.object = self.object.replace(".",'')
+            self.attribute = self.attribute.replace(".",'')
+            self.name = self.object + "." + self.attribute
         return super().save(*args, **kwargs)
-
 
 class BaseExperimentalData(BaseModel):
     """
@@ -343,6 +377,12 @@ class Dataset(BaseExperimentalData):
     revision = models.ForeignKey(
         Revision, blank=True, null=True, on_delete=models.SET_NULL)
 
+    @property
+    def relative_path(self):
+        revision = "#" + self.revision + "#" if self.revision else ""
+        collection = self.collection if self.collection else ""
+        return os.path.join(collection,revision)
+
     tags = models.ManyToManyField('data.Tag', blank=True, related_name='datasets')
 
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
@@ -405,6 +445,7 @@ class Dataset(BaseExperimentalData):
         super().delete(*args, **kwargs)
 
 
+
 # Files
 # ------------------------------------------------------------------------------------------------
 class FileRecordManager(models.Manager):
@@ -427,12 +468,26 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
+    file_name = models.CharField(max_length=1000,
+                                validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
+                                                        message='Invalid alyx file name.',
+                                                        code='invalid_alf')],
+                                help_text="file name within repository. Cannot contain a directory path")
+
     relative_path = models.CharField(
         max_length=1000,
         validators=[RegexValidator(r'^[a-zA-Z0-9\_][^\\\:]+$',
                                    message='Invalid path',
                                    code='invalid_path')],
         help_text="path name within repository")
+    
+    # @property
+    # def absolute_path(self):
+    #     os.path.join( self.dataset.session.data_repository.data_path , self.relative_path )
+
+    # @property
+    # def relative_path(self):
+    #     os.path.join( self.dataset.session.relative_path , self.dataset.relative_path , self.file_name )
 
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )

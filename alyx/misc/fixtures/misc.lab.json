@@ -1,13 +1,13 @@
 [
 {
  "model": "misc.lab",
- "pk": "4027da48-7be3-43ec-a222-f75dffe36872",
+ "pk": "6daeb82a-50ca-4ee9-ae97-50abfd3f50b6"
  "fields": {
   "json": null,
-  "name": "cortexlab",
-  "institution": "University College London",
-  "address": "Cruciform Building, Gower Street, London, WC1E 6BT, United Kingdom",
-  "timezone": "Europe/London",
+  "name": "haissctxlab",
+  "institution": "Pasteur",
+  "address": "25 Rue du DR. Roux - Paris",
+  "timezone": "Europe/Paris",
   "reference_weight_pct": 0.0,
   "zscore_weight_pct": 0.8,
   "cage_type": null,

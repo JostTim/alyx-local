@@ -74,7 +74,6 @@ class FilterDatasetSerializer(serializers.ListSerializer):
             dsets = dsets.filter(pk__in=pkd)
         return super(FilterDatasetSerializer, self).to_representation(dsets)
 
-
 class ProbeInsertionDatasetsSerializer(serializers.ModelSerializer):
 
     dataset_type = serializers.SlugRelatedField(
