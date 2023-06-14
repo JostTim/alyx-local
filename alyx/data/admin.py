@@ -119,9 +119,17 @@ class IsOnlineListFilter(SimpleListFilter):
         return queryset
 
 class DatasetAdmin(BaseExperimentalDataAdmin):
-    fields = ['name', '_online', 'version', 'dataset_type', 'data_format', 'file_size', 'hash',
-              'session_ro', 'collection', 'auto_datetime', 'revision_', 'default_dataset',
-              '_protected', '_public', 'tags']
+    fieldsets = (
+        ('Main', {
+            'fields': ('dataset_type', 'data_format', 'collection')
+        }),
+        ('Calculated', {
+            'fields': ('name', '_online', '_protected', '_public', 'session_ro', 'auto_datetime','revision_', 'tags')
+        }),
+        ('Tuning', {
+            'fields': ('file_size', 'hash', 'version','default_dataset')
+        }),
+    )
     readonly_fields = ['name', 'session_ro', '_online', 'auto_datetime', 'revision_',
                        '_protected', '_public', 'tags']
     list_display = ['name_', '_online', 'version', 'collection', 'dataset_type_', 'file_size',
