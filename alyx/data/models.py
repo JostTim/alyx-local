@@ -1,16 +1,10 @@
-import structlog
-
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 
 from alyx.settings import TIME_ZONE, AUTH_USER_MODEL
 from actions.models import Session
-from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField, BaseQuerySet, ALF_SPEC
-
-logger = structlog.get_logger(__name__)
+from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField
 
 import os
 
@@ -280,11 +274,7 @@ class Revision(BaseModel):
     Dataset revision information
     """
     objects = NameManager()
-    name_validator = RegexValidator(f"^{ALF_SPEC['revision']}$",
-                                    "Revisions must only contain letters, "
-                                    "numbers, hyphens, underscores and forward slashes.")
-    name = models.CharField(max_length=255, blank=True, help_text="Long name",
-                            unique=True, validators=[name_validator])
+    name = models.CharField(max_length=255, blank=True, help_text="Long name", unique=True)
     description = models.CharField(max_length=1023, blank=True)
     created_datetime = models.DateTimeField(blank=True, null=True, default=timezone.now,
                                             help_text="created date")
@@ -295,32 +285,10 @@ class Revision(BaseModel):
     def __str__(self):
         return "<Revision %s>" % self.name
 
-    def save(self, *args, **kwargs):
-        self.clean_fields()
-        return super(Revision, self).save(*args, **kwargs)
-
-
-class DatasetQuerySet(BaseQuerySet):
-    """A Queryset that checks for protected datasets before deletion"""
-
-    def delete(self, force=False):
-        if (protected := self.filter(tags__protected=True)).exists():
-            if force:
-                logger.warning('The following protected datasets will be deleted:\n%s',
-                               '\n'.join(map(str, protected.values_list('name', 'session_id'))))
-            else:
-                logger.error(
-                    'The following protected datasets cannot be deleted without force=True:\n%s',
-                    '\n'.join(map(str, protected.values_list('name', 'session_id'))))
-                raise models.ProtectedError(
-                    f'Failed to delete {protected.count()} dataset(s) due to protected tags',
-                    protected)
-        super().delete()
-
 
 class DatasetManager(BaseManager):
     def get_queryset(self):
-        qs = DatasetQuerySet(self.model, using=self._db)
+        qs = super(DatasetManager, self).get_queryset()
         qs = qs.select_related('dataset_type', 'data_format')
         return qs
 
@@ -338,13 +306,6 @@ class Dataset(BaseExperimentalData):
     """
     objects = DatasetManager()
 
-    # Generic foreign key to arbitrary model instances allows polymorphic relationships
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    object_id = models.UUIDField(help_text="UUID, an object of content_type with this "
-                                           "ID must already exist to attach a note.",
-                                 null=True, blank=True)
-    content_object = GenericForeignKey()
-
     file_size = models.BigIntegerField(blank=True, null=True, help_text="Size in bytes")
 
     md5 = models.UUIDField(blank=True, null=True,
@@ -358,13 +319,9 @@ class Dataset(BaseExperimentalData):
     version = models.CharField(blank=True, null=True, max_length=64,
                                help_text="version of the algorithm generating the file")
 
-    # the collection comprises session sub-folders
-    collection_validator = RegexValidator(f"^{ALF_SPEC['collection']}$",
-                                          "Collections must only contain letters, "
-                                          "numbers, hyphens, underscores and forward slashes.")
+    # while the collection is seen more as a data revision
     collection = models.CharField(blank=True, null=True, max_length=255,
-                                  help_text='file subcollection or subfolder',
-                                  validators=[collection_validator])
+                                  help_text='file subcollection or subfolder')
 
     dataset_type = models.ForeignKey(
         DatasetType, blank=False, null=False, on_delete=models.SET_DEFAULT,
@@ -395,19 +352,31 @@ class Dataset(BaseExperimentalData):
     @property
     def is_online(self):
         fr = self.file_records.filter(data_repository__globus_is_personal=False)
-        return bool(fr.count() and all(fr.values_list('exists', flat=True)))
+        if fr:
+            return all(fr.values_list('exists', flat=True))
+        else:
+            return False
 
     @property
     def is_protected(self):
-        return bool(self.tags.filter(protected=True).count())
+        tags = self.tags.filter(protected=True)
+        if tags.count() > 0:
+            return True
+        else:
+            return False
 
     @property
     def is_public(self):
-        return bool(self.tags.filter(public=True).count())
+        tags = self.tags.filter(public=True)
+        if tags.count() > 0:
+            return True
+        else:
+            return False
 
     @property
     def data_url(self):
-        records = self.file_records.filter(data_repository__data_url__isnull=False, exists=True)
+        records = self.file_records.filter(data_repository__data_url__isnull=False,
+                                           exists=True)
         # returns preferentially globus non-personal endpoint
         if records:
             order_keys = ('data_repository__globus_is_personal', '-data_repository__name')
@@ -424,7 +393,6 @@ class Dataset(BaseExperimentalData):
         super(Dataset, self).save(*args, **kwargs)
         if self.collection is None:
             return
-        self.clean_fields()  # Validate collection field
         from experiments.models import ProbeInsertion
         parts = self.collection.rsplit('/')
         if len(parts) > 1:
@@ -432,17 +400,6 @@ class Dataset(BaseExperimentalData):
             pis = ProbeInsertion.objects.filter(session=self.session, name=name)
             if len(pis):
                 self.probe_insertion.set(pis.values_list('pk', flat=True))
-
-    def delete(self, *args, force=False, **kwargs):
-        # If a dataset is protected and force=False, raise an exception
-        # NB This is not called when bulk deleting or in cascading deletes
-        if self.is_protected and not force:
-            tags = self.tags.filter(protected=True).values_list('name', flat=True)
-            tags_str = '"' + '", "'.join(tags) + '"'
-            logger.error(f'Dataset {self.name} is protected by tag(s); use force=True.')
-            raise models.ProtectedError(
-                f'Failed to delete dataset {self.name} due to protected tag(s) {tags_str}', self)
-        super().delete(*args, **kwargs)
 
 
 

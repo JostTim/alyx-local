@@ -1,5 +1,5 @@
 import datetime
-from pathlib import PurePosixPath
+import os.path as op
 import uuid
 
 from django.contrib.auth import get_user_model
@@ -184,19 +184,6 @@ class APIDataTests(BaseTests):
         self.ar(r, 201)
         self.assertEqual(r.data['default_dataset'], False)
 
-        # Create protected tag and dataset
-        r = self.ar(self.post(reverse('tag-list'), {'name': 'foo_tag', 'protected': True}), 201)
-        data = {'name': 'foo.bar', 'dataset_type': 'dst', 'created_by': 'test',
-                'data_format': 'df', 'date': '2018-01-01', 'number': 2, 'subject': self.subject,
-                'tags': [r['name']]}
-
-        r = self.ar(self.post(reverse('dataset-list'), data), 201)
-        did = r['url'].split('/')[-1]
-
-        # Now attempt to delete the protected dataset
-        r = self.client.delete(reverse('dataset-detail', args=[did]), data)
-        self.assertRegex(self.ar(r, 403), 'protected')
-
     def test_dataset_date_filter(self):
         # create 2 datasets with different dates
         data = {
@@ -371,12 +358,12 @@ class APIDataTests(BaseTests):
         self.assertEqual(d1['data_format'], 'e2')
 
         self.assertEqual(d0['file_records'][0]['data_repository'], 'dr')
-        self.assertEqual(PurePosixPath(data['path'], 'a.b.e1').as_posix(),
-                         d0['file_records'][0]['relative_path'])
+        self.assertEqual(d0['file_records'][0]['relative_path'],
+                         op.join(data['path'], 'a.b.e1'))
 
         self.assertEqual(d1['file_records'][0]['data_repository'], 'dr')
-        self.assertEqual(PurePosixPath(data['path'], 'a.c.e2').as_posix(),
-                         d1['file_records'][0]['relative_path'])
+        self.assertEqual(d1['file_records'][0]['relative_path'],
+                         op.join(data['path'], 'a.c.e2'))
 
     def test_register_existence_options(self):
 
@@ -509,8 +496,8 @@ class APIDataTests(BaseTests):
         self.assertTrue(not r['revision'])
         self.assertEqual(r['collection'], 'dir')
         # Check the revision relative path doesn't exist
-        self.assertEqual(r['file_records'][0]['relative_path'],
-                         PurePosixPath(data['path'], data['filenames']).as_posix())
+        self.assertTrue(r['file_records'][0]['relative_path'] ==
+                        op.join(data['path'], data['filenames']))
 
         # Now test specifying a revision in path
         data = {'path': '%s/2018-01-01/002/dir/#v1#' % self.subject,
@@ -523,7 +510,7 @@ class APIDataTests(BaseTests):
         self.assertTrue(r['revision'] == 'v1')
         self.assertEqual('dir', r['collection'])
         # Check file record relative path includes revision
-        self.assertIn('#v1#', r['file_records'][0]['relative_path'])
+        self.assertTrue('#v1#' in r['file_records'][0]['relative_path'])
 
         # Now test specifying a collection and a revision in filename
         data = {'path': '%s/2018-01-01/002/dir' % self.subject,
@@ -535,7 +522,7 @@ class APIDataTests(BaseTests):
         self.assertTrue(r['revision'] == 'v1')
         self.assertTrue(r['collection'] == 'dir/dir1')
         # Check file record relative path includes revision
-        self.assertIn('#v1#', r['file_records'][0]['relative_path'])
+        self.assertTrue('#v1#' in r['file_records'][0]['relative_path'])
 
         # Test that giving nested revision folders gives out an error
         data = {'path': '%s/2018-01-01/002/dir' % self.subject,

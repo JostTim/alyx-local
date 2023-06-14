@@ -4,13 +4,14 @@ import os
 import os.path as op
 import re
 import time
-from pathlib import Path, PurePosixPath
+from pathlib import Path
+from fnmatch import fnmatch
 
 from django.db.models import Case, When, Count, Q, F
 import globus_sdk
 import numpy as np
-from one.alf.files import add_uuid_string, folder_parts
-from one.registration import get_dataset_type
+from one.alf.files import filename_parts, add_uuid_string
+from one.alf.spec import is_valid
 
 from alyx import settings
 from data.models import FileRecord, Dataset, DatasetType, DataFormat, DataRepository
@@ -88,7 +89,7 @@ def _get_absolute_path(file_record):
         path2 = path2[6:]
     if path2.startswith('/'):
         path2 = path2[1:]
-    path = PurePosixPath(path1, path2).as_posix()
+    path = op.join(path1, path2)
     return path
 
 
@@ -169,6 +170,31 @@ def globus_file_exists(file_record):
     return False
 
 
+def get_dataset_type(filename, qs=None):
+    """Get the dataset type from a given filename"""
+    dataset_types = []
+    for dt in qs or DatasetType.objects.all():
+        if not dt.filename_pattern.strip():
+            # If the filename pattern is null, check whether the filename object.attribute matches
+            # the dataset type name.
+            if is_valid(filename):
+                obj_attr = '.'.join(filename_parts(filename)[1:3])
+            else:  # will match name against filename sans extension
+                obj_attr = op.splitext(filename)[0]
+            if dt.name == obj_attr:
+                dataset_types.append(dt)
+        # Check whether pattern matches filename
+        elif fnmatch(op.basename(filename).lower(), dt.filename_pattern.lower()):
+            dataset_types.append(dt)
+    n = len(dataset_types)
+    if n == 0:
+        raise ValueError("No dataset type found for filename `%s`" % filename)
+    elif n >= 2:
+        raise ValueError("Multiple matching dataset types found for filename `%s`: %s" % (
+            filename, ', '.join(map(str, dataset_types))))
+    return dataset_types[0]
+
+
 def get_data_format(filename):
     file_extension = op.splitext(filename)[-1]
     # This raises an error if there is 0 or 2+ matching data formats.
@@ -187,36 +213,36 @@ def _get_repositories_for_labs(labs, server_only=False):
     return list(repositories)
 
 
-def _get_name_collection_revision(file, rel_dir_path):
-    """
-    Extract collection, revision and session parts from the full file path.
+def _get_name_collection_revision(file, rel_dir_path, subject, date):
 
-    :param file: The filename
-    :param rel_dir_path: The relative path (subject/date/number/collection/revision)
-    :return: dict of path parts
-    :return: a REST Response object if ALF path is invalid, otherwise None
-    """
     # Get collections/revisions for each file
-    fullpath = Path(rel_dir_path).joinpath(file)
-    try:
-        info = folder_parts(fullpath.parent, as_dict=True)
-        if info['revision'] is not None:
-            path_parts = fullpath.parent.parts
-            assert path_parts.index(f"#{info['revision']}#") == len(path_parts) - 1
-    except AssertionError:
-        data = {'status_code': 400,
-                'detail': 'Invalid ALF path. There must be only 1 revision and it cannot contain'
-                          'sub folders. A revision folder must be surrounded by pound signs (#).'}
-        return None, Response(data=data, status=400)
-    except ValueError:
-        data = {'status_code': 400,
-                'detail': 'Invalid ALF path. Only letters, numbers, hyphen and underscores '
-                          'allowed. A revision folder must be surrounded by pound signs (#).'}
-        return None, Response(data=data, status=400)
+    fullpath = Path(rel_dir_path).joinpath(file).as_posix()
+    # Index of relative path (stuff after session path)
+    i = re.search(f'{subject}/{date}/' + r'\d{1,3}', fullpath).end()
+    subdirs = list(Path(fullpath[i:].strip('/')).parent.parts)
+    # Check for revisions (folders beginning and ending with '#')
+    # Fringe cases:
+    #   '#' is a collection
+    #   '##' is an empty revision
+    #   '##blah#5#' is a revision named '#blah#5'
+    is_rev = [len(x) >= 2 and x[0] + x[-1] == '##' for x in subdirs]
+    if any(is_rev):
+        # There may be only 1 revision and it cannot contain sub folders
+        if is_rev.index(True) != len(is_rev) - 1:
+            data = {'status_code': 400,
+                    'detail': 'Revision folders cannot contain sub folders'}
+            return None, Response(data=data, status=400)
+        revision = subdirs.pop()[1:-1]
+    else:
+        revision = None
 
-    info['full_path'] = fullpath.as_posix()
-    info['filename'] = fullpath.name
-    info['rel_dir_path'] = '{subject}/{date}/{number}'.format(**info)
+    info = dict()
+    info['full_path'] = fullpath
+    info['filename'] = Path(file).name
+    info['collection'] = '/'.join(subdirs)
+    info['revision'] = revision
+    info['rel_dir_path'] = fullpath[:i]
+
     return info, None
 
 
@@ -248,8 +274,8 @@ def _create_dataset_file_records(
 
     assert session is not None
     revision_name = f'#{revision.name}#' if revision else ''
-    relative_path = PurePosixPath(rel_dir_path, collection or '', revision_name, filename)
-    dataset_type = get_dataset_type(filename, DatasetType.objects.all())
+    relative_path = op.join(rel_dir_path, collection or '', revision_name, filename)
+    dataset_type = get_dataset_type(filename)
     data_format = get_data_format(filename)
     assert dataset_type
     assert data_format
@@ -261,9 +287,8 @@ def _create_dataset_file_records(
 
     # Get or create the dataset.
     dataset, is_new = Dataset.objects.get_or_create(
-        collection=collection, name=filename, session=session,  # content_object=session,
-        dataset_type=dataset_type, data_format=data_format, revision=revision
-    )
+        collection=collection, name=filename, session=session,
+        dataset_type=dataset_type, data_format=data_format, revision=revision)
     dataset.default_dataset = default is True
     dataset.save()
 
@@ -304,7 +329,7 @@ def _create_dataset_file_records(
         exists = repo in exists_in
         # Do not create a new file record if it already exists.
         fr, is_new = FileRecord.objects.get_or_create(
-            dataset=dataset, data_repository=repo, relative_path=relative_path.as_posix())
+            dataset=dataset, data_repository=repo, relative_path=relative_path)
         if is_new or is_patched:
             fr.exists = exists
             fr.json = None  # this is important if a dataset is patched during an ongoing transfer
@@ -655,12 +680,11 @@ def globus_transfer_datasets(dsets, dry=True):
     return gc, tm
 
 
-def globus_delete_local_datasets(datasets, dry=True, gc=None, label=None):
+def globus_delete_local_datasets(datasets, dry=True, gc=None):
     """
     For each dataset in the queryset delete the file records belonging to a Globus personal repo
     only if a server file exists and matches the size.
     :param datasets:
-    :param label: label for the transfer
     :param dry: default True
     :return:
     """
@@ -668,12 +692,11 @@ def globus_delete_local_datasets(datasets, dry=True, gc=None, label=None):
     file_records = FileRecord.objects.filter(dataset__in=datasets)
     globus_endpoints = file_records.values_list('data_repository__globus_endpoint_id',
                                                 flat=True).distinct()
-    label = label or 'alyx globus client'
     # create a globus delete_client for each globus endpoint
     gtc = gc or globus_transfer_client()
     delete_clients = []
     for ge in globus_endpoints:
-        delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=label))
+        delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=''))
 
     def _ls_globus(file_record, add_uuid=False):
         N_RETRIES = 3
@@ -769,7 +792,7 @@ def globus_delete_datasets(datasets, dry=True, local_only=False, gc=None):
         ds.delete()
 
 
-def globus_delete_file_records(file_records, dry=True, gc=None, label=None):
+def globus_delete_file_records(file_records, dry=True, gc=None):
     """
     For each filecord in the queryset, attempt a Globus delete for all physical file-records
     associated. Admin territory.
@@ -782,14 +805,14 @@ def globus_delete_file_records(file_records, dry=True, gc=None, label=None):
     globus_endpoints = file_records.values_list(
         'data_repository__globus_endpoint_id', flat=True).distinct()
     related_datasets = file_records.values_list('dataset', flat=True).distinct()
-    label = label or 'alyx globus client'
+
     # create a globus delete_client for each globus endpoint
     gtc = gc or globus_transfer_client()
     delete_clients = []
     if not dry:
         # delete_clients = []
         for ge in globus_endpoints:
-            delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=label))
+            delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=''))
     # appends each file for deletion
     for i, ge in enumerate(globus_endpoints):
         current_path = None

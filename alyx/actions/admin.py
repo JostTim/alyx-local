@@ -222,11 +222,9 @@ class WaterAdministrationForm(forms.ModelForm):
             return
         elif ids:
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            subjects = Subject.objects.order_by(preserved, 'nickname')
+            self.fields['subject'].queryset = Subject.objects.order_by(preserved, 'nickname')
         else:
-            subjects = Subject.objects.order_by('nickname')
-        # filters the subjects by the current user: responsible users, allowed users
-        self.fields['subject'].queryset = self.current_user.get_allowed_subjects(subjects)
+            self.fields['subject'].queryset = Subject.objects.order_by('nickname')
         self.fields['user'].queryset = get_user_model().objects.all().order_by('username')
         self.fields['water_administered'].widget.attrs.update({'autofocus': 'autofocus'})
 
@@ -399,7 +397,6 @@ class WaterRestrictionAdmin(BaseActionAdmin):
 class WeighingForm(BaseActionForm):
     def __init__(self, *args, **kwargs):
         super(WeighingForm, self).__init__(*args, **kwargs)
-        self.fields['subject'].queryset = self.current_user.get_allowed_subjects()
         if self.fields.keys():
             self.fields['weight'].widget.attrs.update({'autofocus': 'autofocus'})
 
@@ -575,6 +572,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
         return format_html('<b><a style="color: #{};">{}</a></b>', col, '{:2.0f}'.format(cr))
     
     dataset_count.short_description = '# datasets'
+    dataset_count.admin_order_field = '_dataset_count'
 
     def weighing(self, obj):
         wei = Weighing.objects.filter(date_time=obj.start_time)
@@ -601,7 +599,7 @@ class EphysSessionAdmin(SessionAdmin):
 
     def get_queryset(self, request):
         qs = super(EphysSessionAdmin, self).get_queryset(request)
-        return qs.filter(procedures__name__icontains='ephys')
+        return qs.filter(task_protocol__icontains='ephys')
 
 
 class NotificationUserFilter(DefaultListFilter):

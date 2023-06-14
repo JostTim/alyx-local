@@ -1,13 +1,18 @@
-from django.db.models import Count, ProtectedError
-from django.contrib import admin, messages
+from django.db.models import Count, Value
+from django.db.models.functions import Concat
+from django.db.models.fields.json import JSONField
+from django.contrib import admin
 from django.utils.html import format_html
-from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, DropdownFilter
+from django.contrib.admin.filters import SimpleListFilter, FieldListFilter
 from rangefilter.filter import DateRangeFilter
 
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
                      Dataset, FileRecord, Download, Revision, Tag)
 from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
+#https://github.com/nnseva/django-jsoneditor
+from jsoneditor.forms import JSONEditor
 
 class CreatedByListFilter(DefaultListFilter):
     title = 'created by'
@@ -31,13 +36,11 @@ class DataRepositoryTypeAdmin(BaseAdmin):
     list_display = ('name',)
     ordering = ('name',)
 
-
 class DataRepositoryAdmin(BaseAdmin):
-    fields = ('name', 'repository_type', 'timezone', 'hostname', 'data_url', 'globus_path',
-              'globus_endpoint_id', 'globus_is_personal')
+    fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_path', 'data_url')
+    readonly_fields=('data_path',)
     list_display = fields
     ordering = ('name',)
-
 
 class DataFormatAdmin(BaseAdmin):
     fields = ['name', 'description', 'file_extension',
@@ -45,13 +48,29 @@ class DataFormatAdmin(BaseAdmin):
     list_display = fields[:-1]
     ordering = ('name',)
 
+class UniqueObjectFilter(DropdownFilter):
+    title = 'Object' # or use _('country') for translated title
+    parameter_name = 'Object'
+
+    def lookups(self, request, model_admin):
+        objects = set([c.object for c in model_admin.model.objects.all()])
+        return [(c.id, c.name) for c in objects]
+
+    def queryset(self, request, queryset):
+        return queryset.filter(object__icontains=self.lookup_val)
+    
 
 class DatasetTypeAdmin(BaseAdmin):
-    fields = ('name', 'description', 'filename_pattern', 'created_by')
-    list_display = ('name', 'fcount', 'description', 'filename_pattern', 'created_by')
+    fields = ('name','object','attribute','description', 'created_by', 'file_location_template')
+    readonly_fields=('name',)
+    list_display = ('name', 'object', 'attribute', 'fcount' ,'description', 'created_by')
     ordering = ('name',)
-    search_fields = ('name', 'description', 'filename_pattern', 'created_by__username')
-    list_filter = [('created_by', RelatedDropdownFilter)]
+    search_fields = ('name','object','attribute', 'description', 'filename_pattern', 'created_by__username')
+    list_filter = [('created_by', RelatedDropdownFilter) , ('object', DropdownFilter)]
+    
+    formfield_overrides = {
+        JSONField: {'widget': JSONEditor},
+    }
 
     def get_queryset(self, request):
         qs = super(DatasetTypeAdmin, self).get_queryset(request)
@@ -81,6 +100,24 @@ class FileRecordInline(BaseInlineAdmin):
     fields = ('data_repository', 'relative_path', 'exists')
 
 
+class IsOnlineListFilter(SimpleListFilter):
+    title = 'Is Empty'
+    parameter_name = '_is_empty'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('Yes', 'Yes'),
+            ('No', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'Yes':
+            return queryset.exclude(file_records__gt=0)
+        elif value == 'No':
+            return queryset.filter(file_records__gt=0)
+        return queryset
+
 class DatasetAdmin(BaseExperimentalDataAdmin):
     fields = ['name', '_online', 'version', 'dataset_type', 'file_size', 'hash',
               'session_ro', 'collection', 'auto_datetime', 'revision_', 'default_dataset',
@@ -93,6 +130,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
     list_filter = [('created_by', RelatedDropdownFilter),
                    ('created_datetime', DateRangeFilter),
                    ('dataset_type', RelatedDropdownFilter),
+                   IsOnlineListFilter
                    ]
     search_fields = ('session__id', 'name', 'collection', 'dataset_type__name',
                      'dataset_type__filename_pattern', 'version')
@@ -134,21 +172,6 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
         return obj.is_public
     _public.short_description = 'Public'
     _public.boolean = True
-
-    def delete_queryset(self, request, queryset):
-        try:
-            queryset.delete()
-        except ProtectedError as e:
-            err_msg = e.args[0] if e.args else 'One or more dataset(s) protected'
-            self.message_user(request, err_msg, level=messages.ERROR)
-
-    def delete_model(self, request, obj):
-        try:
-            obj.delete()
-        except ProtectedError as e:
-            # FIXME This still shows the successful message which is confusing for users
-            err_msg = e.args[0] if e.args else f'Dataset {obj.name} is protected'
-            self.message_user(request, err_msg, level=messages.ERROR)
 
 
 class FileRecordAdmin(BaseAdmin):

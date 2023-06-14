@@ -140,10 +140,10 @@ class Subject(BaseModel):
     )
     PROTOCOL_NUMBERS = tuple((str(i), str(i)) for i in range(1, 5))
 
-    objects = SubjectManager()
-    nickname_validator = validators.RegexValidator(
-        r"^[\w.-]+$", "Nicknames must only contain letters, numbers, hyphens and underscores. "
-                      "Dots are reserved for breeding subjects.")
+    nickname_validator = validators.RegexValidator(r'^[-._~\+\*\w]+$',
+                                                   "Nicknames must only contain letters, "
+                                                   "numbers, or any of -._~.")
+
     nickname = models.CharField(max_length=64,
                                 default='-',
                                 help_text="""Please follow the standard format : 
@@ -267,7 +267,7 @@ please use the Zygosities fields below, and the description field to put more de
     def age_days(self):
         if (self.death_date is None and self.birth_date is not None):
             # subject still alive
-            age = datetime.utcnow().date() - self.birth_date
+            age = datetime.now(timezone.utc).date() - self.birth_date
         elif (self.death_date is not None and self.birth_date is not None):
             # subject is dead
             age = self.death_date - self.birth_date
@@ -336,8 +336,6 @@ please use the Zygosities fields below, and the description field to put more de
         # If the nickname is empty, use the autoname from the line.
         if self.line and self.nickname in (None, '', '-'):
             self.line.set_autoname(self)
-        # Check nickname doesn't contain any special characters that will mess with the ALF spec
-        self.nickname_validator(self.nickname)
         # Default strain.
         if self.line and not self.strain:
             self.strain = self.line.strain
@@ -636,11 +634,7 @@ class Line(BaseModel):
     def new_subject_autoname(self):
         self.subject_autoname_index = self.subject_autoname_index + 1
         self.save()
-        new_name = '%s_%04d' % (self.nickname, self.subject_autoname_index)
-        if Subject.objects.filter(nickname=new_name).count() > 0:
-            return self.new_subject_autoname()
-        assert Subject.objects.filter(nickname=new_name).count() == 0
-        return new_name
+        return '%s_%04d' % (self.nickname, self.subject_autoname_index)
 
     def set_autoname(self, obj):
         if isinstance(obj, BreedingPair):

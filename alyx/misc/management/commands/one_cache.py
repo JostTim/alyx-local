@@ -9,12 +9,11 @@ from functools import wraps
 from sys import getsizeof
 import zipfile
 import tempfile
-import os
 
 import pandas as pd
 import pyarrow.parquet as pq
 import pyarrow as pa
-from tqdm import tqdm
+from iblutil.io.parquet import uuid2np
 from one.alf.cache import _metadata
 from one.remote.aws import get_s3_virtual_host
 
@@ -22,7 +21,6 @@ from django.db import connection
 from django.db.models import Q, Exists, OuterRef
 from django.core.management.base import BaseCommand
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.core.paginator import Paginator
 
 from alyx.settings import TABLES_ROOT
 from actions.models import Session
@@ -90,8 +88,7 @@ def _save(filename: str, df: pd.DataFrame, metadata: dict = None, dry=False) -> 
         parsed = urllib.parse.urlparse(filename)
         if parsed.scheme == 's3':
             # Filename mustn't include scheme
-            path = parsed.path[int(parsed.path.startswith('/')):]
-            pq.write_table(table, path, filesystem=_s3_filesystem())
+            pq.write_table(table, parsed.path, filesystem=_s3_filesystem())
         elif parsed.scheme == '':
             pq.write_table(table, filename)
         else:
@@ -114,6 +111,8 @@ class Command(BaseCommand):
                             help='File(s) destination, may be local path or s3 URI starting s3://')
         parser.add_argument('-t', '--tables', nargs='*', default=('sessions', 'datasets'),
                             help="List of tables to generate")
+        parser.add_argument('--int-id', action='store_true',
+                            help="Save uuids as ints")
         parser.add_argument('--compress', action='store_true',
                             help="Save files into compressed folder")
         parser.add_argument('--tag', nargs='*',
@@ -128,8 +127,8 @@ class Command(BaseCommand):
             logger.setLevel(logging.DEBUG)
         self.dst_dir = options.get('destination')
         self.compress = options.get('compress')
-        tables, qc = options.get('tables'), options.get('qc')
-        self.generate_tables(tables, export_qc=qc, tags=options.get('tag'))
+        tables, int_id, qc = options.get('tables'), options.get('int_id'), options.get('qc')
+        self.generate_tables(tables, int_id=int_id, export_qc=qc, tags=options.get('tag'))
 
     def generate_tables(self, tables, export_qc=False, **kwargs) -> list:
         """
@@ -284,9 +283,8 @@ class Command(BaseCommand):
                 logger.debug(f'Opening output stream to {zip_file}')
                 with s3.open_output_stream(zip_file) as stream:
                     stream.write(zip_buffer.getbuffer())
-            elif scheme == 'file' or os.name == 'nt':
+            elif scheme == 'file':
                 # creates a json file containing metadata and add it to the zip file
-                Path(self.dst_dir).mkdir(exist_ok=True, parents=True)
                 tag_file = Path(self.dst_dir) / META_NAME
                 zip_file = Path(self.dst_dir) / ZIP_NAME
                 with open(tag_file, 'w') as fid:
@@ -301,7 +299,7 @@ class Command(BaseCommand):
 
 
 @measure_time
-def generate_sessions_frame(tags=None) -> pd.DataFrame:
+def generate_sessions_frame(int_id=True, tags=None) -> pd.DataFrame:
     """SESSIONS_COLUMNS = (
         'id',               # uuid str
         'lab',              # str
@@ -341,16 +339,25 @@ def generate_sessions_frame(tags=None) -> pd.DataFrame:
     for col in ('task_protocol', 'projects'):
         df[col] = df[col].astype(str)
 
-    # Convert UUID objects to str: not supported by parquet
-    df['id'] = df['id'].astype(str)
-    df.set_index('id', inplace=True)
+    if int_id:
+        # Convert UUID objects to 2xint64
+        df[['id_0', 'id_1']] = uuid2np(df['id'].values)
+        df = (
+            (df
+                .drop('id', axis=1)
+                .set_index(['id_0', 'id_1']))
+        )
+    else:
+        # Convert UUID objects to str: not supported by parquet
+        df['id'] = df['id'].astype(str)
+        df.set_index('id', inplace=True)
 
     logger.debug(f'Final session frame = {getsizeof(df) / 1024 ** 2:.1f} MiB')
     return df
 
 
 @measure_time
-def generate_datasets_frame(tags=None, batch_size=100_000) -> pd.DataFrame:
+def generate_datasets_frame(int_id=True, tags=None) -> pd.DataFrame:
     """DATASETS_COLUMNS = (
         'id',               # uuid str
         'eid',              # uuid str
@@ -374,9 +381,9 @@ def generate_datasets_frame(tags=None, batch_size=100_000) -> pd.DataFrame:
     if tags:
         kw = {'tags__name__in' if not isinstance(tags, str) else 'tags__name': tags}
         ds = ds.prefetch_related('tag').filter(**kw)
-    # Filter out datasets that do not exist on either repository or have no associated session
+    # Filter out datasets that do not exist on either repository
     ds = ds.annotate(exists_flatiron=Exists(on_flatiron), exists_aws=Exists(on_aws))
-    ds = ds.filter(Q(exists_flatiron=True) | Q(exists_aws=True), session__isnull=False)
+    ds = ds.filter(Q(exists_flatiron=True) | Q(exists_aws=True))
 
     # fields to keep from Dataset table
     fields = (
@@ -385,36 +392,39 @@ def generate_datasets_frame(tags=None, batch_size=100_000) -> pd.DataFrame:
         'session__subject__nickname', 'session__lab__name', 'exists_flatiron', 'exists_aws'
     )
     fields_map = {'session__id': 'eid', 'default_dataset': 'default_revision'}
+    df = pd.DataFrame.from_records(ds.values(*fields)).rename(fields_map, axis=1)
+    df['exists'] = True
 
-    paginator = Paginator(ds.order_by('pk'), batch_size)
-    all_df = pd.DataFrame([])
-    for i in tqdm(paginator.page_range):
-        data = paginator.get_page(i)
-        current_qs = data.object_list
-        df = pd.DataFrame.from_records(current_qs.values(*fields)).rename(fields_map, axis=1)
-        df['exists'] = True
+    # TODO New version without this nonsense
+    # session_path
+    globus_path = df.pop('session__lab__name') + '/Subjects'
+    subject = df.pop('session__subject__nickname')
+    date = df.pop('session__start_time__date').astype(str)
+    number = df.pop('session__number').apply(lambda x: str(x).zfill(3))
+    df['session_path'] = globus_path.str.cat((subject, date, number), sep='/')
 
-        # TODO New version without this nonsense
-        # session_path
-        globus_path = df.pop('session__lab__name') + '/Subjects'
-        subject = df.pop('session__subject__nickname')
-        date = df.pop('session__start_time__date').astype(str)
-        number = df.pop('session__number').apply(lambda x: str(x).zfill(3))
-        df['session_path'] = globus_path.str.cat((subject, date, number), sep='/')
+    # relative_path
+    revision = map(lambda x: None if not x else f'#{x}#', df.pop('revision__name'))
+    zipped = zip(df.pop('collection'), revision, df.pop('name'))
+    df['rel_path'] = ['/'.join(filter(None, x)) for x in zipped]
 
-        # relative_path
-        revision = map(lambda x: None if not x else f'#{x}#', df.pop('revision__name'))
-        zipped = zip(df.pop('collection'), revision, df.pop('name'))
-        df['rel_path'] = ['/'.join(filter(None, x)) for x in zipped]
-
+    if int_id:
+        # Convert UUID objects to 2xint64
+        df[['id_0', 'id_1']] = uuid2np(df['id'].values)
+        df[['eid_0', 'eid_1']] = uuid2np(df['eid'].values)
+        df = (
+            (df
+                .drop(['id', 'eid'], axis=1)
+                .set_index(['eid_0', 'eid_1', 'id_0', 'id_1'])
+                .sort_index())
+        )
+    else:
         # Convert UUIDs to str: not supported by parquet
         df[['id', 'eid']] = df[['id', 'eid']].astype(str)
-        df = df.set_index(['eid', 'id'])
+        df = df.set_index(['eid', 'id']).sort_index()
 
-        all_df = pd.concat([all_df, df], ignore_index=False, copy=False)
-
-    logger.debug(f'Final datasets frame = {getsizeof(all_df) / 1024 ** 2:.1f} MiB')
-    return all_df.sort_index()
+    logger.debug(f'Final datasets frame = {getsizeof(df) / 1024 ** 2:.1f} MiB')
+    return df
 
 
 def create_metadata() -> dict:

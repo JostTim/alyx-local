@@ -41,7 +41,7 @@ class SubjectFilter(BaseFilterSet):
 
     class Meta:
         model = Subject
-        exclude = []
+        exclude = ['json']
 
 
 class SubjectList(generics.ListCreateAPIView):
@@ -49,7 +49,7 @@ class SubjectList(generics.ListCreateAPIView):
     queryset = SubjectListSerializer.setup_eager_loading(queryset)
     serializer_class = SubjectListSerializer
     permission_classes = rest_permission_classes()
-    filterset_class = SubjectFilter
+    filter_class = SubjectFilter
 
 
 class SubjectDetail(generics.RetrieveUpdateDestroyAPIView):
