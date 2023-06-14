@@ -139,6 +139,9 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
+    data_repository = serializers.SlugRelatedField(
+        read_only=False, slug_field='name',
+        queryset=DataRepository.objects.all())
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
     protected = serializers.ReadOnlyField()

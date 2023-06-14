@@ -37,10 +37,13 @@ class DataRepositoryTypeAdmin(BaseAdmin):
     ordering = ('name',)
 
 class DataRepositoryAdmin(BaseAdmin):
-    fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_path', 'data_url')
-    readonly_fields=('data_path',)
+    fields = ('name', 'repository_type', 'hostname', 'globus_path', 'data_path', 'data_url' , 'fcount')
+    readonly_fields=('data_path', 'fcount')
     list_display = fields
     ordering = ('name',)
+
+    def fcount(self, dr):
+        return Dataset.objects.filter(data_repository=dr).count()
 
 class DataFormatAdmin(BaseAdmin):
     fields = ['file_extension', 'name', 'description',
