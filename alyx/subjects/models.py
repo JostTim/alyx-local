@@ -115,6 +115,9 @@ class Project(BaseModel):
     description = models.CharField(
         max_length=1023, blank=True, help_text="Description of the project")
 
+    default_data_repository =  models.ForeignKey(
+                            'DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True,
         help_text="Persons associated to the project.")

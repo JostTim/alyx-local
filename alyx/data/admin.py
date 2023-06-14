@@ -121,7 +121,7 @@ class IsOnlineListFilter(SimpleListFilter):
 class DatasetAdmin(BaseExperimentalDataAdmin):
     fieldsets = (
         ('Main', {
-            'fields': ('dataset_type', 'data_format', 'collection')
+            'fields': ('data_repository','dataset_type', 'data_format', 'collection')
         }),
         ('Calculated', {
             'fields': ('name', '_online', '_protected', '_public', 'session_ro', 'auto_datetime','revision_', 'tags')

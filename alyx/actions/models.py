@@ -296,12 +296,19 @@ class Session(BaseAction):
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
                                          verbose_name='last updated')
 
+    default_data_repository =  models.ForeignKey(
+                            'DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
         if not self.project_id:
             self.project = self.subject.projects.first()
         if not self.lab:
             self.lab = self.subject.lab
+
+
+        if not self.default_data_repository:
+            self.default_data_repository = self.project.default_data_repository
 
         query_set = self.__class__.objects.filter(
                                       start_time__date=self.start_time.date(),

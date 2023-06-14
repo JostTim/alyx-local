@@ -144,7 +144,7 @@ class DataFormat(BaseModel):
 
         self.name = self.file_extension.strip('.')
         self.file_extension = "." + self.name
-        
+
         super(DataFormat, self).save(*args, **kwargs)
 
 class DatasetType(BaseModel):
@@ -342,7 +342,7 @@ class Dataset(BaseExperimentalData):
                                   help_text='file subcollection or subfolder')
 
     data_repository = models.ForeignKey(
-        'DataRepository', blank=False, null=True, on_delete=models.CASCADE)
+        'DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
 
     dataset_type = models.ForeignKey(
         DatasetType, blank=False, null=False, on_delete=models.SET_DEFAULT,
@@ -418,7 +418,13 @@ class Dataset(BaseExperimentalData):
 
     def save(self, *args, **kwargs):
         # when a dataset is saved / created make sure the probe insertion is set in the reverse m2m
+
+        if self.data_repository is None :
+            self.data_repository = self.session.default_data_repository
+
         super(Dataset, self).save(*args, **kwargs)
+
+
         if self.collection is None:
             return
         from experiments.models import ProbeInsertion
