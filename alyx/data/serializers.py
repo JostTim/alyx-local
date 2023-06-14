@@ -217,9 +217,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         return super(DatasetSerializer, self).create(validated_data)
     
     def update(self, instance, validated_data):
-        logger.warning(validated_data)
-        if "data_repository_id" in validated_data :
-            validated_data['data_repository'] = validated_data.pop('data_repository_id')
+        logger.warning(instance,validated_data)
+        if "data_repository" in validated_data :
+            validated_data["data_repository"] = DataRepository.objects.get(
+                id=validated_data["data_repository"]
+            )
         return super().update(instance, validated_data)
 
     class Meta:
