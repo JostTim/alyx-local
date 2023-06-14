@@ -83,7 +83,7 @@ class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
             return None
         repository = DataRepository.objects.get(id=UUID(str(value)))
         return {
-            'id': value,
+            'id': str(value),
             'name': repository.name,
         }
     
