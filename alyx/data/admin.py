@@ -117,9 +117,9 @@ class IsOnlineListFilter(SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value == 'Yes':
-            return queryset.exclude(file_records__gt=0)
+            return queryset.exclude(file_records__gt=0).distinct()
         elif value == 'No':
-            return queryset.filter(file_records__gt=0)
+            return queryset.filter(file_records__gt=0).distinct()
         return queryset
 
 class DatasetAdmin(BaseExperimentalDataAdmin):
