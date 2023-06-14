@@ -9,7 +9,9 @@ from actions.models import Session
 from subjects.models import Subject
 from misc.models import LabMember
 
+import structlog
 
+logger = structlog.get_logger(__name__)
 class DataRepositoryTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = DataRepositoryType
@@ -215,6 +217,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         return super(DatasetSerializer, self).create(validated_data)
     
     def update(self, instance, validated_data):
+        logger.warning(validated_data)
         if "data_repository_id" in validated_data :
             validated_data['data_repository'] = validated_data.pop('data_repository_id')
         return super().update(instance, validated_data)
