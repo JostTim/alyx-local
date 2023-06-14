@@ -173,7 +173,7 @@ class LineDropdownFilter(RelatedDropdownFilter):
 # ------------------------------------------------------------------------------------------------
 
 class ProjectAdmin(BaseAdmin):
-    fields = ('name', 'description', 'users')
+    fields = ('name', 'description', 'default_data_repository' ,'users')
     list_display = ('name', 'subjects_count', 'sessions_count', 'users_l')
 
     def users_l(self, obj):
