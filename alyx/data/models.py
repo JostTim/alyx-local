@@ -187,6 +187,10 @@ class DatasetType(BaseModel):
     file_location_template = models.JSONField(null=True, blank=True,
                             help_text="Template to tell how the data of this type should be stored inside the session folder")
 
+    
+    extras_description = models.CharField(blank=True, null=True, max_length=512,
+                                help_text="Description of what the extras refer to for all the files in this dataset. Should be null or one description ")
+
     class Meta:
         ordering = ('name',)
         constraints = [
@@ -300,28 +304,35 @@ class Dataset(BaseExperimentalData):
     """
     A chunk of data that is stored outside the database, most often a rectangular binary array.
     There can be multiple FileRecords for one Dataset, which will be different physical files,
-    all containing identical data, with the same MD5.
-
-    Note that by convention, binary arrays are stored as .npy and text arrays as .tsv
+    all having the same dataset-type.
     """
     objects = DatasetManager()
 
     file_size = models.BigIntegerField(blank=True, null=True, help_text="Size in bytes")
+    #this shall be removed and moved to filerecord
 
     md5 = models.UUIDField(blank=True, null=True,
                            help_text="MD5 hash of the data buffer")
+    #this shall be removed and moved to filerecord
 
     hash = models.CharField(blank=True, null=True, max_length=64,
                             help_text=("Hash of the data buffer, SHA-1 is 40 hex chars, while md5"
                                        "is 32 hex chars"))
+    #this shall be removed and moved to filerecord
 
-    # here we usually refer to version as an algorithm version such as ibllib-1.4.2
+    # here we usually refer to version as an algorithm version such as ibllib-1.4.2, scanimage X.watever...
+    # This fild should not be too important, as the dataset-type content description should not be not too wide 
+    # (if new version => new content in the file, just create a new dataset type instead of packing tons of possibilities inside one dataset-type) 
+    # and if changes in storage manner depending on version is made in a way that the most recent readers are retrocompatible.
     version = models.CharField(blank=True, null=True, max_length=64,
                                help_text="version of the algorithm generating the file")
-
-    # while the collection is seen more as a data revision
+    
+    # the collection is the subfolder(s) inside the session folder, where files will be located
     collection = models.CharField(blank=True, null=True, max_length=255,
                                   help_text='file subcollection or subfolder')
+
+    data_repository = models.ForeignKey(
+        'DataRepository', blank=False, null=False, on_delete=models.CASCADE)
 
     dataset_type = models.ForeignKey(
         DatasetType, blank=False, null=False, on_delete=models.SET_DEFAULT,
@@ -349,11 +360,18 @@ class Dataset(BaseExperimentalData):
                                           help_text="Whether this dataset is the default "
                                                     "latest revision")
 
+    extras_description = models.CharField(blank=True, null=True, max_length=512,
+                                help_text="Description of what the extras refer to for all the files in this dataset. Should be null or one description ")
+
     @property
     def is_online(self):
         fr = self.file_records.filter(data_repository__globus_is_personal=False)
         if fr:
-            return all(fr.values_list('exists', flat=True))
+            return all(fr.values_list('exists', flat=True))# if all contained files are 'globus_is_personal'...
+            #Btw this should be removed or at least renamed... If we want this to make sense, it should be a field that is checked regularly 
+            #(each week let's say. If the amount of file is not crazy, maybe each day during night ?)
+            #by a worker and files "existance" should be updated at that time. 
+            #This may be usefull to probe for user error (like a massive deletion) and be able to react fast before the NAS backups are trashed.
         else:
             return False
 
@@ -394,6 +412,8 @@ class Dataset(BaseExperimentalData):
         if self.collection is None:
             return
         from experiments.models import ProbeInsertion
+        # I guess this is weird things for electrophy probe insertion features. Need to check if we want to remove it
+        # (still in the process of having a clean version without too much weird intricacies)
         parts = self.collection.rsplit('/')
         if len(parts) > 1:
             name = parts[1]
@@ -422,14 +442,27 @@ class FileRecord(BaseModel):
 
     dataset = models.ForeignKey(Dataset, related_name='file_records', on_delete=models.CASCADE)
 
+    #shall be removed after migrations
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
+    #this shall be removed after migrations, and should be the complete 
     file_name = models.CharField(max_length=1000,
                                 validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
                                                         message='Invalid alyx file name.',
                                                         code='invalid_alf')],
                                 help_text="file name within repository. Cannot contain a directory path")
+    
+    extras = models.CharField(blank=True, null=True, max_length=255,
+                                  help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001")
+        
+    @property
+    def full_path(self):
+        extras = self.extras if self.extras is not None else ""
+        collection = self.dataset.collection
+        collection = collection if collection is not None else ""
+        return  os.path.join( self.data_repository.data_path , self.dataset.session.alias , collection ,  self.dataset.dataset_type.name + extras + self.dataset.data_format.file_extension)
+
 
     relative_path = models.CharField(
         max_length=1000,
