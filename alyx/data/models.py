@@ -332,7 +332,7 @@ class Dataset(BaseExperimentalData):
                                   help_text='file subcollection or subfolder')
 
     data_repository = models.ForeignKey(
-        'DataRepository', blank=False, null=False, on_delete=models.CASCADE)
+        'DataRepository', blank=False, null=True, on_delete=models.CASCADE)
 
     dataset_type = models.ForeignKey(
         DatasetType, blank=False, null=False, on_delete=models.SET_DEFAULT,
@@ -349,7 +349,7 @@ class Dataset(BaseExperimentalData):
     def relative_path(self):
         revision = "#" + self.revision + "#" if self.revision else ""
         collection = self.collection if self.collection else ""
-        return os.path.join(collection,revision)
+        return os.path.join(collection,revision) 
 
     tags = models.ManyToManyField('data.Tag', blank=True, related_name='datasets')
 
