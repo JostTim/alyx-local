@@ -81,6 +81,7 @@ class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         if value is None :
             return None
+        value = value.replace('“', '').replace('”', '')
         repository = DataRepository.objects.get(id=UUID(value))
         return {
             'id': value,
