@@ -75,10 +75,16 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         model = FileRecord
         fields = '__all__'
 
-
+class DataRepositoryRelatedField(serializers.SlugRelatedField):
+    def to_representation(self, value):
+        return {
+            'id': value.id,
+            'name': value.name,
+        }
+    
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
-    data_repository = serializers.SlugRelatedField(
+    data_repository = DataRepositoryRelatedField(
         read_only=False, slug_field='name',
         queryset=DataRepository.objects.all())
 
@@ -104,7 +110,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
-
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     created_by = serializers.SlugRelatedField(
@@ -139,7 +144,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
-    data_repository = serializers.SlugRelatedField(
+    data_repository = DataRepositoryRelatedField(
         read_only=False, slug_field='name',
         queryset=DataRepository.objects.all())
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
