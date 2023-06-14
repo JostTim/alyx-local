@@ -101,8 +101,8 @@ class BaseExperimentalDataAdmin(BaseAdmin):
 class FileRecordInline(BaseInlineAdmin):
     model = FileRecord
     extra = 1
-    fields = ('data_repository', 'relative_path', 'exists')
-
+    fields = ('extras', 'relative_path', 'exists')
+    readonly_fields = ('relative_path')
 
 class IsOnlineListFilter(SimpleListFilter):
     title = 'Is Empty'
