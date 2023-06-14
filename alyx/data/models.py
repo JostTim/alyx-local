@@ -421,6 +421,11 @@ class Dataset(BaseExperimentalData):
     def save(self, *args, **kwargs):
         # when a dataset is saved / created make sure the probe insertion is set in the reverse m2m
 
+        if self.collection :
+            self.collection = self.collection.strip('.')#make sure there is no . inbetween
+            if self.collection == "" :
+                self.collection = None
+
         if self.data_repository is None :
             self.data_repository = self.session.default_data_repository
 
@@ -537,11 +542,6 @@ class FileRecord(BaseModel):
 
     def save(self, *args, **kwargs):
         """this is to trigger the update of the auto-date field"""
-
-        if self.collection :
-            self.collection = self.collection.strip('.')#make sure there is no . inbetween
-            if self.collection == "" :
-                self.collection = None
 
         #self.file_name = self.get_filename()
         #self.relative_path = self.get_relative_path()
