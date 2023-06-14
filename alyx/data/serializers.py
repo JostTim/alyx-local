@@ -75,7 +75,7 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         model = FileRecord
         fields = '__all__'
 
-class DataRepositoryRelatedField(serializers.SlugRelatedField):
+class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         return {
             'id': value.id,
