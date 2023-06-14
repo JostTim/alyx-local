@@ -75,7 +75,7 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = FileRecord
-        fields = '__all__'
+        fields = ['id', 'url', 'name', 'dataset', 'data_repository','json','file_name','extras','full_path','remote_root','relative_path','exists']
 
 class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
@@ -126,7 +126,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     )
 
     data_format = serializers.SlugRelatedField(
-        read_only=False, required=False, slug_field='name',
+        read_only=False, required=False, slug_field='file_extension',
         queryset=DataFormat.objects.all(),
     )
 

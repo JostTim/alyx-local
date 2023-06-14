@@ -464,30 +464,56 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
-    #this shall be removed after migrations, and should be the complete 
-    file_name = models.CharField(max_length=1000,
-                                validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
-                                                        message='Invalid alyx file name.',
-                                                        code='invalid_alf')],
-                                help_text="file name within repository. Cannot contain a directory path")
+
     
     extras = models.CharField(blank=True, null=True, max_length=255,
                                   help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001")
-        
-    @property
+    
+    class Meta:
+        unique_together = (('data_repository', 'relative_path'),)
+
+
+    #METHODS RECALCULATING FROM SOURCES INSTEAD OF USING SAVED VERSIONS. USED FOR SAVING / UPDATING
+    def get_root(self):
+        return self.data_repository.data_path
+
+    def get_session_path(self):
+        return self.dataset.session.alias
+
+    def get_relative_path(self):
+        return os.path.join(self.get_session_path(), self.get_collection(), self.get_filename() )
+
+    def get_extra(self):
+        return "." + self.extras if self.extras is not None else ""
+    
+    def get_collection(self):
+        return self.dataset.collection if self.dataset.collection is not None else ""
+    
+    def get_filename(self):
+        return self.dataset.dataset_type.name + self.get_extra() + self.dataset.data_format.file_extension
+    
+    @property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
     def full_path(self):
-        extras = self.extras if self.extras is not None else ""
-        collection = self.dataset.collection
-        collection = "." + collection if collection is not None else ""
-        collection = "."
-        return  os.path.join( self.data_repository.data_path , self.dataset.session.alias , collection ,  self.dataset.dataset_type.name + extras + self.dataset.data_format.file_extension)
+        return os.path.join( self.get_root() , self.get_relative_path() )
 
+    @property
+    def remote_root(self):
+        return self.get_root()
 
+    #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL FILENAME WITHOUT ANY FOLDERS
+    file_name = models.CharField(max_length=1000,
+                                #validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
+                                #                        message='Invalid alyx file name.',
+                                #                        code='invalid_alf')],
+                                help_text="file name within repository. Cannot contain a directory path")
+
+    #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL PATH WITHOUT THE DATA REPOSITORY PATH 
+    #(to be able to build local/remote path version easily)
     relative_path = models.CharField(
         max_length=1000,
-        validators=[RegexValidator(r'^[a-zA-Z0-9\_][^\\\:]+$',
-                                   message='Invalid path',
-                                   code='invalid_path')],
+        #validators=[RegexValidator(r'^[a-zA-Z0-9\_][^\\\:]+$',
+        #                           message='Invalid path',
+        #                           code='invalid_path')],
         help_text="path name within repository")
     
     # @property
@@ -500,9 +526,6 @@ class FileRecord(BaseModel):
 
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
-
-    class Meta:
-        unique_together = (('data_repository', 'relative_path'),)
 
     @property
     def data_url(self):
@@ -519,6 +542,9 @@ class FileRecord(BaseModel):
             self.collection = self.collection.strip('.')#make sure there is no . inbetween
             if self.collection == "" :
                 self.collection = None
+
+        #self.file_name = self.get_filename()
+        #self.relative_path = self.get_relative_path()
 
         super(FileRecord, self).save(*args, **kwargs)
         # Save the dataset as well to make sure the auto datetime in the dateset is updated when

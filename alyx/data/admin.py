@@ -187,10 +187,10 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
 
 
 class FileRecordAdmin(BaseAdmin):
-    fields = ('relative_path', 'full_path','extras','data_repository', 'dataset', 'exists')
+    fields = ('extras', 'relative_path', 'full_path','data_repository', 'dataset', 'exists')
     list_display = ('relative_path', 'repository', 'dataset_name',
                     'user', 'datetime', 'exists')
-    readonly_fields = ('full_path','dataset', 'dataset_name', 'repository', 'user', 'datetime')
+    readonly_fields = ('relative_path','full_path','dataset', 'dataset_name', 'repository', 'user', 'datetime')
     list_filter = ('exists', 'data_repository__name')
     search_fields = ('dataset__created_by__username', 'dataset__name',
                      'relative_path', 'data_repository__name')
