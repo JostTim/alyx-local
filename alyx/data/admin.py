@@ -93,7 +93,6 @@ class BaseExperimentalDataAdmin(BaseAdmin):
                 self.fields += (field,)
         super(BaseAdmin, self).__init__(*args, **kwargs)
 
-
 class FileRecordInline(BaseInlineAdmin):
     model = FileRecord
     extra = 1
@@ -119,10 +118,10 @@ class IsOnlineListFilter(SimpleListFilter):
         return queryset
 
 class DatasetAdmin(BaseExperimentalDataAdmin):
-    fields = ['name', '_online', 'version', 'dataset_type', 'file_size', 'hash',
+    fields = ['name', '_online', 'version', 'dataset_type', 'data_format', 'file_size', 'hash',
               'session_ro', 'collection', 'auto_datetime', 'revision_', 'default_dataset',
               '_protected', '_public', 'tags']
-    readonly_fields = ['name_', 'session_ro', '_online', 'auto_datetime', 'revision_',
+    readonly_fields = ['name', 'session_ro', '_online', 'auto_datetime', 'revision_',
                        '_protected', '_public', 'tags']
     list_display = ['name_', '_online', 'version', 'collection', 'dataset_type_', 'file_size',
                     'session_ro', 'created_by', 'created_datetime']
@@ -175,7 +174,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
 
 
 class FileRecordAdmin(BaseAdmin):
-    fields = ('relative_path', 'full_path','data_repository', 'dataset', 'exists')
+    fields = ('relative_path', 'full_path','extras','data_repository', 'dataset', 'exists')
     list_display = ('relative_path', 'repository', 'dataset_name',
                     'user', 'datetime', 'exists')
     readonly_fields = ('full_path','dataset', 'dataset_name', 'repository', 'user', 'datetime')
