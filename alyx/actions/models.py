@@ -297,7 +297,7 @@ class Session(BaseAction):
                                          verbose_name='last updated')
 
     default_data_repository =  models.ForeignKey(
-                            'DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+                            'data.DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
