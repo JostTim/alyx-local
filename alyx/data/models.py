@@ -344,7 +344,7 @@ class Dataset(BaseExperimentalData):
                                   help_text='file subcollection or subfolder')
 
     data_repository = models.ForeignKey(
-        'DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+        'DataRepository', blank=True, null=True, on_delete=models.SET_NULL, help_text="The data repository of all the files of this dataset. If left blank, it will use the default data repository of the session")
 
     dataset_type = models.ForeignKey(
         DatasetType, blank=False, null=False, on_delete=models.SET_DEFAULT,
