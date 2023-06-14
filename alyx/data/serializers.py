@@ -77,7 +77,7 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         model = FileRecord
         fields = '__all__'
 
-class DataRepositoryRelatedField(serializers.SlugRelatedField):
+class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         return {
             'id': value.id,
@@ -86,9 +86,7 @@ class DataRepositoryRelatedField(serializers.SlugRelatedField):
     
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
-    data_repository = DataRepositoryRelatedField(
-        read_only=False, slug_field='name',
-        queryset=DataRepository.objects.all())
+    data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
 
     data_repository_path = serializers.SerializerMethodField()
 
@@ -105,7 +103,6 @@ class DatasetFileRecordsSerializer(serializers.ModelSerializer):
         """ Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related('data_repository', 'data_repository__globus_path')
         return queryset
-
 
 class TagSerializer(serializers.ModelSerializer):
 
@@ -146,9 +143,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
-    data_repository = DataRepositoryRelatedField(
-        read_only=False, slug_field='name',
-        queryset=DataRepository.objects.all())
+    data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
     protected = serializers.ReadOnlyField()
@@ -218,7 +213,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     
     def update(self, instance, validated_data):
         logger.warning(instance,validated_data)
-        if "data_repository" in validated_data :
+        if "data_repository" in validated_data.keys() :
             validated_data["data_repository"] = DataRepository.objects.get(
                 id=validated_data["data_repository"]
             )
