@@ -79,9 +79,12 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
 
 class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
+        if value is None :
+            return None
+        repository = DataRepository.objects.get(id=value)
         return {
-            'id': value.id,
-            'name': value.name,
+            'id': value,
+            'name': repository.name,
         }
     
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
@@ -211,14 +214,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
         return super(DatasetSerializer, self).create(validated_data)
     
-    def update(self, instance, validated_data):
-        logger.warning(instance,validated_data)
-        if "data_repository" in validated_data.keys() :
-            validated_data["data_repository"] = DataRepository.objects.get(
-                id=validated_data["data_repository"]
-            )
-        return super().update(instance, validated_data)
-
     class Meta:
         model = Dataset
         fields = ('id','url', 'name', 'created_by', 'created_datetime',
