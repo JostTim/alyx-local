@@ -8,7 +8,7 @@ from .transfers import _get_session, _change_default_dataset
 from actions.models import Session
 from subjects.models import Subject
 from misc.models import LabMember
-
+from uuid import UUID
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -81,7 +81,7 @@ class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         if value is None :
             return None
-        repository = DataRepository.objects.get(id=value)
+        repository = DataRepository.objects.get(id=UUID(value))
         return {
             'id': value,
             'name': repository.name,
