@@ -115,6 +115,9 @@ class DataFormat(BaseModel):
         "numerical array'.")
 
     file_extension = models.CharField(
+        blank = False,
+        null = False,
+        unique = True,
         max_length=255,
         validators=[RegexValidator(r'^\.[^\.]+$',
                                    message='Invalid file extension, should start with a dot',
@@ -136,6 +139,13 @@ class DataFormat(BaseModel):
     def __str__(self):
         return "<DataFormat '%s'>" % self.name
 
+    def save(self, *args, **kwargs):
+        """this is to trigger the update of the auto-date field"""
+
+        self.name = self.file_extension.strip('.')
+        self.file_extension = "." + self.name
+        
+        super(DataFormat, self).save(*args, **kwargs)
 
 class DatasetType(BaseModel):
     """
@@ -460,7 +470,8 @@ class FileRecord(BaseModel):
     def full_path(self):
         extras = self.extras if self.extras is not None else ""
         collection = self.dataset.collection
-        collection = collection if collection is not None else ""
+        collection = "." + collection if collection is not None else ""
+        collection = "."
         return  os.path.join( self.data_repository.data_path , self.dataset.session.alias , collection ,  self.dataset.dataset_type.name + extras + self.dataset.data_format.file_extension)
 
 
@@ -495,9 +506,16 @@ class FileRecord(BaseModel):
 
     def save(self, *args, **kwargs):
         """this is to trigger the update of the auto-date field"""
+
+        if self.collection :
+            self.collection = self.collection.strip('.')#make sure there is no . inbetween
+            if self.collection == "" :
+                self.collection = None
+
         super(FileRecord, self).save(*args, **kwargs)
         # Save the dataset as well to make sure the auto datetime in the dateset is updated when
         # associated file record is saved
+
         self.dataset.save()
 
     def __str__(self):

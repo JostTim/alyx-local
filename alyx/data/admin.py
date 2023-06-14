@@ -43,8 +43,9 @@ class DataRepositoryAdmin(BaseAdmin):
     ordering = ('name',)
 
 class DataFormatAdmin(BaseAdmin):
-    fields = ['name', 'description', 'file_extension',
+    fields = ['file_extension', 'name', 'description',
               'matlab_loader_function', 'python_loader_function']
+    readonly_fields=('name',)
     list_display = fields[:-1]
     ordering = ('name',)
 
