@@ -79,11 +79,9 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
 
 class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
-        logger.warning(str(value))
         if value is None :
             return None
-        value = str(value).replace('“', '').replace('”', '')
-        repository = DataRepository.objects.get(id=UUID(value))
+        repository = DataRepository.objects.get(id=UUID(str(value)))
         return {
             'id': value,
             'name': repository.name,
