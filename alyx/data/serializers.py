@@ -211,7 +211,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Dataset
-        fields = ('url', 'name', 'created_by', 'created_datetime',
+        fields = ('id','url', 'name', 'created_by', 'created_datetime',
                   'dataset_type', 'data_repository', 'data_format', 'collection',
                   'session', 'file_size', 'hash', 'version',
                   'experiment_number', 'file_records',
