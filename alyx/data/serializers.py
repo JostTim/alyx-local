@@ -85,7 +85,7 @@ class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
     data_repository = DataRepositoryRelatedField(
-        read_only=False, slug_field='name',
+        read_only=False,
         queryset=DataRepository.objects.all())
 
     data_repository_path = serializers.SerializerMethodField()
@@ -145,7 +145,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
     data_repository = DataRepositoryRelatedField(
-        read_only=False, slug_field='name',
+        read_only=False, 
         queryset=DataRepository.objects.all())
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
