@@ -555,7 +555,7 @@ class FileRecord(BaseModel):
     def get_revision(self, with_hash = False):
         hash = "#" if with_hash else ""
         revision = self.dataset.revision
-        revision = hash + self.revision + hash if self.revision else ""
+        revision = hash + revision + hash if revision else ""
         return revision
     
     def get_object(self):
