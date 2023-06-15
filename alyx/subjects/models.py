@@ -18,7 +18,7 @@ from actions.water_control import water_control
 from actions.models import Surgery
 from misc.models import Lab, default_lab, Housing
 
-logger = structlog.get_logger(__name__)
+logger = structlog.get_logger("subjects.models")
 
 
 # Zygosity constants

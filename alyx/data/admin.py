@@ -11,6 +11,8 @@ from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType
                      Dataset, FileRecord, Download, Revision, Tag)
 from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
+from natsort import natsorted
+
 #https://github.com/nnseva/django-jsoneditor
 from jsoneditor.forms import JSONEditor
 
@@ -103,6 +105,10 @@ class FileRecordInline(BaseInlineAdmin):
     extra = 1
     fields = ('extras', 'relative_path', 'exists')
     readonly_fields = ('relative_path',)
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return natsorted(queryset, key=lambda obj: obj.extras)
 
 class IsOnlineListFilter(SimpleListFilter):
     title = 'Is Empty'

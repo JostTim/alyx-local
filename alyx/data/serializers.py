@@ -11,7 +11,7 @@ from misc.models import LabMember
 from uuid import UUID
 import structlog
 
-logger = structlog.get_logger(__name__)
+logger = structlog.get_logger("data/serializers")
 class DataRepositoryTypeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = DataRepositoryType

@@ -17,7 +17,7 @@ from misc.models import Lab, LabLocation, LabMember, Note
 
 from markdownx.models import MarkdownxField
 
-logger = structlog.get_logger(__name__)
+logger = structlog.get_logger("action.models")
 
 def _default_water_type():
     s = WaterType.objects.filter(name='Water')
