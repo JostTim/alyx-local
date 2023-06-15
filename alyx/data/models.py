@@ -207,7 +207,7 @@ class DatasetType(BaseModel):
                             help_text="Template to tell how the data of this type should be stored inside the session folder")
 
     
-    extra_description = models.CharField(blank=True, null=True, max_length=512,
+    extras_description = models.CharField(blank=True, null=True, max_length=512,
                                 help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ")
 
     class Meta:
