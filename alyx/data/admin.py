@@ -102,7 +102,7 @@ class FileRecordInline(BaseInlineAdmin):
     model = FileRecord
     extra = 1
     fields = ('extras', 'relative_path', 'exists')
-    readonly_fields = ('relative_path')
+    readonly_fields = ('relative_path',)
 
 class IsOnlineListFilter(SimpleListFilter):
     title = 'Is Empty'
