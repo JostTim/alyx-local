@@ -537,7 +537,7 @@ class FileRecord(BaseModel):
     def get_extra(self, with_dot = False):
         #returns .special.001
         dot = "." if with_dot else ""
-        return dot + self.extras if (self.extras is not None or self.extras != "" ) else ""
+        return dot + self.extras if (self.extras is not None and self.extras != "" ) else ""
     
     def get_collection(self):
         #returns trials/test_folder
