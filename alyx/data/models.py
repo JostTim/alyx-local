@@ -425,6 +425,8 @@ class Dataset(BaseExperimentalData):
             self.collection = self.collection.strip('.')#make sure there is no . inbetween
             if self.collection == "" :
                 self.collection = None
+            else :
+                self.collection = os.path.normpath(self.collection).strip()
 
         if self.data_repository is None :
             self.data_repository = self.session.default_data_repository
