@@ -1,12 +1,13 @@
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from alyx.settings import TIME_ZONE, AUTH_USER_MODEL
 from actions.models import Session
 from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField
 
-import os
+import os, re
 
 def _related_string(field):
     return "%(app_label)s_%(class)s_" + field + "_related"
@@ -166,12 +167,18 @@ class DatasetType(BaseModel):
                               unique=False,
                               blank=False,
                               null=False,
+                              validators=[RegexValidator(r'^[\w\-,;!#~&}{\]\[()]+$',
+                                                        message='Invalid object. Must not contain a dot (.)',
+                                                       code='invalid_object')],
                               help_text="object (first part of the name) as per alf convention described here : https://int-brain-lab.github.io/ONE/alf_intro.html#dataset-name")
     
     attribute = models.CharField(max_length=255, 
                                  unique=False,
                                  blank=False,
                                  null=False,
+                                 validators=[RegexValidator(r'^[\w\-,;!#~&}{\]\[()]+$',
+                                                        message='Invalid attribute. Must not contain a dot (.)',
+                                                       code='invalid_attribute')],
                                  help_text="attribute (second part of the name) as per alf convention")
 
     created_by = models.ForeignKey(
@@ -357,11 +364,11 @@ class Dataset(BaseExperimentalData):
     revision = models.ForeignKey(
         Revision, blank=True, null=True, on_delete=models.SET_NULL)
 
-    @property
-    def relative_path(self):
-        revision = "#" + self.revision + "#" if self.revision else ""
-        collection = self.collection if self.collection else ""
-        return os.path.join(collection,revision) 
+    #@property
+    #def relative_path(self):
+    #    revision = "#" + self.revision + "#" if self.revision else ""
+    #    collection = self.collection if self.collection else ""
+    #    return os.path.join(collection,revision) 
 
     tags = models.ManyToManyField('data.Tag', blank=True, related_name='datasets')
 
@@ -421,30 +428,45 @@ class Dataset(BaseExperimentalData):
     def save(self, *args, **kwargs):
         # when a dataset is saved / created make sure the probe insertion is set in the reverse m2m
 
-        if self.collection :
-            self.collection = self.collection.strip('.')#make sure there is no . inbetween
-            if self.collection == "" :
-                self.collection = None
-            else :
-                self.collection = os.path.normpath(self.collection).strip()
+        def sanitize_folders(folder_field):
+            if folder_field is None :
+                return ""
+            folder_field = folder_field.strip('.').strip('\\').strip('/')
+            return folder_field if folder_field == "" else os.path.normpath(folder_field)
+
+        self.collection = sanitize_folders(self.collection)
+        self.revision = sanitize_folders(self.revision)
 
         if self.data_repository is None :
             self.data_repository = self.session.default_data_repository
 
+        query_set = self.__class__.objects.filter(dataset_type = self.dataset_type, session = self.session, collection = self.collection)
+        if self.id is not None:
+            query_set = query_set.exclude(id=self.id)
+
+        if query_set.count() :
+            raise ValidationError("Two datasets for the same session with the same dataset type and collection cannot exist")
+
         super(Dataset, self).save(*args, **kwargs)
 
+        #save childs file records to update the changed collection or dataset type, if necessary.
+        file_records = FileRecord.objects.filter(dataset=self)
+        for file_record in file_records:
+            file_record.save()
 
-        if self.collection is None:
-            return
-        from experiments.models import ProbeInsertion
+
+        #if self.collection is None:
+        #    return
+        
+        #from experiments.models import ProbeInsertion
         # I guess this is weird things for electrophy probe insertion features. Need to check if we want to remove it
         # (still in the process of having a clean version without too much weird intricacies)
-        parts = self.collection.rsplit('/')
-        if len(parts) > 1:
-            name = parts[1]
-            pis = ProbeInsertion.objects.filter(session=self.session, name=name)
-            if len(pis):
-                self.probe_insertion.set(pis.values_list('pk', flat=True))
+        #parts = self.collection.rsplit('/')
+        #if len(parts) > 1:
+        #    name = parts[1]
+        #    pis = ProbeInsertion.objects.filter(session=self.session, name=name)
+        #    if len(pis):
+        #        self.probe_insertion.set(pis.values_list('pk', flat=True))
 
 
 
@@ -471,34 +493,120 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
-
-    
     extras = models.CharField(blank=True, null=True, max_length=255,
                                   help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001")
     
+    exists = models.BooleanField(
+        default=False, help_text="Whether the file exists in the data repository", )
     class Meta:
         unique_together = (('data_repository', 'relative_path'),)
 
+    relative_path = models.CharField(
+        max_length=1000,
+        help_text="path name within repository")
 
-    #METHODS RECALCULATING FROM SOURCES INSTEAD OF USING SAVED VERSIONS. USED FOR SAVING / UPDATING
+    #METHODS RECALCULATING FROM SOURCES INSTEAD OF USING SAVED VERSIONS. USE FOR SAVING / UPDATING / SERIALIZING
+    #EXAMPLE to illustrate all conditions below : 
+    #The file record is named //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
+
     def get_root(self):
+        #returns //cajal/cajal_data2/ONE/Adaptation
         return self.data_repository.data_path
 
-    def get_session_path(self):
-        return self.dataset.session.alias
+    def get_session_path(self,as_dict = False):
+        #returns wm29/2023-05-25/002
+        session_path = self.dataset.session.alias
+        if as_dict :
+            return session_path
+    
+        patt = r"(?P<subject>[\w-]+)(?:\/|\\)(?P<date>\d{4}-\d{2}-\d{2})(?:\/|\\)(?P<number>\d{1,3})"
+        spec = re.compile(patt)
+        match = spec.search(session_path)
+        if match is None :
+            raise AttributeError(f"Session {self.dataset.session} alias {session_path} doesn't match the subject/date/nb pattern")
+        return dict(zip( spec.groupindex.keys() , match.groups() )) 
 
-    def get_relative_path(self):
-        return os.path.join(self.get_session_path(), self.get_collection(), self.get_filename() )
+    def get_relative_path(self): # THIS IN THE ONLY FIELD THAT IS SAVED IN THE MODEL TABLE,FOR CHECKING THAT NO FILES HAVING THE SAME NAME EXISTS FOR A GIVEN SESSION
+        #returns wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
+        return os.path.join( self.get_session_path(), self.get_collection(), self.get_revision(), self.get_filename() )
 
-    def get_extra(self):
-        return "." + self.extras if self.extras is not None else ""
+    def get_full_path(self):
+        #returns //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
+        return os.path.join( self.get_root() , self.get_relative_path() )
+
+    def get_extra(self, with_dot = False):
+        #returns .special.001
+        dot = "." if with_dot else ""
+        return dot + self.extras if (self.extras is not None or self.extras != "" ) else ""
     
     def get_collection(self):
+        #returns trials/test_folder
         return self.dataset.collection if self.dataset.collection is not None else ""
     
     def get_filename(self):
-        return self.dataset.dataset_type.name + self.get_extra() + self.dataset.data_format.file_extension
+        #returns trials.eventTimeline.special.001.tdms
+        return self.get_name() + self.get_extra(with_dot = True) + self.get_extension()
     
+    def get_name(self):
+        #name is just object.attribute stitched together
+        #returns trials.eventTimeline
+        return self.dataset.dataset_type.name
+
+    def get_revision(self, with_hash = False):
+        hash = "#" if with_hash else ""
+        revision = self.dataset.revision
+        revision = hash + self.revision + hash if self.revision else ""
+        return revision
+    
+    def get_object(self):
+        #returns trials
+        return self.dataset.dataset_type.object
+
+    def get_attribute(self):
+        #returns eventTimeline
+        return self.dataset.dataset_type.attribute
+
+    def get_extension(self):
+        #returns .tdms
+        return self.dataset.data_format.file_extension
+    
+    @property
+    def subject(self):
+        return self.get_session_path(as_dict = True)["subject"]
+    
+    @property
+    def date(self):
+        return self.get_session_path(as_dict = True)["date"]
+
+    @property
+    def number(self):
+        return self.get_session_path(as_dict = True)["number"]
+
+    #CALCULATED FIELDS, FOR SERIALIZING
+    @property
+    def collection(self):
+        return self.get_collection()
+    
+    @property
+    def revision(self):
+        return self.get_revision()
+
+    @property
+    def object(self):
+        return self.get_object()
+    
+    @property
+    def attribute(self):
+        return self.get_attribute()
+    
+    @property
+    def extension(self):
+        return self.get_extension()
+    
+    @property
+    def session_path(self):
+        return self.get_session_path()
+
     @property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
     def full_path(self):
         return os.path.join( self.get_root() , self.get_relative_path() )
@@ -506,22 +614,33 @@ class FileRecord(BaseModel):
     @property
     def remote_root(self):
         return self.get_root()
+    
+    @property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
+    def file_name(self):
+        return self.get_filename()
+    
+    @property
+    def data_url(self):
+        root = self.data_repository.data_url
+        if not root:
+            return None
+        from one.alf.files import add_uuid_string
+        return root + add_uuid_string(self.relative_path, self.dataset.pk).as_posix()
+
+    #@property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
+    #def relative_path(self):
+    #    return self.get_relative_path()
 
     #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL FILENAME WITHOUT ANY FOLDERS
-    file_name = models.CharField(max_length=1000,
+    #file_name = models.CharField(max_length=1000,
                                 #validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
                                 #                        message='Invalid alyx file name.',
                                 #                        code='invalid_alf')],
-                                help_text="file name within repository. Cannot contain a directory path")
+                                #help_text="file name within repository. Cannot contain a directory path")
 
     #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL PATH WITHOUT THE DATA REPOSITORY PATH 
     #(to be able to build local/remote path version easily)
-    relative_path = models.CharField(
-        max_length=1000,
-        #validators=[RegexValidator(r'^[a-zA-Z0-9\_][^\\\:]+$',
-        #                           message='Invalid path',
-        #                           code='invalid_path')],
-        help_text="path name within repository")
+
     
     # @property
     # def absolute_path(self):
@@ -531,32 +650,31 @@ class FileRecord(BaseModel):
     # def relative_path(self):
     #     os.path.join( self.dataset.session.relative_path , self.dataset.relative_path , self.file_name )
 
-    exists = models.BooleanField(
-        default=False, help_text="Whether the file exists in the data repository", )
-
-    @property
-    def data_url(self):
-        root = self.data_repository.data_url
-        if not root:
-            return None
-        from one.alf.files import add_uuid_string
-        return root + add_uuid_string(self.relative_path, self.dataset.pk).as_posix()
-
     def save(self, *args, **kwargs):
+        #check how to run this on change in data repository related, or
+        #dataset collection related or
+        #session related ?
         """this is to trigger the update of the auto-date field"""
 
         #self.file_name = self.get_filename()
         #self.relative_path = self.get_relative_path()
 
+        self.extras = self.get_extra()
+        self.relative_path = self.get_relative_path()
+
+        query_set = self.__class__.objects.filter(relative_path=self.relative_path)
+        if self.id is not None:
+            query_set = query_set.exclude(id=self.id)
+        if query_set.count() :
+            raise ValidationError("Two files with the same session relative path cannot exist")
+
         super(FileRecord, self).save(*args, **kwargs)
         # Save the dataset as well to make sure the auto datetime in the dateset is updated when
         # associated file record is saved
-
-        self.dataset.save()
+        # self.dataset.save()
 
     def __str__(self):
         return "<FileRecord '%s' by %s>" % (self.relative_path, self.dataset.created_by)
-
 
 # Download table
 # ------------------------------------------------------------------------------------------------
