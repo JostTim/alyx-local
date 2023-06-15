@@ -379,7 +379,7 @@ class Dataset(BaseExperimentalData):
                                           help_text="Whether this dataset is the default "
                                                     "latest revision")
 
-    extra_description = models.CharField(blank=True, null=True, max_length=512,
+    extras_description = models.CharField(blank=True, null=True, max_length=512,
                                 help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ")
 
     @property
