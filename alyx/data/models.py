@@ -516,7 +516,7 @@ class FileRecord(BaseModel):
     def get_session_path(self,as_dict = False):
         #returns wm29/2023-05-25/002
         session_path = self.dataset.session.alias
-        if as_dict :
+        if not as_dict :
             return session_path
     
         patt = r"(?P<subject>[\w-]+)(?:\/|\\)(?P<date>\d{4}-\d{2}-\d{2})(?:\/|\\)(?P<number>\d{1,3})"
