@@ -207,8 +207,8 @@ class DatasetType(BaseModel):
                             help_text="Template to tell how the data of this type should be stored inside the session folder")
 
     
-    extras_description = models.CharField(blank=True, null=True, max_length=512,
-                                help_text="Description of what the extras refer to for all the files in this dataset. Should be null or one description ")
+    extra_description = models.CharField(blank=True, null=True, max_length=512,
+                                help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ")
 
     class Meta:
         ordering = ('name',)
@@ -379,8 +379,8 @@ class Dataset(BaseExperimentalData):
                                           help_text="Whether this dataset is the default "
                                                     "latest revision")
 
-    extras_description = models.CharField(blank=True, null=True, max_length=512,
-                                help_text="Description of what the extras refer to for all the files in this dataset. Should be null or one description ")
+    extra_description = models.CharField(blank=True, null=True, max_length=512,
+                                help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ")
 
     @property
     def is_online(self):
@@ -493,9 +493,9 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
-    extras = models.CharField(blank=True, null=True, max_length=255, db_column="extras", #adding this to migrate from "extras" to extra without having to copy/delete the column
+    extra = models.CharField(blank=True, null=True, max_length=255, db_column="extras", #adding this to migrate from "extra" to extra without having to copy/delete the column
                               #https://stackoverflow.com/questions/3498140/migrating-django-model-field-name-change-without-losing-data
-                                  help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to '' internally")
+                                  help_text="extra of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to '' internally")
     
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
@@ -538,7 +538,7 @@ class FileRecord(BaseModel):
     def get_extra(self, with_dot = False):
         #returns .special.001
         dot = "." if with_dot else ""
-        return dot + self.extras if (self.extras is not None and self.extras != "" ) else ""
+        return dot + self.extra if (self.extra is not None and self.extra != "" ) else ""
     
     def get_collection(self):
         #returns trials/test_folder
@@ -660,7 +660,7 @@ class FileRecord(BaseModel):
         #self.file_name = self.get_filename()
         #self.relative_path = self.get_relative_path()
 
-        self.extras = self.get_extra()
+        self.extra = self.get_extra()
         self.relative_path = self.get_relative_path()
 
         query_set = self.__class__.objects.filter(relative_path=self.relative_path)

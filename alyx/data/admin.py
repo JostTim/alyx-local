@@ -103,12 +103,12 @@ class BaseExperimentalDataAdmin(BaseAdmin):
 class FileRecordInline(BaseInlineAdmin):
     model = FileRecord
     extra = 1
-    fields = ('extras', 'relative_path', 'exists')
+    fields = ('extra', 'relative_path', 'exists')
     readonly_fields = ('relative_path',)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return natsorted(queryset, key=lambda obj: obj.extras)
+        return natsorted(queryset, key=lambda obj: obj.extra)
 
 class IsOnlineListFilter(SimpleListFilter):
     title = 'Is Empty'
@@ -193,7 +193,7 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
 
 
 class FileRecordAdmin(BaseAdmin):
-    fields = ('extras', 'relative_path', 'full_path', 'dataset', 'exists')
+    fields = ('extra', 'relative_path', 'full_path', 'dataset', 'exists')
     list_display = ('relative_path', 'repository', 'dataset_name',
                     'user', 'datetime', 'exists')
     readonly_fields = ('relative_path','full_path','dataset', 'dataset_name', 'repository', 'user', 'datetime')

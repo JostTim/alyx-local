@@ -94,7 +94,7 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
                   'subject', 
                   'date', 
                   'number', 
-                  'extras',
+                  'extra',
                   ]
     
 
