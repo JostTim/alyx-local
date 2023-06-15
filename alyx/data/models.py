@@ -493,7 +493,8 @@ class FileRecord(BaseModel):
     data_repository = models.ForeignKey(
         'DataRepository', on_delete=models.CASCADE)
 
-    extras = models.CharField(blank=True, null=True, max_length=255,
+    extras = models.CharField(blank=True, null=True, max_length=255, db_column="extras", #adding this to migrate from "extras" to extra without having to copy/delete the column
+                              #https://stackoverflow.com/questions/3498140/migrating-django-model-field-name-change-without-losing-data
                                   help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001")
     
     exists = models.BooleanField(
