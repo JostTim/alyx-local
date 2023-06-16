@@ -194,10 +194,27 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
 
 
 class FileRecordAdmin(BaseAdmin):
-    fields = ('extra', 'relative_path', 'full_path', 'dataset', 'exists')
-    list_display = ('relative_path', 'repository', 'dataset_name',
-                    'user', 'datetime', 'exists')
-    readonly_fields = ('relative_path','full_path','dataset', 'dataset_name', 'repository', 'user', 'datetime')
+    fields = ('extra', 'json', 'full_path', 'dataset', 'exists')
+
+
+    fieldsets = (
+        ('Main', {
+            'fields': ('extra','json','exists','dataset')
+        }),
+        ('Path', {
+            'fields': ('full_path', 'relative_path', 'file_name')
+        }),
+        ('Alyx Filename Standard Components', {
+            'fields': ('remote_root', 'subject', 'date', 'number', 'collection', 'revision','object', 'attribute', 'extra_read_only', 'extension')
+        }),
+        ('Details', {
+            'fields': ('repository', 'dataset_name', 'datetime')
+        }),
+        
+    )
+
+    readonly_fields = ('relative_path','full_path','file_name','dataset', 'dataset_name', 'repository', 'user', 'datetime', 
+                       'remote_root', 'subject', 'date', 'number', 'collection', 'revision','object', 'attribute', 'extra_read_only', 'extension')
     list_filter = ('exists', 'data_repository__name')
     search_fields = ('dataset__created_by__username', 'dataset__name',
                      'relative_path', 'data_repository__name')
@@ -207,6 +224,10 @@ class FileRecordAdmin(BaseAdmin):
         qs = super(FileRecordAdmin, self).get_queryset(request)
         qs = qs.select_related('data_repository', 'dataset', 'dataset__created_by')
         return qs
+
+    def extra_read_only(self, obj):
+        return getattr(obj, 'extra', None)
+    extra_read_only.short_description = 'extra'
 
     def repository(self, obj):
         return getattr(obj.data_repository, 'name', None)

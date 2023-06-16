@@ -447,6 +447,8 @@ class Dataset(BaseExperimentalData):
         if query_set.count() :
             raise ValidationError("Two datasets for the same session with the same dataset type and collection cannot exist")
 
+        self.name = self.object + "." + self.attribute + self.data_format.file_extension
+
         super(Dataset, self).save(*args, **kwargs)
 
         #save childs file records to update the changed collection or dataset type, if necessary.
@@ -546,12 +548,7 @@ class FileRecord(BaseModel):
     
     def get_filename(self):
         #returns trials.eventTimeline.special.001.tdms
-        return self.get_name() + self.get_extra(with_dot = True) + self.get_extension()
-    
-    def get_name(self):
-        #name is just object.attribute stitched together
-        #returns trials.eventTimeline
-        return self.dataset.dataset_type.name
+        return self.get_object() + '.' + self.get_attribute() + self.get_extra(with_dot = True) + self.get_extension()
 
     def get_revision(self, with_hash = False):
         hash = "#" if with_hash else ""
