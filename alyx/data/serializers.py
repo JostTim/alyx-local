@@ -53,9 +53,12 @@ class DatasetTypeSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
+    def admin_url(self,obj):
+        return get_admin_url(obj)
+    
     class Meta:
         model = DatasetType
-        fields = ('id', 'name', 'created_by', 'description', 'filename_pattern', 'object', 'attribute')
+        fields = ('id', 'name', 'created_by', 'description', 'filename_pattern', 'object', 'attribute','admin_url')
         extra_kwargs = {'url': {'view_name': 'datasettype-detail', 'lookup_field': 'name'}}
 
 
@@ -189,6 +192,9 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     number = serializers.IntegerField(required=False)
 
+    def admin_url(self,obj):
+        return get_admin_url(obj)
+
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
@@ -242,7 +248,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     
     class Meta:
         model = Dataset
-        fields = ('id','url', 'name', 'created_by', 'created_datetime',
+        fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
                   'dataset_type', 'data_repository', 'data_format', 'collection',
                   'session', 'file_size', 'hash', 'version',
                   'experiment_number', 'file_records',
