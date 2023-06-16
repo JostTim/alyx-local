@@ -209,7 +209,7 @@ class FileRecordAdmin(BaseAdmin):
         }),
     )
 
-    list_display = ['relative_path','dataset_name','data_repository__name','user','datetime','exists']
+    list_display = ['relative_path','dataset_name','repository','user','datetime','exists']
     readonly_fields = ('relative_path','full_path','file_name','dataset', 'dataset_name', 'repository', 'user', 'datetime', 
                        'remote_root', 'subject', 'date', 'number', 'collection', 'revision','object', 'attribute', 'extra_read_only', 'extension')
     list_filter = ( 'exists', 'data_repository__name')
