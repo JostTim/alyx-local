@@ -108,7 +108,7 @@ class FileRecordInline(BaseInlineAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        return queryset.order_by("extras")
+        return queryset.order_by("extra")
         #return natsorted(queryset, key=lambda obj: obj.extra)
 
 class IsOnlineListFilter(SimpleListFilter):
