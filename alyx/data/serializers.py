@@ -53,7 +53,9 @@ class DatasetTypeSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    def admin_url(self,obj):
+    admin_url = serializers.SerializerMethodField()
+
+    def get_admin_url(self,obj):
         return get_admin_url(obj)
     
     class Meta:
@@ -71,13 +73,15 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         read_only=False, slug_field='name',
         queryset=DataRepository.objects.all())
 
+    admin_url = serializers.SerializerMethodField()
+
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related('dataset', 'data_repository')
         return queryset
-    
-    def admin_url(self,obj):
+
+    def get_admin_url(self,obj):
         return get_admin_url(obj)
 
     class Meta:
@@ -192,7 +196,9 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     number = serializers.IntegerField(required=False)
 
-    def admin_url(self,obj):
+    admin_url = serializers.SerializerMethodField()
+
+    def get_admin_url(self,obj):
         return get_admin_url(obj)
 
     @staticmethod
@@ -259,7 +265,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
             'date': {'write_only': True},
             'number': {'write_only': True},
         }
-
 
 class DownloadSerializer(serializers.HyperlinkedModelSerializer):
 
