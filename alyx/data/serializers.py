@@ -5,6 +5,7 @@ from django.db.models import Count, Q, BooleanField
 from .models import (DataRepositoryType, DataRepository, DataFormat, DatasetType,
                      Dataset, Download, FileRecord, Revision, Tag)
 from .transfers import _get_session, _change_default_dataset
+from alyx.base import get_admin_url
 from actions.models import Session
 from subjects.models import Subject
 from misc.models import LabMember
@@ -72,11 +73,15 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         """ Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related('dataset', 'data_repository')
         return queryset
+    
+    def admin_url(self,obj):
+        return get_admin_url(obj)
 
     class Meta:
         model = FileRecord
         fields = ['id',
-                  'url', 
+                  'url',
+                  'admin_url', 
                   'dataset', 
                   'data_repository',
                   'json',
