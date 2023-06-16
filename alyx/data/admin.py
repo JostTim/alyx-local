@@ -194,9 +194,6 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
 
 
 class FileRecordAdmin(BaseAdmin):
-    fields = ('extra', 'json', 'full_path', 'dataset', 'exists')
-
-
     fieldsets = (
         ('Main', {
             'fields': ('extra','json','exists','dataset')
