@@ -156,6 +156,7 @@ class DatasetFilter(BaseFilterSet):
     protected = django_filters.BooleanFilter(method='filter_protected')
     tag = django_filters.CharFilter('tags__name')
     revision = django_filters.CharFilter('revision__name')
+    data_repository = django_filters.CharFilter('data_repository__name')
 
     class Meta:
         model = Dataset
@@ -168,8 +169,7 @@ class DatasetFilter(BaseFilterSet):
         """
         if len(DataRepository.objects.filter(globus_is_personal=False)) > 0:
             frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
-            pkd = frs.filter(exists=value, data_repository__globus_is_personal=False
-                             ).values_list("dataset", flat=True)
+            pkd = frs.filter(exists=value).values_list("dataset", flat=True)
             dsets = dsets.filter(pk__in=pkd)
         return dsets
 
@@ -231,8 +231,6 @@ class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
 # ------------------------------------------------------------------------------------------------
 class FileRecordFilter(BaseFilterSet):
     lab = django_filters.CharFilter('dataset__session__lab__name')
-    data_repository = django_filters.CharFilter('data_repository__name')
-    globus_is_personal = django_filters.BooleanFilter('data_repository__globus_is_personal')
 
     class Meta:
         model = FileRecord
@@ -275,7 +273,6 @@ def _make_dataset_response(dataset):
     file_records = [
         {
             'id': fr.pk,
-            'data_repository': fr.data_repository.name,
             'relative_path': fr.relative_path,
             'exists': fr.exists,
         }
