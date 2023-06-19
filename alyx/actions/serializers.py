@@ -12,7 +12,7 @@ from misc.models import LabLocation, Lab
 from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetSerializer
 from misc.serializers import NoteSerializer
 
-SESSION_FIELDS = ('subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
+SESSION_FIELDS = ('id','subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
                   'parent_session', 'n_correct_trials', 'n_trials', 'url', 'extended_qc', 'qc',
                   'wateradmin_session_related', 'data_dataset_session_related',
@@ -140,6 +140,14 @@ class SessionDetailSerializer(BaseActionSerializer):
     notes = NoteSerializer(read_only=True, many=True)
     qc = BaseSerializerEnumField(required=False)
 
+    default_data_repository = serializers.SerializerMethodField()
+
+    def get_default_data_repository(self, obj):
+        default_data_repository = obj.default_data_repository
+        if default_data_repository:
+            return default_data_repository.pk
+        return None
+    
     @staticmethod
     def setup_eager_loading(queryset):
         queryset = queryset.prefetch_related(
@@ -153,7 +161,7 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = SESSION_FIELDS + ('id',) + ('json',) + ('probe_insertion', 'notes')
+        fields = SESSION_FIELDS + ('id',) + ('json',) + ('probe_insertion', 'notes') + ('default_data_repository',)
 
 
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
