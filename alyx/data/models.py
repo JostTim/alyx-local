@@ -485,7 +485,6 @@ class FileRecordManager(models.Manager):
         qs = qs.select_related('dataset__data_repository')
         return qs
 
-
 class FileRecord(BaseModel):
     """
     A single file on disk or tape. Normally specified by a path within an archive. If required,

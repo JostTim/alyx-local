@@ -92,7 +92,6 @@ class DatasetTypeAdmin(BaseAdmin):
     def fcount(self, dt):
         return Dataset.objects.filter(dataset_type=dt).count()
 
-
 class BaseExperimentalDataAdmin(BaseAdmin):
     def __init__(self, *args, **kwargs):
         for field in ('created_by', 'created_datetime'):
@@ -102,7 +101,7 @@ class BaseExperimentalDataAdmin(BaseAdmin):
 
 class FileRecordInline(BaseInlineAdmin):
     model = FileRecord
-    extra = 1
+    extra = 0
     fields = ('extra', 'relative_path', 'exists')
     readonly_fields = ('relative_path',)
 
