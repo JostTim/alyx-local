@@ -29,11 +29,8 @@ urlpatterns = [
      path('data-repository', dv.DataRepositoryList.as_view(),
           name="datarepository-list"),
 
-     path('data-repository/<str:name>', dv.DataRepositoryDetail.as_view(),
+     path('data-repository/<str:lookup_key>', dv.DataRepositoryDetail.as_view(), #works with name or pk
           name="datarepository-detail"),
-
-     path('data-repository/<str:pk>', dv.DataRepositoryViewSet.as_view({'get': 'retrieve',}),
-          name="datarepository"),
 
      path('revisions', dv.RevisionList.as_view(),
           name="revision-list"),

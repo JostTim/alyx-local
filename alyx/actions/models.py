@@ -298,8 +298,7 @@ class Session(BaseAction):
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
                                          verbose_name='last updated')
 
-    default_data_repository =  models.ForeignKey(
-                            'data.DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
@@ -352,10 +351,12 @@ class Session(BaseAction):
     def notes(self):
         return Note.objects.filter(object_id=self.pk)
     
+    default_data_repository =  models.ForeignKey(
+                        'data.DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+
     @property
     def path(self):
-        return os.path.join( self.default_data_repository.data_path , self.alias)
-
+        return os.path.join( self.default_data_repository.data_path , self.alias )
 
 class EphysSession(Session):
     """
@@ -365,7 +366,6 @@ class EphysSession(Session):
     """
     class Meta:
         proxy = True
-
 
 class WaterRestriction(BaseAction):
     """
@@ -405,7 +405,6 @@ class WaterRestriction(BaseAction):
             self.subject.set_protocol_number()
             self.subject.save()
         return output
-
 
 class OtherAction(BaseAction):
     """
