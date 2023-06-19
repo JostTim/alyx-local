@@ -504,8 +504,9 @@ class FileRecord(BaseModel):
     
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
-    class Meta:
-        unique_together = (('data_repository', 'relative_path'),)
+    
+    #class Meta: Removed unique, we rather check for that as save time now. (due to the intricate way the relative path is calculated)
+        #unique_together = (('data_repository', 'relative_path'),)
 
     relative_path = models.CharField(
         max_length=1000,
