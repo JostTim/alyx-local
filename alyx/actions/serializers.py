@@ -98,7 +98,7 @@ class SessionDatasetsSerializer(serializers.ModelSerializer):
     class Meta:
         list_serializer_class = serializers.ListSerializer#FilterDatasetSerializer
         model = Dataset
-        fields = ('id','name','collection', 'data_url', 'url', 'file_size',)# temp removall
+        fields = ('id','name','collection', 'url', 'file_size',)# temp removall
                   #'hash', 'version', 'revision', 'default_revision')
 
 class SessionWaterAdminSerializer(serializers.ModelSerializer):
