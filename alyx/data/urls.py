@@ -29,7 +29,7 @@ urlpatterns = [
      path('data-repository', dv.DataRepositoryList.as_view(),
           name="datarepository-list"),
 
-     path('data-repository/<str:lookup_key>', dv.DataRepositoryDetail.as_view(), #works with name or pk
+     path('data-repository/<str:name>', dv.DataRepositoryDetail.as_view(),
           name="datarepository-detail"),
 
      path('revisions', dv.RevisionList.as_view(),

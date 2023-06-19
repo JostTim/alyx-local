@@ -71,21 +71,7 @@ class DataRepositoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'lookup_key'
-
-    def get_object(self):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        filter_kwargs = {
-            'pk': self.kwargs.get('lookup_key'),
-            'name': self.kwargs.get('lookup_key')
-        }
-
-        obj = get_object_or_404(queryset.filter(**filter_kwargs).distinct())
-
-        self.check_object_permissions(self.request, obj)
-
-        return obj
+    lookup_field = 'name'
 
 # DataFormat
 # ------------------------------------------------------------------------------------------------
