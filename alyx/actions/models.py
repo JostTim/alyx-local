@@ -355,7 +355,7 @@ class Session(BaseAction):
     
     @property
     def path(self):
-        DataRepository = apps.get_model('app_name', 'DataRepository')
+        DataRepository = apps.get_model('data', 'DataRepository')
         return os.path.join( DataRepository.objects.filter(object_id=self.pk).first().data_path , self.alias)
 
 
