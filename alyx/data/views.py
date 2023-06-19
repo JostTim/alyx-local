@@ -73,6 +73,9 @@ class DataRepositoryDetail(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = 'name'
 
 
+class DataRepositoryViewSet(viewsets.ModelViewSet):
+    queryset = DataRepository.objects.all()
+    serializer_class = DataRepositorySerializer
 # DataFormat
 # ------------------------------------------------------------------------------------------------
 
