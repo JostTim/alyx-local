@@ -15,7 +15,7 @@ from misc.serializers import NoteSerializer
 SESSION_FIELDS = ('subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
                   'parent_session', 'n_correct_trials', 'n_trials', 'url', 'extended_qc', 'qc',
-                  'wateradmin_session_related', 'data_dataset_session_related', 'default_data_repository'
+                  'wateradmin_session_related', 'data_dataset_session_related', 'default_data_repository',
                   'auto_datetime', 'alias', 'u_alias', 'path')
 
 def _log_entry(instance, user):
