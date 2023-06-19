@@ -227,7 +227,7 @@ class FileRecordAdmin(BaseAdmin):
     extra_read_only.short_description = 'extra'
 
     def repository(self, obj):
-        return getattr(obj.dataset, 'data_repository', None)
+        return getattr(obj.dataset.data_repository, 'name', None)
 
     def dataset_name(self, obj):
         return getattr(obj.dataset, 'name', None)

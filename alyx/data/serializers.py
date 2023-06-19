@@ -69,16 +69,12 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
         read_only=False,
         queryset=Dataset.objects.all())
 
-    data_repository = serializers.SlugRelatedField(
-        read_only=False, slug_field='name',
-        queryset=DataRepository.objects.all())
-
     admin_url = serializers.SerializerMethodField()
 
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
-        queryset = queryset.select_related('dataset', 'data_repository')
+        queryset = queryset.select_related('dataset')
         return queryset
 
     def get_admin_url(self,obj):
@@ -90,7 +86,6 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
                   'url',
                   'admin_url', 
                   'dataset', 
-                  'data_repository',
                   'json',
                   'file_name',
                   'full_path',
