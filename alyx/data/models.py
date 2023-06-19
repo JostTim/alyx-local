@@ -416,9 +416,8 @@ class Dataset(BaseExperimentalData):
     @property
     def data_url(self):
         records = self.file_records.filter(exists=True)
-        # returns preferentially globus non-personal endpoint
         if records:
-            order_keys = ('relative_path')
+            order_keys = ('relative_path',)
             return records.order_by(*order_keys)[0].data_url
 
     def __str__(self):
