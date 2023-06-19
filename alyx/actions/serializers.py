@@ -146,10 +146,11 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
+        return queryset.order_by('-start_time')#temp, trying to fix r
         queryset = queryset.prefetch_related(
             'data_dataset_session_related',
-            #'data_dataset_session_related__dataset_type',
-            #'data_dataset_session_related__file_records',
+            'data_dataset_session_related__dataset_type',
+            'data_dataset_session_related__file_records',
             'wateradmin_session_related',
             'probe_insertion',
         )
