@@ -387,7 +387,7 @@ class Dataset(BaseExperimentalData):
 
     @property
     def is_online(self):
-        fr = self.file_records#.filter(data_repository__globus_is_personal=False)
+        fr = self.file_records
         if fr:
             return all(fr.values_list('exists', flat=True))# if all contained files are 'globus_is_personal'...
             #Btw this should be removed or at least renamed... If we want this to make sense, it should be a field that is checked regularly 
@@ -495,10 +495,6 @@ class FileRecord(BaseModel):
 
     dataset = models.ForeignKey(Dataset, related_name='file_records', on_delete=models.CASCADE)
 
-    #shall be removed after migrations : has been removed
-    #data_repository = models.ForeignKey(
-        #'DataRepository', on_delete=models.CASCADE)
-
     extra = models.CharField(blank=True, null=True, max_length=255, db_column="extras", #adding this to migrate from "extra" to extra without having to copy/delete the column
                               #https://stackoverflow.com/questions/3498140/migrating-django-model-field-name-change-without-losing-data
                                   help_text="extra of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to '' internally")
@@ -506,9 +502,6 @@ class FileRecord(BaseModel):
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
     
-    #class Meta: Removed unique, we rather check for that as save time now. (due to the intricate way the relative path is calculated)
-        #unique_together = (('data_repository', 'relative_path'),)
-
     relative_path = models.CharField(
         max_length=1000,
         help_text="path name within repository")
@@ -628,29 +621,6 @@ class FileRecord(BaseModel):
             return None
         from one.alf.files import add_uuid_string
         return root + self.relative_path
-
-    #@property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
-    #def relative_path(self):
-    #    return self.get_relative_path()
-
-    #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL FILENAME WITHOUT ANY FOLDERS
-    #file_name = models.CharField(max_length=1000,
-                                #validators=[RegexValidator(r'(?P<object>.*)\.(?P<attribute>.*)\.(?P<extension>.*)',
-                                #                        message='Invalid alyx file name.',
-                                #                        code='invalid_alf')],
-                                #help_text="file name within repository. Cannot contain a directory path")
-
-    #THIS FIELD IS KEPT IN BASE BUT IS CALCULATED. IT IS ONLY THE FULL PATH WITHOUT THE DATA REPOSITORY PATH 
-    #(to be able to build local/remote path version easily)
-
-    
-    # @property
-    # def absolute_path(self):
-    #     os.path.join( self.dataset.session.data_repository.data_path , self.relative_path )
-
-    # @property
-    # def relative_path(self):
-    #     os.path.join( self.dataset.session.relative_path , self.dataset.relative_path , self.file_name )
 
     def save(self, *args, **kwargs):
         #check how to run this on change in data repository related, or

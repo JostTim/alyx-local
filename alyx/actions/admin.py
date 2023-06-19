@@ -498,7 +498,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     list_display_links = ['alias']
     fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:-1] +[# removed 'repo_url' as we are not web based but samba based
         'projects'] + [BaseActionAdmin.fields[-1]] + [ 'qc', 'extended_qc', 'type', 'task_protocol',
-        'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime']
+        'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime', 'default_data_repository']
     list_filter = [('users', RelatedDropdownFilter),
                    ('subject', RelatedDropdownFilter),
                    ('start_time', DateRangeFilter),
