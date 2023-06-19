@@ -62,7 +62,7 @@ class DataRepositoryList(generics.ListCreateAPIView):
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
-    filter_fields = ('name', 'globus_is_personal', 'globus_endpoint_id')
+    filter_fields = ('name', 'globus_endpoint_id')
     lookup_field = 'name'
 
 
@@ -571,7 +571,6 @@ class DownloadFilter(BaseFilterSet):
     class Meta:
         model = Download
         fields = ('count', )
-
 
 class DownloadList(generics.ListAPIView):
     """

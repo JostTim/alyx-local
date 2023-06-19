@@ -15,7 +15,7 @@ from misc.serializers import NoteSerializer
 SESSION_FIELDS = ('subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
                   'parent_session', 'n_correct_trials', 'n_trials', 'url', 'extended_qc', 'qc',
-                  'wateradmin_session_related', 'data_dataset_session_related',
+                  'wateradmin_session_related',# 'data_dataset_session_related',
                   'auto_datetime')
 
 
@@ -136,7 +136,7 @@ class SessionListSerializer(BaseActionSerializer):
 
 class SessionDetailSerializer(BaseActionSerializer):
 
-    data_dataset_session_related = SessionDatasetsSerializer(read_only=True, many=True)
+    #data_dataset_session_related = SessionDatasetsSerializer(read_only=True, many=True)
     wateradmin_session_related = SessionWaterAdminSerializer(read_only=True, many=True)
     probe_insertion = ProbeInsertionListSerializer(read_only=True, many=True)
     projects = serializers.SlugRelatedField(read_only=False, slug_field='name', many=True,
@@ -147,9 +147,9 @@ class SessionDetailSerializer(BaseActionSerializer):
     @staticmethod
     def setup_eager_loading(queryset):
         queryset = queryset.prefetch_related(
-            'data_dataset_session_related',
-            'data_dataset_session_related__dataset_type',
-            'data_dataset_session_related__file_records',
+            #'data_dataset_session_related',
+            #'data_dataset_session_related__dataset_type',
+            #'data_dataset_session_related__file_records',
             'wateradmin_session_related',
             'probe_insertion',
         )
