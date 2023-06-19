@@ -307,7 +307,10 @@ class Revision(BaseModel):
 
     def __str__(self):
         return "<Revision %s>" % self.name
-
+    
+    def hashed(self):
+        name = self.name if self.name is not None else ""
+        return "#" + name + "#" 
 
 class DatasetManager(BaseManager):
     def get_queryset(self):
@@ -435,7 +438,6 @@ class Dataset(BaseExperimentalData):
             return folder_field if folder_field == "" else os.path.normpath(folder_field)
 
         self.collection = sanitize_folders(self.collection)
-        self.revision = sanitize_folders(self.revision)
 
         if self.data_repository is None :
             self.data_repository = self.session.default_data_repository
@@ -453,6 +455,7 @@ class Dataset(BaseExperimentalData):
 
         #save childs file records to update the changed collection or dataset type, if necessary.
         file_records = FileRecord.objects.filter(dataset=self)
+
         for file_record in file_records:
             file_record.save()
 
@@ -491,9 +494,9 @@ class FileRecord(BaseModel):
 
     dataset = models.ForeignKey(Dataset, related_name='file_records', on_delete=models.CASCADE)
 
-    #shall be removed after migrations
-    data_repository = models.ForeignKey(
-        'DataRepository', on_delete=models.CASCADE)
+    #shall be removed after migrations : has been removed
+    #data_repository = models.ForeignKey(
+        #'DataRepository', on_delete=models.CASCADE)
 
     extra = models.CharField(blank=True, null=True, max_length=255, db_column="extras", #adding this to migrate from "extra" to extra without having to copy/delete the column
                               #https://stackoverflow.com/questions/3498140/migrating-django-model-field-name-change-without-losing-data
@@ -551,10 +554,9 @@ class FileRecord(BaseModel):
         return self.get_object() + '.' + self.get_attribute() + self.get_extra(with_dot = True) + self.get_extension()
 
     def get_revision(self, with_hash = False):
-        hash = "#" if with_hash else ""
-        revision = self.dataset.revision if self.dataset.revision is not None else ""
-        revision = hash + revision + hash 
-        return revision
+        if with_hash : 
+            return self.dataset.revision.hashed if self.dataset.revision is not None else ""
+        return self.dataset.revision.name if self.dataset.revision is not None else ""
     
     def get_object(self):
         #returns trials
@@ -623,7 +625,7 @@ class FileRecord(BaseModel):
         if not root:
             return None
         from one.alf.files import add_uuid_string
-        return root + add_uuid_string(self.relative_path, self.dataset.pk).as_posix()
+        return root + self.relative_path
 
     #@property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
     #def relative_path(self):
