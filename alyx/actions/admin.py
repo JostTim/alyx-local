@@ -562,7 +562,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
 
     def dataset_count(self, ses):
         cs = FileRecord.objects.filter(dataset__in=ses.data_dataset_session_related.all(),
-                                       data_repository__globus_is_personal=False,
+                                       #data_repository__globus_is_personal=False, this is removed
                                        exists=True).values_list('relative_path').distinct().count()
         cr = FileRecord.objects.filter(dataset__in=ses.data_dataset_session_related.all(),
                                        ).values_list('relative_path').distinct().count()
