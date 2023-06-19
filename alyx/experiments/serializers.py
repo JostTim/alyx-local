@@ -67,8 +67,7 @@ class FilterDatasetSerializer(serializers.ListSerializer):
     def to_representation(self, dsets):
         if len(DataRepository.objects.filter(globus_is_personal=False)) > 0:
             frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
-            pkd = frs.filter(exists=True, data_repository__globus_is_personal=False
-                             ).values_list("dataset", flat=True)
+            pkd = frs.filter(exists=True).values_list("dataset", flat=True)
             dsets = dsets.filter(pk__in=pkd)
         return super(FilterDatasetSerializer, self).to_representation(dsets)
 

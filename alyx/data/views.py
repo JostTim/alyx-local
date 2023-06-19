@@ -244,7 +244,6 @@ class FileRecordList(generics.ListCreateAPIView):
     -   **dataset**: dataset UUID: `/files?dataset=aad23144-0e52-4eac-80c5-c4ee2decb198`
     -   **exists**: Bool `/files?exists=False`
     -   **lab**: lab name `/files?lab=wittenlab`
-    -   **data_repository**: data repository name `/files?data_repository=mainen_lab_SR`
     -   **globus_is_personal**: bool type of Globus endpoint `/files?globus_is_personal=True`
 
     [===> file record model reference](/admin/doc/models/data.filerecord)

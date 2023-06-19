@@ -64,7 +64,7 @@ Dataset.objects.using('cortexlab').filter(dataset_type__name='unknown').delete()
 # we want to make sure that no other file record than the ones in already existing repositories
 # are imported
 repos = list(DataRepository.objects.all().values_list('pk', flat=True))
-FileRecord.objects.using('cortexlab').exclude(data_repository__in=repos).delete()
+FileRecord.objects.using('cortexlab').exclude(dataset__data_repository__in=repos).delete()
 DataRepository.objects.using('cortexlab').exclude(pk__in=repos).delete()
 
 # sync the datasets

@@ -30,7 +30,7 @@ def _create_missing_file_records_main_globus(dry_run=False, lab=None):
         dsets = Dataset.objects.filter(session__lab=l)
         for r in repos:
             dsr = dsets.annotate(rep_count=Count('file_records',
-                                                 filter=Q(file_records__data_repository=r)))
+                                                 filter=Q(file_records__dataset__data_repository=r)))
             dsr = dsr.order_by('session__start_time')
             to_create = dsr.filter(rep_count=0)
             for ds in to_create:
@@ -41,8 +41,7 @@ def _create_missing_file_records_main_globus(dry_run=False, lab=None):
                 print('create', r.name, rel_path)
                 if not dry_run:
                     FileRecord.objects.create(dataset=ds,
-                                              relative_path=rel_path,
-                                              data_repository=r)
+                                              relative_path=rel_path)
 
 
 def _create_missing_file_records(dry_run=False):
@@ -57,15 +56,14 @@ def _create_missing_file_records(dry_run=False):
         for d in s.data_dataset_session_related.all():
             fr = d.file_records.first()
             # Find the repositories which do not have a FileRecord yet.
-            actual_repos = set([fr.data_repository for fr in d.file_records.all()])
+            actual_repos = set([fr.dataset.data_repository for fr in d.file_records.all()])
             repos_to_create = expected_repos - actual_repos
             # Create them.
             for dr in repos_to_create:
                 print('Create', fr.relative_path, ' in', dr.name)
                 if not dry_run:
                     fr = FileRecord.objects.create(dataset=fr.dataset,
-                                                   relative_path=fr.relative_path,
-                                                   data_repository=dr)
+                                                   relative_path=fr.relative_path)
                     print("Created %s" % fr)
 
 
@@ -117,7 +115,6 @@ class Command(BaseCommand):
             dtypes = ['ephysData.raw.ap', 'ephysData.raw.lf', 'ephysData.raw.nidq',
                       '_iblrig_Camera.raw', '_kilosort_raw.output']
             frecs = FileRecord.objects.filter(
-                data_repository__globus_is_personal=True,
                 dataset__dataset_type__name__in=dtypes,
                 exists=True,
                 dataset__session__start_time__date__lte=before,
