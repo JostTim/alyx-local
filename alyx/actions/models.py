@@ -356,9 +356,7 @@ class Session(BaseAction):
 
     @property
     def path(self):
-        from django.apps import apps
-        DataRepository = apps.get_model('data', 'DataRepository')
-        return os.path.join( DataRepository.objects.filter(pk=self.default_data_repository).first().data_path , self.alias )
+        return os.path.join( self.default_data_repository.data_path , self.alias )
 
 class EphysSession(Session):
     """
