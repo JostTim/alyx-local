@@ -212,14 +212,14 @@ class FileRecordAdmin(BaseAdmin):
     list_display = ['relative_path','dataset_name','repository','user','datetime','exists']
     readonly_fields = ('relative_path','full_path','file_name','dataset', 'dataset_name', 'repository', 'user', 'datetime', 
                        'remote_root', 'subject', 'date', 'number', 'collection', 'revision','object', 'attribute', 'extra_read_only', 'extension')
-    list_filter = ( 'exists', 'dataset__data_repository__name')
+    list_filter = ( 'exists', 'dataset__data_repository')
     search_fields = ('dataset__created_by__username', 'dataset__name',
                      'relative_path', 'dataset__data_repository__name')
     ordering = ('-dataset__created_datetime',)
 
     def get_queryset(self, request):
         qs = super(FileRecordAdmin, self).get_queryset(request)
-        qs = qs.select_related('dataset', 'dataset__created_by','dataset__data_repository__name',)
+        qs = qs.select_related('dataset', 'dataset__created_by','dataset__data_repository',)
         return qs
 
     def extra_read_only(self, obj):
