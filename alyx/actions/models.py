@@ -11,7 +11,7 @@ from django.utils import timezone
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
-from alyx.data.models import DataRepository
+from ..data.models import DataRepository
 import os
 
 #from markdownfield.models import MarkdownField, RenderedMarkdownField
