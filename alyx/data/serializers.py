@@ -65,8 +65,8 @@ class DatasetTypeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
-    dataset = serializers.HyperlinkedRelatedField(
-        read_only=False, view_name="dataset-detail",
+    dataset = serializers.PrimaryKeyRelatedField(
+        read_only=False,
         queryset=Dataset.objects.all())
 
     data_repository = serializers.SlugRelatedField(
