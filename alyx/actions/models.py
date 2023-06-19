@@ -11,8 +11,8 @@ from django.utils import timezone
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
-from ..data.models import DataRepository
 import os
+from django.apps import apps
 
 #from markdownfield.models import MarkdownField, RenderedMarkdownField
 #from markdownfield.validators import VALIDATOR_STANDARD
@@ -355,6 +355,7 @@ class Session(BaseAction):
     
     @property
     def path(self):
+        DataRepository = apps.get_model('app_name', 'DataRepository')
         return os.path.join( DataRepository.objects.filter(object_id=self.pk).first().data_path , self.alias)
 
 
