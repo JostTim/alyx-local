@@ -1,7 +1,6 @@
 from django.urls import path
 import data.views as dv
 
-
 register_file = dv.RegisterFileViewSet.as_view({
     'post': 'create'
 })
@@ -14,68 +13,70 @@ new_download = dv.DownloadViewSet.as_view({
     'post': 'create'
 })
 
-
 urlpatterns = [
-    path('data-formats', dv.DataFormatList.as_view(),
-         name="dataformat-list"),
+     path('data-formats', dv.DataFormatList.as_view(),
+          name="dataformat-list"),
 
-    path('data-formats/<str:name>', dv.DataFormatDetail.as_view(),
-         name="dataformat-detail"),
+     path('data-formats/<str:name>', dv.DataFormatDetail.as_view(),
+          name="dataformat-detail"),
 
-    path('data-repository-type', dv.DataRepositoryTypeList.as_view(),
-         name="datarepositorytype-list"),
+     path('data-repository-type', dv.DataRepositoryTypeList.as_view(),
+          name="datarepositorytype-list"),
 
-    path('data-repository-type/<str:name>', dv.DataRepositoryTypeDetail.as_view(),
-         name="datarepositorytype-detail"),
+     path('data-repository-type/<str:name>', dv.DataRepositoryTypeDetail.as_view(),
+          name="datarepositorytype-detail"),
 
-    path('data-repository', dv.DataRepositoryList.as_view(),
-         name="datarepository-list"),
+     path('data-repository', dv.DataRepositoryList.as_view(),
+          name="datarepository-list"),
 
-    path('data-repository/<str:name>', dv.DataRepositoryDetail.as_view(),
-         name="datarepository-detail"),
+     path('data-repository/<str:name>', dv.DataRepositoryDetail.as_view(),
+          name="datarepository-detail"),
 
-    path('revisions', dv.RevisionList.as_view(),
-         name="revision-list"),
+     path('data-repository/<str:pk>', dv.DataRepositoryViewSet.as_view(),
+          name="datarepository"),
 
-    path('revisions/<str:name>', dv.RevisionDetail.as_view(),
-         name="revision-detail"),
+     path('revisions', dv.RevisionList.as_view(),
+          name="revision-list"),
 
-    path('tags', dv.TagList.as_view(),
-         name="tag-list"),
+     path('revisions/<str:name>', dv.RevisionDetail.as_view(),
+          name="revision-detail"),
 
-    path('tags/<uuid:pk>', dv.TagDetail.as_view(),
-         name="tag-detail"),
+     path('tags', dv.TagList.as_view(),
+          name="tag-list"),
 
-    path('datasets', dv.DatasetList.as_view(),
-         name="dataset-list"),
+     path('tags/<uuid:pk>', dv.TagDetail.as_view(),
+          name="tag-detail"),
 
-    path('datasets/<uuid:pk>', dv.DatasetDetail.as_view(),
-         name="dataset-detail"),
+     path('datasets', dv.DatasetList.as_view(),
+          name="dataset-list"),
 
-    path('dataset-types', dv.DatasetTypeList.as_view(),
-         name="datasettype-list"),
+     path('datasets/<uuid:pk>', dv.DatasetDetail.as_view(),
+          name="dataset-detail"),
 
-    path('dataset-types/<str:name>', dv.DatasetTypeDetail.as_view(),
-         name="datasettype-detail"),
+     path('dataset-types', dv.DatasetTypeList.as_view(),
+          name="datasettype-list"),
 
-    path('downloads', dv.DownloadList.as_view(),
-         name="download-list"),
+     path('dataset-types/<str:name>', dv.DatasetTypeDetail.as_view(),
+          name="datasettype-detail"),
 
-    path('downloads/<uuid:pk>', dv.DownloadDetail.as_view(),
-         name="download-detail"),
+     path('downloads', dv.DownloadList.as_view(),
+          name="download-list"),
 
-    path('files', dv.FileRecordList.as_view(),
-         name="filerecord-list"),
+     path('downloads/<uuid:pk>', dv.DownloadDetail.as_view(),
+          name="download-detail"),
 
-    path('files/<uuid:pk>', dv.FileRecordDetail.as_view(),
-         name="filerecord-detail"),
+     path('files', dv.FileRecordList.as_view(),
+          name="filerecord-list"),
 
-    path('new-download', new_download, name='new-download'),
+     path('files/<uuid:pk>', dv.FileRecordDetail.as_view(),
+          name="filerecord-detail"),
 
-    path('register-file', register_file,
-         name="register-file"),
+     path('new-download', new_download, name='new-download'),
 
-    path('sync-file-status', sync_file_status,
-         name="sync-file-status"),
+     path('register-file', register_file,
+          name="register-file"),
+
+     path('sync-file-status', sync_file_status,
+          name="sync-file-status"),
 
 ]

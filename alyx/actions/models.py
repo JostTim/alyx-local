@@ -12,7 +12,6 @@ from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
 import os
-from django.apps import apps
 
 #from markdownfield.models import MarkdownField, RenderedMarkdownField
 #from markdownfield.validators import VALIDATOR_STANDARD
