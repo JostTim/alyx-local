@@ -20,28 +20,28 @@ def _iter_datasets(dataset_id=None, limit=None, user=None):
         yield dataset
 
 
-def _create_missing_file_records_main_globus(dry_run=False, lab=None):
-    if lab:
-        labs = Lab.objects.filter(name=lab)
-    else:
-        labs = Lab.objects.all()
-    for l in labs:
-        repos = l.repositories.filter(globus_is_personal=False)
-        dsets = Dataset.objects.filter(session__lab=l)
-        for r in repos:
-            dsr = dsets.annotate(rep_count=Count('file_records',
-                                                 filter=Q(file_records__dataset__data_repository=r)))
-            dsr = dsr.order_by('session__start_time')
-            to_create = dsr.filter(rep_count=0)
-            for ds in to_create:
-                if ds.file_records.count():
-                    rel_path = ds.file_records.first().relative_path
-                else:
-                    continue  # we do not want to create filerecords if none exist for a dataset
-                print('create', r.name, rel_path)
-                if not dry_run:
-                    FileRecord.objects.create(dataset=ds,
-                                              relative_path=rel_path)
+# def _create_missing_file_records_main_globus(dry_run=False, lab=None):
+#     if lab:
+#         labs = Lab.objects.filter(name=lab)
+#     else:
+#         labs = Lab.objects.all()
+#     for l in labs:
+#         repos = l.repositories.filter(globus_is_personal=False)
+#         dsets = Dataset.objects.filter(session__lab=l)
+#         for r in repos:
+#             dsr = dsets.annotate(rep_count=Count('file_records',
+#                                                  filter=Q(file_records__dataset__data_repository=r)))
+#             dsr = dsr.order_by('session__start_time')
+#             to_create = dsr.filter(rep_count=0)
+#             for ds in to_create:
+#                 if ds.file_records.count():
+#                     rel_path = ds.file_records.first().relative_path
+#                 else:
+#                     continue  # we do not want to create filerecords if none exist for a dataset
+#                 print('create', r.name, rel_path)
+#                 if not dry_run:
+#                     FileRecord.objects.create(dataset=ds,
+#                                               relative_path=rel_path)
 
 
 def _create_missing_file_records(dry_run=False):
@@ -140,8 +140,9 @@ class Command(BaseCommand):
             transfers.globus_delete_local_datasets(dsets, dry=dry)
 
         if action == 'bulksync':
-            _create_missing_file_records_main_globus(dry_run=dry, lab=lab)
-            transfers.bulk_sync(dry_run=dry, lab=lab)
+            #_create_missing_file_records_main_globus(dry_run=dry, lab=lab)
+            #transfers.bulk_sync(dry_run=dry, lab=lab)
+            pass
 
         if action == 'bulktransfer':
             transfers.bulk_transfer(dry_run=dry, lab=lab)
