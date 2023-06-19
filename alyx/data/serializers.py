@@ -195,7 +195,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
             'created_by', 'dataset_type', 'data_format', 'session',
             'session__subject', 'revision')
         queryset = queryset.prefetch_related(
-            'file_records', 'file_records__data_repository', 'tags')
+            'file_records', 'tags')
         public = Count('tags', filter=Q(tags__public=True), output_field=BooleanField())
         protected = Count('tags', filter=Q(tags__protected=True), output_field=BooleanField())
         queryset = queryset.annotate(public=public, protected=protected)
