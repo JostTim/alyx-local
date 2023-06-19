@@ -91,10 +91,10 @@ class LabLocationSerializer(serializers.ModelSerializer):
 class SessionDatasetsSerializer(serializers.ModelSerializer):
 
     object = serializers.SlugRelatedField(
-        read_only=True, slug_field='object__name'
+        read_only=False, slug_field='object__name', queryset=DatasetType.objects.all(),
     )
     attribute = serializers.SlugRelatedField(
-        read_only=True, slug_field='object__name'
+        read_only=False, slug_field='atribute__name' , queryset=DatasetType.objects.all(),
     )
     default_revision = serializers.CharField(source='default_dataset')
 
