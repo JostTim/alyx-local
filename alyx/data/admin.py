@@ -212,14 +212,14 @@ class FileRecordAdmin(BaseAdmin):
     list_display = ['relative_path','dataset_name','repository','user','datetime','exists']
     readonly_fields = ('relative_path','full_path','file_name','dataset', 'dataset_name', 'repository', 'user', 'datetime', 
                        'remote_root', 'subject', 'date', 'number', 'collection', 'revision','object', 'attribute', 'extra_read_only', 'extension')
-    list_filter = ( 'exists', 'data_repository__name')
+    list_filter = ( 'exists', 'dataset__data_repository__name')
     search_fields = ('dataset__created_by__username', 'dataset__name',
-                     'relative_path', 'data_repository__name')
+                     'relative_path', 'dataset__data_repository__name')
     ordering = ('-dataset__created_datetime',)
 
     def get_queryset(self, request):
         qs = super(FileRecordAdmin, self).get_queryset(request)
-        qs = qs.select_related('data_repository', 'dataset', 'dataset__created_by')
+        qs = qs.select_related('dataset__data_repository__name', 'dataset', 'dataset__created_by')
         return qs
 
     def extra_read_only(self, obj):
@@ -227,7 +227,7 @@ class FileRecordAdmin(BaseAdmin):
     extra_read_only.short_description = 'extra'
 
     def repository(self, obj):
-        return getattr(obj.data_repository, 'name', None)
+        return getattr(obj.dataset.data_repository, 'name', None)
 
     def dataset_name(self, obj):
         return getattr(obj.dataset, 'name', None)
