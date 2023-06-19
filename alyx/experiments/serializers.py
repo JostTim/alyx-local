@@ -64,7 +64,7 @@ class ChannelSerializer(serializers.ModelSerializer):
 class FilterDatasetSerializer(serializers.ListSerializer):
 
     def to_representation(self, dsets):
-        if len(DataRepository.objects) > 0:
+        if len(DataRepository.objects.count()) > 0:
             frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
             pkd = frs.filter(exists=True).values_list("dataset", flat=True)
             dsets = dsets.filter(pk__in=pkd)
