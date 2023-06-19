@@ -122,23 +122,15 @@ class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
     
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
-    data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
-
-    data_repository_path = serializers.SerializerMethodField()
-
-    def get_data_repository_path(self, obj):
-        return obj.data_repository.data_path
-
     class Meta:
         model = FileRecord
-        fields = ('id', 'data_repository', 'data_repository_path', 'relative_path', 'data_url',
-                  'exists')
+        fields = ('id', 'relative_path', 'data_url', 'exists')
 
-    @staticmethod
-    def setup_eager_loading(queryset):
-        """ Perform necessary eager loading of data to avoid horrible performance."""
-        queryset = queryset.select_related('data_repository', 'data_repository__globus_path')
-        return queryset
+    # @staticmethod No longer necessary, but may be implemented elsewere to improve performance while getting FileRecord components
+    # def setup_eager_loading(queryset):
+    #     """ Perform necessary eager loading of data to avoid horrible performance."""
+    #     queryset = queryset.select_related('data_repository', 'data_repository__globus_path')
+    #     return queryset
 
 class TagSerializer(serializers.ModelSerializer):
 
