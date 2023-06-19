@@ -219,7 +219,7 @@ class FileRecordAdmin(BaseAdmin):
 
     def get_queryset(self, request):
         qs = super(FileRecordAdmin, self).get_queryset(request)
-        qs = qs.select_related('dataset', 'dataset__created_by',)#'dataset__data_repository__name',)
+        qs = qs.select_related('dataset', 'dataset__created_by','dataset__data_repository__name',)
         return qs
 
     def extra_read_only(self, obj):
@@ -227,7 +227,7 @@ class FileRecordAdmin(BaseAdmin):
     extra_read_only.short_description = 'extra'
 
     def repository(self, obj):
-        return getattr(obj.dataset.data_repository, 'name', None)
+        return getattr(obj.dataset, 'data_repository', None)
 
     def dataset_name(self, obj):
         return getattr(obj.dataset, 'name', None)
