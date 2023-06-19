@@ -440,8 +440,11 @@ class Dataset(BaseExperimentalData):
         self.collection = sanitize_folders(self.collection)
 
         if self.data_repository is None :
-            self.data_repository = self.session.default_data_repository
-
+            if self.session.default_data_repository is None :
+                self.data_repository = self.session.project.default_data_repository
+            else :
+                self.data_repository = self.session.default_data_repository
+            
         query_set = self.__class__.objects.filter(dataset_type = self.dataset_type, session = self.session, collection = self.collection)
         if self.id is not None:
             query_set = query_set.exclude(id=self.id)
@@ -480,7 +483,7 @@ class Dataset(BaseExperimentalData):
 class FileRecordManager(models.Manager):
     def get_queryset(self):
         qs = super(FileRecordManager, self).get_queryset()
-        qs = qs.select_related('data_repository')
+        qs = qs.select_related('dataset__data_repository')
         return qs
 
 
@@ -518,7 +521,7 @@ class FileRecord(BaseModel):
 
     def get_root(self):
         #returns //cajal/cajal_data2/ONE/Adaptation
-        return self.data_repository.data_path
+        return self.dataset.data_repository.data_path
 
     def get_session_path(self,as_dict = False):
         #returns wm29/2023-05-25/002
@@ -622,7 +625,7 @@ class FileRecord(BaseModel):
     
     @property
     def data_url(self):
-        root = self.data_repository.data_url
+        root = self.dataset.data_repository.data_url
         if not root:
             return None
         from one.alf.files import add_uuid_string
