@@ -451,7 +451,7 @@ class Dataset(BaseExperimentalData):
         if query_set.count() :
             raise ValidationError("Two datasets for the same session with the same dataset type and collection cannot exist")
 
-        self.name = self.object + "." + self.attribute + self.data_format.file_extension
+        self.name = self.dataset_type.object + "." + self.dataset_type.attribute + self.data_format.file_extension
 
         super(Dataset, self).save(*args, **kwargs)
 
