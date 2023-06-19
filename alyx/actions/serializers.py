@@ -90,16 +90,19 @@ class LabLocationSerializer(serializers.ModelSerializer):
 
 class SessionDatasetsSerializer(serializers.ModelSerializer):
 
-    #object = serializers.SlugRelatedField(
-    #    read_only=True, slug_field='object__name'
-    #)
-    #default_revision = serializers.CharField(source='default_dataset')
+    object = serializers.SlugRelatedField(
+        read_only=True, slug_field='object__name'
+    )
+    attribute = serializers.SlugRelatedField(
+        read_only=True, slug_field='object__name'
+    )
+    default_revision = serializers.CharField(source='default_dataset')
 
     class Meta:
-        list_serializer_class = serializers.ListSerializer#FilterDatasetSerializer
+        list_serializer_class = FilterDatasetSerializer
         model = Dataset
-        fields = ('id','name','collection', 'url', 'file_size',)# temp removall # data_url caused an issue here for whatever reason ?????
-                  #'hash', 'version', 'revision', 'default_revision')
+        fields = ('id', 'name', 'object', 'attribute', 'collection', 'url', 'file_size',
+                  'hash', 'version', 'revision', 'default_revision')
 
 class SessionWaterAdminSerializer(serializers.ModelSerializer):
 
@@ -144,7 +147,6 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     @staticmethod
     def setup_eager_loading(queryset):
-        return queryset.order_by('-start_time')#temp, trying to fix r
         queryset = queryset.prefetch_related(
             'data_dataset_session_related',
             'data_dataset_session_related__dataset_type',
