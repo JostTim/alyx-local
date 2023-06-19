@@ -150,7 +150,6 @@ class SessionDetailSerializer(BaseActionSerializer):
             'data_dataset_session_related',
             'data_dataset_session_related__dataset_type',
             'data_dataset_session_related__file_records',
-            'data_dataset_session_related__file_records__data_repository',
             'wateradmin_session_related',
             'probe_insertion',
         )
