@@ -11,6 +11,9 @@ from django.utils import timezone
 from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
 from misc.models import Lab, LabLocation, LabMember, Note
 
+from alyx.data.models import DataRepository
+import os
+
 #from markdownfield.models import MarkdownField, RenderedMarkdownField
 #from markdownfield.validators import VALIDATOR_STANDARD
 #https://pypi.org/project/django-markdownfield/
@@ -343,8 +346,16 @@ class Session(BaseAction):
         return string
 
     @property
+    def u_alias(self):
+        return self.alias.replace("/","_")
+
+    @property
     def notes(self):
         return Note.objects.filter(object_id=self.pk)
+    
+    @property
+    def path(self):
+        return os.path.join( DataRepository.objects.filter(object_id=self.pk).first().data_path , self.alias)
 
 
 class EphysSession(Session):

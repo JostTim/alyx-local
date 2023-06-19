@@ -18,7 +18,6 @@ SESSION_FIELDS = ('subject', 'users', 'location', 'procedures', 'lab', 'projects
                   'wateradmin_session_related', 'data_dataset_session_related', 'default_data_repository'
                   'auto_datetime', 'alias')
 
-
 def _log_entry(instance, user):
     if instance.pk:
         LogEntry.objects.log_action(
