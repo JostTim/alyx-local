@@ -90,16 +90,16 @@ class LabLocationSerializer(serializers.ModelSerializer):
 
 class SessionDatasetsSerializer(serializers.ModelSerializer):
 
-    #dataset_type = serializers.SlugRelatedField(
-    #    read_only=False, slug_field='name',
-    #    queryset=DatasetType.objects.all(),
-    #)
+    dataset_type = serializers.SlugRelatedField(
+        read_only=False, slug_field='name',
+        queryset=DatasetType.objects.all(),
+    )
     #default_revision = serializers.CharField(source='default_dataset')
 
     class Meta:
         list_serializer_class = serializers.ListSerializer#FilterDatasetSerializer
         model = Dataset
-        fields = ('id',)# 'name', 'dataset_type', 'data_url', 'url', 'file_size', temp removall
+        fields = ('id','dataset_type')# 'name', 'data_url', 'url', 'file_size', temp removall
                   #'hash', 'version', 'collection', 'revision', 'default_revision')
 
 class SessionWaterAdminSerializer(serializers.ModelSerializer):
