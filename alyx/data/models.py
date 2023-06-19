@@ -387,7 +387,7 @@ class Dataset(BaseExperimentalData):
 
     @property
     def is_online(self):
-        fr = self.file_records.filter(data_repository__globus_is_personal=False)
+        fr = self.file_records#.filter(data_repository__globus_is_personal=False)
         if fr:
             return all(fr.values_list('exists', flat=True))# if all contained files are 'globus_is_personal'...
             #Btw this should be removed or at least renamed... If we want this to make sense, it should be a field that is checked regularly 
@@ -415,11 +415,10 @@ class Dataset(BaseExperimentalData):
 
     @property
     def data_url(self):
-        records = self.file_records.filter(data_repository__data_url__isnull=False,
-                                           exists=True)
+        records = self.file_records.filter(exists=True)
         # returns preferentially globus non-personal endpoint
         if records:
-            order_keys = ('data_repository__globus_is_personal', '-data_repository__name')
+            order_keys = ('relative_path')
             return records.order_by(*order_keys)[0].data_url
 
     def __str__(self):
