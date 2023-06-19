@@ -32,7 +32,7 @@ urlpatterns = [
      path('data-repository/<str:name>', dv.DataRepositoryDetail.as_view(),
           name="datarepository-detail"),
 
-     path('data-repository/<str:pk>', dv.DataRepositoryViewSet.as_view(),
+     path('data-repository/<str:pk>', dv.DataRepositoryViewSet.as_view({'get': 'retrieve',}),
           name="datarepository"),
 
      path('revisions', dv.RevisionList.as_view(),
