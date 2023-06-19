@@ -76,7 +76,7 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'WARNING',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '/var/log/alyx/alyx_db.log',
             'maxBytes': 16777216,

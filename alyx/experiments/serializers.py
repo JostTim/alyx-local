@@ -61,7 +61,6 @@ class ChannelSerializer(serializers.ModelSerializer):
         model = Channel
         fields = '__all__'
 
-
 class FilterDatasetSerializer(serializers.ListSerializer):
 
     def to_representation(self, dsets):
