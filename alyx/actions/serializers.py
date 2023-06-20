@@ -144,8 +144,13 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     default_data_repository = serializers.SerializerMethodField()
 
+    rel_path = serializers.SerializerMethodField()
+
     def get_default_data_repository(self, obj):
         return obj.default_data_repository.pk if obj.default_data_repository else None
+    
+    def get_rel_path(self,obj): #rel_path is the same as alias. Just for retro-compatibility sake and understandability of code (weird to use an "alias" arg in pathes construction)
+        return obj.alias
     
     @staticmethod
     def setup_eager_loading(queryset):
@@ -160,7 +165,7 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = SESSION_FIELDS + ('id',) + ('json',) + ('probe_insertion', 'notes') + ('default_data_repository',)
+        fields = SESSION_FIELDS + ('id',) + ('json',) + ('probe_insertion', 'notes') + ('default_data_repository','rel_path')
 
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
 

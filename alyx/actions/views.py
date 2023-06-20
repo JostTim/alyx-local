@@ -217,6 +217,19 @@ class SessionFilter(BaseFilterSet):
     histology = django_filters.BooleanFilter(field_name='histology', method='has_histology')
     tag = django_filters.CharFilter(field_name='tag', method='filter_tag')
 
+    #dataset_object 
+    object = django_filters.CharFilter(field_name='object', method='filter_tag')
+
+    #dataset_attribute : TODO
+
+    def filter_object(self, queryset, name, value):
+        objects = value.split(',')
+        queryset = queryset.filter(data_dataset_session_related__dataset_type__object__in=objects)
+        queryset = queryset.annotate(
+            dset_objects_count=Count('data_dataset_session_related__dataset_type', distinct=True))
+        queryset = queryset.filter(dset_objects_count__gte=len(objects))
+        return queryset
+
     def filter_tag(self, queryset, name, value):
         """
         returns sessions that contain datasets tagged as
