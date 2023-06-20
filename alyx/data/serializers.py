@@ -247,6 +247,14 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
         return super(DatasetSerializer, self).create(validated_data)
     
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if not 'revision_pk' in representation.keys() :
+            representation['revision_pk'] = None
+        if (not 'collection' in representation.keys() ) or representation['collection'] is None :
+            representation['collection'] = ""
+        return representation
+
     class Meta:
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
@@ -258,11 +266,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
                   'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension',
                   ##LIST OF FILE RECORDS
                   'file_records' )
-        extra_kwargs = {
-            'subject': {'write_only': True},
-            'date': {'write_only': True},
-            'number': {'write_only': True},
-        }
+        # extra_kwargs = {
+        #     'subject': {'write_only': False},
+        #     'date': {'write_only': False},
+        #     'number': {'write_only': False},
+        # }
 
 class DownloadSerializer(serializers.HyperlinkedModelSerializer):
 
