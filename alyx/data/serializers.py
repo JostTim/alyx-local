@@ -135,35 +135,51 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
+
+
+    dataset_type_pk = serializers.PrimaryKeyRelatedField(
+        read_only=False, required=True,
+        queryset=DatasetType.objects.all(),
+    )
+
+    data_format_pk = serializers.PrimaryKeyRelatedField(
+        read_only=False, required=True,
+        queryset=DataFormat.objects.all(),
+    )
+
+    
+    session_pk = serializers.PrimaryKeyRelatedField(
+        read_only=False, required=True,
+        queryset=Session.objects.all(),
+    )
+
+    data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=True,
+                                        queryset=DataRepository.objects.all())
+
     created_by = serializers.SlugRelatedField(
-        read_only=False, slug_field='username',
+        read_only=False, slug_field='username', required=True,
         queryset=get_user_model().objects.all(),
         default=serializers.CurrentUserDefault(),
     )
 
-    dataset_type_pk = serializers.PrimaryKeyRelatedField(read_only=True , source='dataset_type'
-    )
+    revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False, queryset=Revision.objects.all())
 
     dataset_type = serializers.SlugRelatedField(
         read_only=False, slug_field='name',
         queryset=DatasetType.objects.all(),
     )
 
-    data_format_pk = serializers.PrimaryKeyRelatedField(read_only=True, source='data_format'
+    session = serializers.SlugRelatedField(
+        read_only=False, required=False, slug_field="u_alias",
+        queryset=Session.objects.all(),
     )
-
-    revision_pk = serializers.PrimaryKeyRelatedField(read_only=True, required=False, source='revision')
 
     revision = serializers.SerializerMethodField()
 
-    session_pk = serializers.PrimaryKeyRelatedField(
-        read_only=True, required=False, source='session'
-    )
-
-    session = serializers.HyperlinkedRelatedField(
-        read_only=False, required=False, view_name="session-detail",
-        queryset=Session.objects.all(),
-    )
+    #session = serializers.HyperlinkedRelatedField(
+    #    read_only=False, required=False, view_name="session-detail",
+    #    queryset=Session.objects.all(),
+    #)
 
     tags = serializers.SlugRelatedField(read_only=False, required=False, many=True,
                                         slug_field='name', queryset=Tag.objects.all())
@@ -172,12 +188,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
 
-    data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=True, source='data_repository')
+    #data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
+
     
     data_repository = serializers.SlugRelatedField(read_only=False, required=False,
                                             slug_field='name',
                                             queryset=DataRepository.objects.all())
-    
     
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
@@ -220,13 +236,14 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         collection = validated_data.get('collection', None)
         dataset_type = validated_data.get('dataset_type', None)
         default = validated_data.get('default_dataset', None)
-        session = validated_data.get('session', None)
+        session = validated_data.get('session_pk', None)
 
         if dataset_type :
             dataset_type = DatasetType.objects.filter( name = dataset_type ).first()
             validated_data['dataset_type'] = dataset_type
 
         if session: 
+            session = Session.objects.get(pk = session)
             if default is not False:
                 _change_default_dataset(session, collection, dataset_type)
                 validated_data['default_dataset'] = True
@@ -251,6 +268,8 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
             validated_data['default_dataset'] = True
 
         return super(DatasetSerializer, self).create(validated_data)
+    
+
 
     class Meta:
         model = Dataset
@@ -277,7 +296,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
             representation['collection'] = ""
         return representation
     
-
 class DownloadSerializer(serializers.HyperlinkedModelSerializer):
 
     # dataset = DatasetSerializer(many=False, read_only=True)
