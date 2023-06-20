@@ -152,8 +152,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     data_format_pk = serializers.PrimaryKeyRelatedField(read_only=True, source='data_format'
     )
 
-    revision_pk = serializers.PrimaryKeyRelatedField(read_only=True, required=False, source='revision'
-                                            queryset=Revision.objects.all())
+    revision_pk = serializers.PrimaryKeyRelatedField(read_only=True, required=False, source='revision')
 
     revision = serializers.SerializerMethodField()
 
@@ -179,7 +178,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
                                             slug_field='name',
                                             queryset=DataRepository.objects.all())
     
-    ....
     
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
