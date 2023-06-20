@@ -142,7 +142,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     )
 
     dataset_type_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=False,
+        read_only=False, required=True,
         queryset=DatasetType.objects.all(),
     )
 
@@ -151,12 +151,10 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DatasetType.objects.all(),
     )
 
-    data_format_pk = serializers.PrimaryKeyRelatedField(source='data_format', read_only=False, required=True)
-
-    #data_format_pk = serializers.PrimaryKeyRelatedField(
-    #    read_only=False, required=False,
-    #    queryset=DataFormat.objects.all(),
-    #)
+    data_format_pk = serializers.PrimaryKeyRelatedField(
+        read_only=False, required=True,
+        queryset=DataFormat.objects.all(),
+    )
 
     revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
                                             queryset=Revision.objects.all())
@@ -173,19 +171,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=Session.objects.all(),
     )
 
-    #session = serializers.HyperlinkedRelatedField(
-    #    read_only=False, required=False, view_name="session-detail",
-    #    queryset=Session.objects.all(),
-    #)
-
     tags = serializers.SlugRelatedField(read_only=False, required=False, many=True,
                                         slug_field='name', queryset=Tag.objects.all())
 
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
-
-    #data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
 
     data_repository_pk = serializers.SlugRelatedField(read_only=False, required=False,
                                             slug_field='pk',
@@ -267,14 +258,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
             validated_data['default_dataset'] = True
 
         return super(DatasetSerializer, self).create(validated_data)
-    
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if not 'revision_pk' in representation.keys() :
-            representation['revision_pk'] = None
-        if (not 'collection' in representation.keys() ) or representation['collection'] is None :
-            representation['collection'] = ""
-        return representation
 
     class Meta:
         model = Dataset
@@ -292,6 +275,15 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         #     'date': {'write_only': False},
         #     'number': {'write_only': False},
         # }
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if not 'revision_pk' in representation.keys() :
+            representation['revision_pk'] = None
+        if (not 'collection' in representation.keys() ) or representation['collection'] is None :
+            representation['collection'] = ""
+        return representation
+    
 
 class DownloadSerializer(serializers.HyperlinkedModelSerializer):
 
