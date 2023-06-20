@@ -157,7 +157,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
                                         queryset=DataRepository.objects.all())
 
     created_by = serializers.SlugRelatedField(
-        read_only=False, slug_field='username', required=True,
+        read_only=False, slug_field='username', required=False,
         queryset=get_user_model().objects.all(),
         default=serializers.CurrentUserDefault(),
     )
