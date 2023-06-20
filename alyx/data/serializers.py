@@ -292,8 +292,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if not 'revision_pk' in representation.keys() :
-            representation['revision_pk'] = None
         if (not 'collection' in representation.keys() ) or representation['collection'] is None :
             representation['collection'] = ""
         return representation
