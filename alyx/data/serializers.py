@@ -151,10 +151,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DatasetType.objects.all(),
     )
 
-    data_format_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=False,
-        queryset=DataFormat.objects.all(),
-    )
+    data_format_pk = serializers.PrimaryKeyRelatedField(source='data_format', read_only=False, required=True)
+
+    #data_format_pk = serializers.PrimaryKeyRelatedField(
+    #    read_only=False, required=False,
+    #    queryset=DataFormat.objects.all(),
+    #)
 
     revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
                                             queryset=Revision.objects.all())
