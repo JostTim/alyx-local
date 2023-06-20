@@ -163,7 +163,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     session = serializers.SlugRelatedField(
         read_only=True, required=False, slug_field="u_alias",
-        queryset=Session.objects.all(),
     )
 
     revision = serializers.SerializerMethodField()
