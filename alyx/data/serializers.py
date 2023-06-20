@@ -175,17 +175,18 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     collection = serializers.CharField(required=False, allow_null=True)
 
     data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
+
+    
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
     protected = serializers.ReadOnlyField()
     file_records = DatasetFileRecordsSerializer(read_only=True, many=True)
 
-    experiment_number = serializers.SerializerMethodField()
     # If session is not provided, use subject, start_time, number
-    subject = serializers.SlugRelatedField(
-        write_only=True, required=False, slug_field='nickname',
-        queryset=Subject.objects.all(),
-    )
+    # subject = serializers.SlugRelatedField(
+    #     write_only=True, required=False, slug_field='nickname',
+    #     queryset=Subject.objects.all(),
+    # )
 
     date = serializers.DateField(required=False)
 
@@ -203,17 +204,13 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related(
-            'created_by', 'dataset_type', 'data_format', 'session',
-            'session__subject', 'revision')
+            'created_by', 'dataset_type', 'data_format', 'session', 'data_repository', 'revision')
         queryset = queryset.prefetch_related(
             'file_records', 'tags')
         public = Count('tags', filter=Q(tags__public=True), output_field=BooleanField())
         protected = Count('tags', filter=Q(tags__protected=True), output_field=BooleanField())
         queryset = queryset.annotate(public=public, protected=protected)
         return queryset
-
-    def get_experiment_number(self, obj):
-        return obj.session.number if obj and obj.session else None
 
     def create(self, validated_data):
         # Get out some useful info
@@ -255,7 +252,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
                   'dataset_type', 'data_repository', 'data_format',
                   'session', 'file_size', 'hash', 'version',
-                  'experiment_number', 'auto_datetime','revision_pk' ,
+                  'auto_datetime', 'revision_pk' ,
                   'default_dataset', 'protected', 'public', 'tags',
                   ## ALF PARTS (except extra)
                   'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension',
