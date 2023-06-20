@@ -529,7 +529,7 @@ class FileRecord(BaseModel):
     exists = models.BooleanField(
         default=False, help_text="Whether the file exists in the data repository", )
     
-    relative_path = models.CharField(
+    relative_path = models.CharField(blank=True, default = "",
         max_length=1000,
         help_text="path name within repository")
     
