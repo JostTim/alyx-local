@@ -177,7 +177,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
-    collection = serializers.CharField(required=False, allow_null=True)
+    collection = serializers.CharField(required=False, allow_blank=True, max_length=255)
     
     data_repository = serializers.SlugRelatedField(read_only=False, required=False,
                                             slug_field='name',

@@ -351,7 +351,7 @@ class Dataset(BaseExperimentalData):
                                help_text="version of the algorithm generating the file")
     
     # the collection is the subfolder(s) inside the session folder, where files will be located
-    collection = models.CharField(blank=True, null=True, max_length=255,
+    collection = models.CharField(blank=True, default = "" , max_length=255,
                                   help_text='file subcollection or subfolder')
 
     data_repository = models.ForeignKey(
