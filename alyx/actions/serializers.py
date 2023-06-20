@@ -145,8 +145,8 @@ class SessionDetailSerializer(BaseActionSerializer):
     notes = NoteSerializer(read_only=True, many=True)
     qc = BaseSerializerEnumField(required=False)
 
-    default_data_repository_pk = serializers.SlugRelatedField(read_only=False, slug_field='pk',
-                                            queryset=DataRepository.objects.all(), required=False)
+    default_data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
+                                            queryset=DataRepository.objects.all(), source = "default_data_repository")
     
     default_data_repository = serializers.SlugRelatedField(read_only=False, slug_field='data_path',
                                             queryset=DataRepository.objects.all(), required=False)
