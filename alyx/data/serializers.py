@@ -141,7 +141,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    dataset_type_pk = serializers.PrimaryKeyRelatedField(read_only=True
+    dataset_type_pk = serializers.PrimaryKeyRelatedField(read_only=True , source='dataset_type'
     )
 
     dataset_type = serializers.SlugRelatedField(
@@ -149,16 +149,16 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DatasetType.objects.all(),
     )
 
-    data_format_pk = serializers.PrimaryKeyRelatedField(read_only=True
+    data_format_pk = serializers.PrimaryKeyRelatedField(read_only=True, source='data_format'
     )
 
-    revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
+    revision_pk = serializers.PrimaryKeyRelatedField(read_only=True, required=False, source='revision'
                                             queryset=Revision.objects.all())
 
     revision = serializers.SerializerMethodField()
 
     session_pk = serializers.PrimaryKeyRelatedField(
-        read_only=True, required=False,
+        read_only=True, required=False, source='session'
     )
 
     session = serializers.HyperlinkedRelatedField(
@@ -173,13 +173,13 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
 
-    data_repository_pk = serializers.SlugRelatedField(read_only=False, required=False,
-                                            slug_field='pk',
-                                            queryset=DataRepository.objects.all())
+    data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=True, source='data_repository')
     
     data_repository = serializers.SlugRelatedField(read_only=False, required=False,
                                             slug_field='name',
                                             queryset=DataRepository.objects.all())
+    
+    ....
     
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
