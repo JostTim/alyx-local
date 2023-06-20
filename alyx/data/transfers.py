@@ -246,8 +246,10 @@ def _get_name_collection_revision(file, rel_dir_path, subject, date):
     return info, None
 
 
-def _change_default_dataset(session, collection, filename):
-    dataset = Dataset.objects.filter(session=session, collection=collection, name=filename,
+def _change_default_dataset(session, collection, dataset_type):
+    """Resets all datasets for same session, collection and dataset_type to False, to be able to set one True then (outside the scope of this function)
+    """
+    dataset = Dataset.objects.filter(session=session, collection=collection, dataset_type=dataset_type,
                                      default_dataset=True)
     if dataset.count() > 0:
         dataset.update(default_dataset=False)

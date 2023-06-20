@@ -146,6 +146,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DatasetType.objects.all(),
     )
 
+    dataset_type = serializers.SlugRelatedField(
+        read_only=False, slug_field='name',
+        queryset=DatasetType.objects.all(),
+    )
+
     data_format_pk = serializers.SlugRelatedField(
         read_only=False, required=False, slug_field='pk',
         queryset=DataFormat.objects.all(),
@@ -162,6 +167,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=Session.objects.all(),
     )
 
+    session = serializers.HyperlinkedRelatedField(
+        read_only=False, required=False, view_name="session-detail",
+        queryset=Session.objects.all(),
+    )
+
     #session = serializers.HyperlinkedRelatedField(
     #    read_only=False, required=False, view_name="session-detail",
     #    queryset=Session.objects.all(),
@@ -170,7 +180,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     tags = serializers.SlugRelatedField(read_only=False, required=False, many=True,
                                         slug_field='name', queryset=Tag.objects.all())
 
-    hash = serializers.CharField(required=False, allow_null=True)
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
@@ -224,13 +233,17 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         # Get out some useful info
         # revision = validated_data.get('revision', None)
         collection = validated_data.get('collection', None)
-        name = validated_data.get('name', None)# name will be calculated anyway. Can be left empty
+        dataset_type = validated_data.get('dataset_type', None)
         default = validated_data.get('default_dataset', None)
         session = validated_data.get('session', None)
 
+        if dataset_type :
+            dataset_type = DatasetType.objects.filter( name = dataset_type ).first()
+            validated_data['dataset_type'] = dataset_type
+
         if session: 
             if default is not False:
-                _change_default_dataset(session, collection, name)
+                _change_default_dataset(session, collection, dataset_type)
                 validated_data['default_dataset'] = True
             return super(DatasetSerializer, self).create(validated_data)
 
@@ -249,7 +262,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         # Create the dataset, attached to the subsession.
         validated_data['session'] = session
         if default is not False:
-            _change_default_dataset(session, collection, name)
+            _change_default_dataset(session, collection, dataset_type)
             validated_data['default_dataset'] = True
 
         return super(DatasetSerializer, self).create(validated_data)
@@ -265,8 +278,8 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
-                  'data_repository', 'file_size', 'version', 'auto_datetime',
-                  'default_dataset', 'protected', 'public', 'tags',
+                  'data_repository', 'file_size', 'version', 'auto_datetime', 'dataset_type',
+                  'default_dataset', 'protected', 'public', 'tags', 'session' ,
                   ## RELATED PK
                   'data_repository_pk', 'data_format_pk', 'revision_pk', 'dataset_type_pk', 'session_pk',
                   ## ALF PARTS (except extra)
