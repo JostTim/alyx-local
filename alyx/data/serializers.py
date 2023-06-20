@@ -141,9 +141,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    dataset_type_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=True,
-        queryset=DatasetType.objects.all(),
+    dataset_type_pk = serializers.PrimaryKeyRelatedField(read_only=True
     )
 
     dataset_type = serializers.SlugRelatedField(
@@ -151,9 +149,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DatasetType.objects.all(),
     )
 
-    data_format_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=True,
-        queryset=DataFormat.objects.all(),
+    data_format_pk = serializers.PrimaryKeyRelatedField(read_only=True
     )
 
     revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
@@ -162,8 +158,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     revision = serializers.SerializerMethodField()
 
     session_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=False,
-        queryset=Session.objects.all(),
+        read_only=True, required=False,
     )
 
     session = serializers.HyperlinkedRelatedField(
