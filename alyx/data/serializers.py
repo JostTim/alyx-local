@@ -156,10 +156,15 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     revision = serializers.SerializerMethodField()
 
-    session = serializers.HyperlinkedRelatedField(
-        read_only=False, required=False, view_name="session-detail",
+    session = serializers.SlugRelatedField(
+        read_only=False, required=False, slug_field="pk",
         queryset=Session.objects.all(),
     )
+
+    #session = serializers.HyperlinkedRelatedField(
+    #    read_only=False, required=False, view_name="session-detail",
+    #    queryset=Session.objects.all(),
+    #)
 
     tags = serializers.SlugRelatedField(read_only=False, required=False, many=True,
                                         slug_field='name', queryset=Tag.objects.all())
@@ -250,10 +255,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
                   'dataset_type', 'data_repository', 'data_format',
                   'session', 'file_size', 'hash', 'version',
-                  'experiment_number', 'file_records', 'auto_datetime','revision_pk' ,
+                  'experiment_number', 'auto_datetime','revision_pk' ,
                   'default_dataset', 'protected', 'public', 'tags',
                   ## ALF PARTS (except extra)
-                  'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension' )
+                  'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension',
+                  ##LIST OF FILE RECORDS
+                  'file_records' )
         extra_kwargs = {
             'subject': {'write_only': True},
             'date': {'write_only': True},
