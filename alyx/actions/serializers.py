@@ -11,6 +11,7 @@ from data.models import Dataset, DatasetType
 from misc.models import LabLocation, Lab
 from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetSerializer
 from misc.serializers import NoteSerializer
+from data.serializers import DatasetSerializer
 
 SESSION_FIELDS = ('id','subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
@@ -132,7 +133,8 @@ class SessionListSerializer(BaseActionSerializer):
 
 class SessionDetailSerializer(BaseActionSerializer):
 
-    data_dataset_session_related = SessionDatasetsSerializer(read_only=True, many=True)
+    #data_dataset_session_related = SessionDatasetsSerializer(read_only=True, many=True)
+    data_dataset_session_related = DatasetSerializer(read_only=True, many=True)
     wateradmin_session_related = SessionWaterAdminSerializer(read_only=True, many=True)
     probe_insertion = ProbeInsertionListSerializer(read_only=True, many=True)
     projects = serializers.SlugRelatedField(read_only=False, slug_field='name', many=True,
@@ -143,10 +145,7 @@ class SessionDetailSerializer(BaseActionSerializer):
     default_data_repository = serializers.SerializerMethodField()
 
     def get_default_data_repository(self, obj):
-        default_data_repository = obj.default_data_repository
-        if default_data_repository:
-            return default_data_repository.pk
-        return None
+        return obj.default_data_repository.pk if obj.default_data_repository else None
     
     @staticmethod
     def setup_eager_loading(queryset):
