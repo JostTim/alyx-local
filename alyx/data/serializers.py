@@ -157,12 +157,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False, source='revision', queryset=Revision.objects.all())
 
     dataset_type = serializers.SlugRelatedField(
-        read_only=False, slug_field='name',
+        read_only=False, slug_field='name', required=False,
         queryset=DatasetType.objects.all(),
     )
 
     session = serializers.SlugRelatedField(
-        read_only=False, required=False, slug_field="u_alias",
+        read_only=True, required=False, slug_field="u_alias",
         queryset=Session.objects.all(),
     )
 
@@ -225,15 +225,10 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         collection = validated_data.get('collection', None)
         dataset_type = validated_data.get('dataset_type', None)
         default = validated_data.get('default_dataset', None)
-        session = validated_data.get('session_pk', None)
-
-        if dataset_type :
-            dataset_type = DatasetType.objects.filter( name = dataset_type ).first()
-            validated_data['dataset_type'] = dataset_type
+        session = validated_data.get('session', None)
 
         if session: 
-            session = Session.objects.get(pk = session)
-            if default is not False:
+            if default is True:
                 _change_default_dataset(session, collection, dataset_type)
                 validated_data['default_dataset'] = True
             return super(DatasetSerializer, self).create(validated_data)
@@ -252,7 +247,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
         # Create the dataset, attached to the subsession.
         validated_data['session'] = session
-        if default is not False:
+        if default is True :
             _change_default_dataset(session, collection, dataset_type)
             validated_data['default_dataset'] = True
 
