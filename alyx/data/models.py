@@ -375,7 +375,7 @@ class Dataset(BaseExperimentalData):
 
     default_dataset = models.BooleanField(default=True,
                                           help_text="Whether this dataset is the default "
-                                                    "latest revision")
+                                                    "latest revision")#THIS SHOULD BE NAMED DEFAULT REVISIONS, NOT DEFAULT DATASET
 
     extras_description = models.CharField(blank=True, null=True, max_length=512,
                                 help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ")
@@ -532,6 +532,10 @@ class FileRecord(BaseModel):
     relative_path = models.CharField(
         max_length=1000,
         help_text="path name within repository")
+    
+    hash = models.CharField(blank=True, null=True, max_length=64,
+                            help_text=("Hash of the data buffer, SHA-1 is 40 hex chars, while md5"
+                                       "is 32 hex chars"))
 
     #METHODS RECALCULATING FROM SOURCES INSTEAD OF USING SAVED VERSIONS. USE FOR SAVING / UPDATING / SERIALIZING
     #EXAMPLE to illustrate all conditions below : 

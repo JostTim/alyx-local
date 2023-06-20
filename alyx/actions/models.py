@@ -298,8 +298,6 @@ class Session(BaseAction):
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
                                          verbose_name='last updated')
 
-
-
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
         if not self.project_id:

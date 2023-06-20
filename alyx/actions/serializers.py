@@ -112,12 +112,16 @@ class SessionWaterAdminSerializer(serializers.ModelSerializer):
         model = WaterAdministration
         fields = ('id', 'name', 'water_type', 'water_administered')
 
-
 class SessionListSerializer(BaseActionSerializer):
     projects = serializers.SlugRelatedField(read_only=False,
                                             slug_field='name',
                                             queryset=Project.objects.all(),
                                             many=True)
+
+    admin_url = serializers.SerializerMethodField()
+
+    def get_admin_url(self,obj):
+        return get_admin_url(obj)
 
     @staticmethod
     def setup_eager_loading(queryset):
@@ -128,10 +132,8 @@ class SessionListSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = ('id', 'subject', 'start_time', 'number', 'lab', 'projects', 'url',
-                  'task_protocol','procedures')
-
-
+        fields = ('id', 'subject', 'start_time', 'number', 'projects', 'url', 'admin_url', 'procedures')
+        
 class SessionDetailSerializer(BaseActionSerializer):
 
     #data_dataset_session_related = SessionDatasetsSerializer(read_only=True, many=True)

@@ -90,6 +90,7 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
                   'full_path',
                   'relative_path',
                   'exists',
+                  "hash",
                   #ALF parts :
                   'remote_root', 
                   'attribute', 
@@ -118,7 +119,7 @@ class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FileRecord
-        fields = ('id', 'relative_path',  'extra', 'exists')
+        fields = ('id', 'relative_path',  'extra', 'exists', 'file_name', 'hash')
 
     # @staticmethod No longer necessary, but may be implemented elsewere to improve performance while getting FileRecord components
     # def setup_eager_loading(queryset):
@@ -140,13 +141,13 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    dataset_type = serializers.SlugRelatedField(
-        read_only=False, slug_field='name',
+    dataset_type_pk = serializers.SlugRelatedField(
+        read_only=False, slug_field='pk',
         queryset=DatasetType.objects.all(),
     )
 
-    data_format = serializers.SlugRelatedField(
-        read_only=False, required=False, slug_field='file_extension',
+    data_format_pk = serializers.SlugRelatedField(
+        read_only=False, required=False, slug_field='pk',
         queryset=DataFormat.objects.all(),
     )
 
@@ -156,7 +157,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
     revision = serializers.SerializerMethodField()
 
-    session = serializers.SlugRelatedField(
+    session_pk = serializers.SlugRelatedField(
         read_only=False, required=False, slug_field="pk",
         queryset=Session.objects.all(),
     )
@@ -174,8 +175,15 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
 
-    data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
+    #data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
 
+    data_repository_pk = serializers.SlugRelatedField(read_only=False, required=False,
+                                            slug_field='pk',
+                                            queryset=DataRepository.objects.all())
+    
+    data_repository = serializers.SlugRelatedField(read_only=False, required=False,
+                                            slug_field='name',
+                                            queryset=DataRepository.objects.all())
     
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
@@ -216,27 +224,26 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         # Get out some useful info
         # revision = validated_data.get('revision', None)
         collection = validated_data.get('collection', None)
-        name = validated_data.get('name', None)
+        name = validated_data.get('name', None)# name will be calculated anyway. Can be left empty
         default = validated_data.get('default_dataset', None)
         session = validated_data.get('session', None)
 
-        if session:
+        if session: 
             if default is not False:
                 _change_default_dataset(session, collection, name)
                 validated_data['default_dataset'] = True
             return super(DatasetSerializer, self).create(validated_data)
 
-        # Find or create an appropriate session for the dataset.
+        # Find or create an appropriate session for the dataset as session was not supplied.
         subject = validated_data.pop('subject', None)
         date = validated_data.pop('date', None)
-        if not subject or not date:
+        number = validated_data.pop('number', None)
+        if not subject or not date or not number:
             return super(DatasetSerializer, self).create(validated_data)
 
         # Only get or create the appropriate session if at least the subject and
-        # date are provided.
-        number = validated_data.pop('number', None)
+        # date and number are provided.
         user = validated_data.pop('created_by', None)
-
         session = _get_session(subject=subject, date=date, number=number, user=user)
 
         # Create the dataset, attached to the subsession.
@@ -258,10 +265,10 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
-                  'dataset_type', 'data_repository', 'data_format',
-                  'session', 'file_size', 'hash', 'version',
-                  'auto_datetime', 'revision_pk' ,
+                  'data_repository', 'file_size', 'version', 'auto_datetime',
                   'default_dataset', 'protected', 'public', 'tags',
+                  ## RELATED PK
+                  'data_repository_pk', 'data_format_pk', 'revision_pk', 'dataset_type_pk', 'session_pk',
                   ## ALF PARTS (except extra)
                   'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension',
                   ##LIST OF FILE RECORDS
