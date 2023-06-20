@@ -148,7 +148,11 @@ class SessionDetailSerializer(BaseActionSerializer):
     default_data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
                                             queryset=DataRepository.objects.all(), source = "default_data_repository")
     
-    default_data_repository = serializers.SlugRelatedField(read_only=False, slug_field='data_path',
+    default_data_repository_path = serializers.SlugRelatedField(read_only=True, slug_field='data_path',
+                                                                source = "default_data_repository")
+    
+    default_data_repository_name = serializers.SlugRelatedField(read_only=False, slug_field='name', 
+                                                                source = "default_data_repository", 
                                             queryset=DataRepository.objects.all(), required=False)
 
     rel_path = serializers.CharField(source='alias', read_only=True)  #rel_path is the same as alias. Just for retro-compatibility sake and understandability of code (weird to use an "alias" arg in pathes construction)
@@ -171,7 +175,7 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository', 'default_data_repository_pk', 'rel_path', "admin_url")
+        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository_path', 'default_data_repository_name', 'default_data_repository_pk', 'rel_path', "admin_url")
 
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
 
