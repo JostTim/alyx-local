@@ -3,7 +3,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
-from alyx.base import BaseSerializerEnumField
+from alyx.base import BaseSerializerEnumField, get_admin_url
 from .models import (ProcedureType, Session, Surgery, WaterAdministration, Weighing, WaterType,
                      WaterRestriction)
 from subjects.models import Subject, Project
@@ -151,6 +151,11 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     rel_path = serializers.CharField(source='alias', read_only=True)  #rel_path is the same as alias. Just for retro-compatibility sake and understandability of code (weird to use an "alias" arg in pathes construction)
     
+    admin_url = serializers.SerializerMethodField()
+
+    def get_admin_url(self,obj):
+        return get_admin_url(obj)
+
     @staticmethod
     def setup_eager_loading(queryset):
         queryset = queryset.prefetch_related(
@@ -164,7 +169,7 @@ class SessionDetailSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository', 'default_data_repository_pk', 'rel_path')
+        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository', 'default_data_repository_pk', 'rel_path', "admin_url")
 
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
 
