@@ -138,23 +138,25 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
 
 
     dataset_type_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=True,
+        source='dataset_type',
+        read_only=False, required=False,
         queryset=DatasetType.objects.all(),
     )
 
     data_format_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=True,
+        source='data_format',
+        read_only=False, required=False,
         queryset=DataFormat.objects.all(),
     )
 
-    
     session_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=True,
+        source='session',
+        read_only=False, required=False,
         queryset=Session.objects.all(),
     )
 
-    data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=True,
-                                        queryset=DataRepository.objects.all())
+    data_repository_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False,
+                                                            source='data_repository', queryset=DataRepository.objects.all())
 
     created_by = serializers.SlugRelatedField(
         read_only=False, slug_field='username', required=False,
@@ -162,7 +164,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         default=serializers.CurrentUserDefault(),
     )
 
-    revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False, queryset=Revision.objects.all())
+    revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False, source='revision', queryset=Revision.objects.all())
 
     dataset_type = serializers.SlugRelatedField(
         read_only=False, slug_field='name',
