@@ -12,6 +12,7 @@ from misc.models import LabLocation, Lab
 from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetSerializer
 from misc.serializers import NoteSerializer
 from data.serializers import DatasetSerializer
+from data.models import DataRepository
 
 SESSION_FIELDS = ('id','subject', 'users', 'location', 'procedures', 'lab', 'projects', 'type',
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
@@ -142,15 +143,13 @@ class SessionDetailSerializer(BaseActionSerializer):
     notes = NoteSerializer(read_only=True, many=True)
     qc = BaseSerializerEnumField(required=False)
 
-    default_data_repository = serializers.SerializerMethodField()
-
-    rel_path = serializers.SerializerMethodField()
-
-    def get_default_data_repository(self, obj):
-        return obj.default_data_repository.pk if obj.default_data_repository else None
+    default_data_repository_pk = serializers.SlugRelatedField(read_only=False, slug_field='pk',
+                                            queryset=DataRepository.objects.all(), required=False)
     
-    def get_rel_path(self,obj): #rel_path is the same as alias. Just for retro-compatibility sake and understandability of code (weird to use an "alias" arg in pathes construction)
-        return obj.alias
+    default_data_repository = serializers.SlugRelatedField(read_only=False, slug_field='data_path',
+                                            queryset=DataRepository.objects.all(), required=False)
+
+    rel_path = serializers.CharField(source='alias', read_only=True)  #rel_path is the same as alias. Just for retro-compatibility sake and understandability of code (weird to use an "alias" arg in pathes construction)
     
     @staticmethod
     def setup_eager_loading(queryset):

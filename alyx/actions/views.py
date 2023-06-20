@@ -218,7 +218,7 @@ class SessionFilter(BaseFilterSet):
     tag = django_filters.CharFilter(field_name='tag', method='filter_tag')
 
     #dataset_object 
-    object = django_filters.CharFilter(field_name='object', method='filter_tag')
+    object = django_filters.CharFilter(field_name='object', method='filter_object')
 
     #dataset_attribute : TODO
 
