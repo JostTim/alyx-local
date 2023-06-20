@@ -160,6 +160,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     )
 
     revision_pk = serializers.PrimaryKeyRelatedField(read_only=False, required=False, source='revision', queryset=Revision.objects.all())
+    
+    data_format = serializers.SlugRelatedField(
+        read_only=False, required=False, slug_field='file_extension',
+        queryset=DataFormat.objects.all(),
+    )
 
     dataset_type = serializers.SlugRelatedField(
         read_only=False, slug_field='name', required=False,
@@ -263,7 +268,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
                   'data_repository', 'file_size', 'version', 'auto_datetime', 'dataset_type',
-                  'default_dataset', 'protected', 'public', 'tags', 'session' ,
+                  'default_dataset', 'protected', 'public', 'tags', 'session' , 'data_format',
                   ## RELATED PK
                   'data_repository_pk', 'data_format_pk', 'revision_pk', 'dataset_type_pk', 'session_pk',
                   ## ALF PARTS (except extra)
