@@ -320,9 +320,9 @@ class DatasetManager(BaseManager):
         return qs
 
 
-@modify_fields(name={
-    'blank': False,
-})
+#@modify_fields(name={
+#    'blank': False,
+#})
 class Dataset(BaseExperimentalData):
     """
     A chunk of data that is stored outside the database, most often a rectangular binary array.

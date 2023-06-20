@@ -104,16 +104,6 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
                   'extra',
                   ]
     
-
-class DataRepositoryRelatedField(serializers.PrimaryKeyRelatedField):
-    def to_representation(self, value):
-        if value is None :
-            return None
-        repository = DataRepository.objects.get(id=UUID(str(value)))
-        return {
-            'id': str(value),
-            'name': repository.name,
-        }
     
 class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
@@ -189,9 +179,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
-
-    #data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
-
     
     data_repository = serializers.SlugRelatedField(read_only=False, required=False,
                                             slug_field='name',
