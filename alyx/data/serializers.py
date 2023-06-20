@@ -70,6 +70,12 @@ class FileRecordSerializer(serializers.HyperlinkedModelSerializer):
 
     admin_url = serializers.SerializerMethodField()
 
+    extra = serializers.CharField(required=False, allow_blank=True, max_length=255)
+
+    exists = serializers.BooleanField(required=False, allow_null=True)
+
+    hash = serializers.CharField(required=False, allow_null=True)
+
     @staticmethod
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
@@ -125,7 +131,6 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
-
 
     dataset_type_pk = serializers.PrimaryKeyRelatedField(
         source='dataset_type',
