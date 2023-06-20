@@ -31,8 +31,7 @@ class DataRepositorySerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DataRepository
-        fields = ('id', 'name', 'timezone', 'globus_path', 'hostname', 'data_url', 'data_path', 'repository_type',
-                  'globus_endpoint_id', 'globus_is_personal', 'json')
+        fields = ('id', 'name', 'timezone', 'globus_path', 'hostname', 'data_path', 'repository_type', 'json')
         extra_kwargs = {'url': {'view_name': 'datarepository-detail', 'lookup_field': 'name'}}
 
 
@@ -119,12 +118,13 @@ class DatasetFileRecordsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FileRecord
-        fields = ('id', 'relative_path', 'data_url', 'exists')
+        fields = ('id', 'relative_path',  'extra', 'exists')
 
     # @staticmethod No longer necessary, but may be implemented elsewere to improve performance while getting FileRecord components
     # def setup_eager_loading(queryset):
     #     """ Perform necessary eager loading of data to avoid horrible performance."""
-    #     queryset = queryset.select_related('data_repository', 'data_repository__globus_path')
+    #     queryset = queryset.select_related('data_repository', 'data_repository__globus_path') " 
+    #     this only makes fething the related fields a single query process. As we don't fetch related fields anymore here it isn't necessary. We can do this for other models though"
     #     return queryset
 
 class TagSerializer(serializers.ModelSerializer):
@@ -150,9 +150,11 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         queryset=DataFormat.objects.all(),
     )
 
-    revision = serializers.SlugRelatedField(read_only=False, required=False,
-                                            slug_field='name',
+    revision_pk = serializers.SlugRelatedField(read_only=False, required=False,
+                                            slug_field='pk',
                                             queryset=Revision.objects.all())
+
+    revision = serializers.SerializerMethodField()
 
     session = serializers.HyperlinkedRelatedField(
         read_only=False, required=False, view_name="session-detail",
@@ -166,6 +168,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     version = serializers.CharField(required=False, allow_null=True)
     file_size = serializers.IntegerField(required=False, allow_null=True)
     collection = serializers.CharField(required=False, allow_null=True)
+
     data_repository = DataRepositoryRelatedField(queryset=DataRepository.objects.all())
     default_dataset = serializers.BooleanField(required=False, allow_null=True)
     public = serializers.ReadOnlyField()
@@ -184,6 +187,9 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     number = serializers.IntegerField(required=False)
 
     admin_url = serializers.SerializerMethodField()
+
+    def get_revision(self,obj):
+        return obj.revision.name if obj.revision is not None else ""
 
     def get_admin_url(self,obj):
         return get_admin_url(obj)
@@ -242,11 +248,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
-                  'dataset_type', 'data_repository', 'data_format', 'collection',
+                  'dataset_type', 'data_repository', 'data_format',
                   'session', 'file_size', 'hash', 'version',
-                  'experiment_number', 'file_records',
-                  'subject', 'date', 'number', 'auto_datetime', 'revision',
-                  'default_dataset', 'protected', 'public', 'tags')
+                  'experiment_number', 'file_records', 'auto_datetime','revision_pk' ,
+                  'default_dataset', 'protected', 'public', 'tags',
+                  ## ALF PARTS (except extra)
+                  'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension' )
         extra_kwargs = {
             'subject': {'write_only': True},
             'date': {'write_only': True},

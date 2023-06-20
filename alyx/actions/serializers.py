@@ -162,7 +162,6 @@ class SessionDetailSerializer(BaseActionSerializer):
         model = Session
         fields = SESSION_FIELDS + ('id',) + ('json',) + ('probe_insertion', 'notes') + ('default_data_repository',)
 
-
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
 
     subject = serializers.SlugRelatedField(

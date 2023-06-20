@@ -308,9 +308,10 @@ class Revision(BaseModel):
     def __str__(self):
         return "<Revision %s>" % self.name
     
+    @property
     def hashed(self):
-        name = self.name if self.name is not None else ""
-        return "#" + name + "#" 
+        name = self.name 
+        return "#" + name + "#" if (self.name is not None and self.name != "") else ""  
 
 class DatasetManager(BaseManager):
     def get_queryset(self):
@@ -367,12 +368,6 @@ class Dataset(BaseExperimentalData):
     revision = models.ForeignKey(
         Revision, blank=True, null=True, on_delete=models.SET_NULL)
 
-    #@property
-    #def relative_path(self):
-    #    revision = "#" + self.revision + "#" if self.revision else ""
-    #    collection = self.collection if self.collection else ""
-    #    return os.path.join(collection,revision) 
-
     tags = models.ManyToManyField('data.Tag', blank=True, related_name='datasets')
 
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
@@ -389,8 +384,7 @@ class Dataset(BaseExperimentalData):
     def is_online(self):
         fr = self.file_records
         if fr:
-            return all(fr.values_list('exists', flat=True))# if all contained files are 'globus_is_personal'...
-            #Btw this should be removed or at least renamed... If we want this to make sense, it should be a field that is checked regularly 
+            return all(fr.values_list('exists', flat=True))# If we want this to be somewhat usefull, it should be a field that is checked regularly 
             #(each week let's say. If the amount of file is not crazy, maybe each day during night ?)
             #by a worker and files "existance" should be updated at that time. 
             #This may be usefull to probe for user error (like a massive deletion) and be able to react fast before the NAS backups are trashed.
@@ -414,11 +408,45 @@ class Dataset(BaseExperimentalData):
             return False
 
     @property
-    def data_url(self):
-        records = self.file_records.filter(exists=True)
-        if records:
-            order_keys = ('relative_path',)
-            return records.order_by(*order_keys)[0].data_url
+    def object(self):
+        return self.dataset_type.object
+    
+    @property
+    def attribute(self):
+        return self.dataset_type.attribute
+    
+    @property
+    def extension(self):
+        return self.data_format.file_extension
+    
+    @property
+    def subject(self):
+        return self.get_session_path(as_dict = True)["subject"]
+    
+    @property
+    def date(self):
+        return self.get_session_path(as_dict = True)["date"]
+
+    @property
+    def number(self):
+        return self.get_session_path(as_dict = True)["number"]
+
+    @property
+    def remote_root(self):
+        return self.data_repository.data_path
+
+    def get_session_path(self,as_dict = False):
+        #returns wm29/2023-05-25/002
+        session_path = self.session.alias
+        if not as_dict :
+            return session_path
+    
+        patt = r"(?P<subject>[\w-]+)(?:\/|\\)(?P<date>\d{4}-\d{2}-\d{2})(?:\/|\\)(?P<number>\d{1,3})"
+        spec = re.compile(patt)
+        match = spec.search(session_path)
+        if match is None :
+            raise AttributeError(f"Session {self.session} alias {session_path} doesn't match the subject/date/nb pattern")
+        return dict(zip( spec.groupindex.keys() , match.groups() )) 
 
     def __str__(self):
         date = self.created_datetime.strftime('%d/%m/%Y at %H:%M')
@@ -431,7 +459,7 @@ class Dataset(BaseExperimentalData):
 
         def sanitize_folders(folder_field):
             if folder_field is None :
-                return ""
+                return "" # as it is a char field, we prefer saving an empty char rather than null when using no collection
             folder_field = folder_field.strip('.').strip('\\').strip('/')
             return folder_field if folder_field == "" else os.path.normpath(folder_field)
 
@@ -509,10 +537,6 @@ class FileRecord(BaseModel):
     #EXAMPLE to illustrate all conditions below : 
     #The file record is named //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
 
-    def get_root(self):
-        #returns //cajal/cajal_data2/ONE/Adaptation
-        return self.dataset.data_repository.data_path
-
     def get_session_path(self,as_dict = False):
         #returns wm29/2023-05-25/002
         session_path = self.dataset.session.alias
@@ -528,41 +552,17 @@ class FileRecord(BaseModel):
 
     def get_relative_path(self): # THIS IN THE ONLY FIELD THAT IS SAVED IN THE MODEL TABLE,FOR CHECKING THAT NO FILES HAVING THE SAME NAME EXISTS FOR A GIVEN SESSION
         #returns wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
-        return os.path.join( self.get_session_path(), self.get_collection(), self.get_revision(), self.get_filename() )
-
-    def get_full_path(self):
-        #returns //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
-        return os.path.join( self.get_root() , self.get_relative_path() )
+        return os.path.join( self.get_session_path(), self.collection, self.get_revision(with_hash = True), self.file_name )
 
     def get_extra(self, with_dot = False):
         #returns .special.001
         dot = "." if with_dot else ""
         return dot + self.extra if (self.extra is not None and self.extra != "" ) else ""
-    
-    def get_collection(self):
-        #returns trials/test_folder
-        return self.dataset.collection if self.dataset.collection is not None else ""
-    
-    def get_filename(self):
-        #returns trials.eventTimeline.special.001.tdms
-        return self.get_object() + '.' + self.get_attribute() + self.get_extra(with_dot = True) + self.get_extension()
 
     def get_revision(self, with_hash = False):
         if with_hash : 
             return self.dataset.revision.hashed if self.dataset.revision is not None else ""
         return self.dataset.revision.name if self.dataset.revision is not None else ""
-    
-    def get_object(self):
-        #returns trials
-        return self.dataset.dataset_type.object
-
-    def get_attribute(self):
-        #returns eventTimeline
-        return self.dataset.dataset_type.attribute
-
-    def get_extension(self):
-        #returns .tdms
-        return self.dataset.data_format.file_extension
     
     @property
     def subject(self):
@@ -579,7 +579,7 @@ class FileRecord(BaseModel):
     #CALCULATED FIELDS, FOR SERIALIZING
     @property
     def collection(self):
-        return self.get_collection()
+        return self.dataset.collection if self.dataset.collection is not None else ""
     
     @property
     def revision(self):
@@ -587,15 +587,15 @@ class FileRecord(BaseModel):
 
     @property
     def object(self):
-        return self.get_object()
+        return self.dataset.object
     
     @property
     def attribute(self):
-        return self.get_attribute()
+        return self.dataset.attribute
     
     @property
     def extension(self):
-        return self.get_extension()
+        return self.dataset.data_format.file_extension
     
     @property
     def session_path(self):
@@ -603,23 +603,15 @@ class FileRecord(BaseModel):
 
     @property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
     def full_path(self):
-        return os.path.join( self.get_root() , self.get_relative_path() )
+        return os.path.join( self.remote_root , self.get_relative_path() )
 
     @property
     def remote_root(self):
-        return self.get_root()
+        return self.dataset.data_repository.data_path
     
     @property #THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
     def file_name(self):
-        return self.get_filename()
-    
-    @property
-    def data_url(self):
-        root = self.dataset.data_repository.data_url
-        if not root:
-            return None
-        from one.alf.files import add_uuid_string
-        return root + self.relative_path
+        return self.object + '.' + self.attribute + self.get_extra(with_dot = True) + self.extension
 
     def save(self, *args, **kwargs):
         #check how to run this on change in data repository related, or
