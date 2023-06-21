@@ -263,7 +263,6 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         return super(DatasetSerializer, self).create(validated_data)
     
 
-
     class Meta:
         model = Dataset
         fields = ('id','url','admin_url', 'name', 'created_by', 'created_datetime',
@@ -275,11 +274,7 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
                   'remote_root', 'subject', 'date', 'number',  'collection','revision', 'object', 'attribute', 'extension',
                   ##LIST OF FILE RECORDS
                   'file_records' )
-        # extra_kwargs = {
-        #     'subject': {'write_only': False},
-        #     'date': {'write_only': False},
-        #     'number': {'write_only': False},
-        # }
+
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
