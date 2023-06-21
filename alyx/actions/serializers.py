@@ -117,6 +117,11 @@ class SessionListSerializer(BaseActionSerializer):
                                             slug_field='name',
                                             queryset=Project.objects.all(),
                                             many=True)
+    
+    default_data_repository = serializers.SlugRelatedField(read_only=False,
+                                            slug_field='data_path',
+                                            queryset=DataRepository.objects.all(),
+                                            many=True)
 
     admin_url = serializers.SerializerMethodField()
 
@@ -132,7 +137,7 @@ class SessionListSerializer(BaseActionSerializer):
 
     class Meta:
         model = Session
-        fields = ('id', 'subject', 'start_time', 'number', 'projects', 'url', 'admin_url', 'procedures')
+        fields = ('id', 'subject', 'start_time', 'number', 'projects', 'url', 'admin_url', 'procedures', 'default_data_repository')
         
 class SessionDetailSerializer(BaseActionSerializer):
 
