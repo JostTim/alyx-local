@@ -504,6 +504,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
                    ('procedures', RelatedDropdownFilter),
+                   ('qc', RelatedDropdownFilter)
                    #('lab', RelatedDropdownFilter),
                    ]
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
