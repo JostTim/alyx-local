@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Case, When
 from django.urls import reverse
 from django.utils.html import format_html
-from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, DropdownFilter
 from django.contrib.admin import TabularInline
 from rangefilter.filter import DateRangeFilter
 
@@ -504,7 +504,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
                    ('procedures', RelatedDropdownFilter),
-                   ('qc', RelatedDropdownFilter)
+                   ('qc', DropdownFilter)
                    #('lab', RelatedDropdownFilter),
                    ]
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
