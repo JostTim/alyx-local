@@ -10,6 +10,7 @@ from django.db.models import Case, When
 from django.urls import reverse
 from django.utils.html import format_html
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, DropdownFilter
+from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
 from rangefilter.filter import DateRangeFilter
 
@@ -488,7 +489,7 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-class QCFilter(DropdownFilter):
+class QCFilter(DropdownFilter, SimpleListFilter):
     title = 'Quality Ckeck'
     parameter_name = 'qc'
 
