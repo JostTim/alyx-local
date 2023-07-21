@@ -489,7 +489,7 @@ def _pass_narrative_templates(context):
         base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode('utf-8')).decode('utf-8')
     return context
 
-class QCFilter(DropdownFilter, SimpleListFilter):
+class QCFilter(SimpleListFilter, DropdownFilter):
     title = 'Quality Ckeck'
     parameter_name = 'qc'
 
