@@ -29,7 +29,6 @@ from experiments.models import ProbeInsertion
 from jsoneditor.forms import JSONEditor
 from django.db.models.fields.json import JSONField
 from django.db.models.fields.__init__ import TextField
-from django.utils.translation import ugettext_lazy as _
 from markdownx.admin import MarkdownxModelAdmin
 #from mdeditor.widgets import MDeditorWidget
 
@@ -149,7 +148,7 @@ class BaseActionForm(forms.ModelForm):
                     cull__isnull=True).order_by('nickname')
 
     procedures = forms.ModelMultipleChoiceField( ProcedureType.objects ,
-                                                widget = admin.widgets.FilteredSelectMultiple(_('procedures'), False))
+                                                widget = admin.widgets.FilteredSelectMultiple('procedures', False))
 
 class BaseActionAdmin(BaseAdmin):
     fields = ['subject', 'start_time', 'end_time', 'users',
