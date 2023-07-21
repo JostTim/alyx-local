@@ -148,6 +148,7 @@ class BaseActionForm(forms.ModelForm):
                 self.fields['subject'].queryset = Subject.objects.filter(
                     cull__isnull=True).order_by('nickname')
 
+    procedures = forms.ModelMultipleChoiceField( ProcedureType.objects )
 
 class BaseActionAdmin(BaseAdmin):
     fields = ['subject', 'start_time', 'end_time', 'users',
