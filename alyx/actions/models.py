@@ -300,6 +300,7 @@ class Session(BaseAction):
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
+
         if not self.project_id:
             self.project = self.subject.projects.first()
         if not self.lab:
@@ -316,14 +317,27 @@ class Session(BaseAction):
         
         if self.id is not None:
             query_set = query_set.exclude(id=self.id)
+            original = self.__class__.objects.get(id=self.id)
+        else :
+            original = None
 
         existing_day_sessions = query_set.count() 
         #TODO : if number is null, autoincrement when setting
         if existing_day_sessions :
             raise ValidationError("Two session with same subject, date and number cannot exist")
         #TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
-        return super(Session, self).save(*args, **kwargs)
 
+        super(Session, self).save(*args, **kwargs) #apply the save to the database
+
+        # After change is applied, check if the values of 'subject', 'date' or 'number' have changed, and reflect on datasets if it's the case
+        if original and (self.start_time.date() != original.start_time.date() or 
+            self.number != original.number or 
+            self.subject != original.subject):
+
+            for dataset in self.data_dataset_session_related.all():
+                dataset.save()
+
+    
     def __str__(self):
         try:
             string = "%s with primary key : %s" % (self.alias, str(self.pk)) #"%s %s/%s/%s"
