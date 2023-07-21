@@ -121,7 +121,7 @@ class SessionListSerializer(BaseActionSerializer):
     default_data_repository = serializers.SlugRelatedField(read_only=False,
                                             slug_field='data_path',
                                             queryset=DataRepository.objects.all(),
-                                            many=True)
+                                            many=False)
 
     admin_url = serializers.SerializerMethodField()
 
