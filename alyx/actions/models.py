@@ -150,17 +150,17 @@ class BaseAction(BaseModel):
     """
 
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
-                                   help_text="The user(s) involved in this action")
+                                   help_text="The user(s) involved in this action.")
     subject = models.ForeignKey('subjects.Subject',
                                 on_delete=models.CASCADE,
                                 related_name="%(app_label)s_%(class)ss",
-                                help_text="The subject on which this action was performed")
+                                help_text="The subject on which this action was performed.")
     location = models.ForeignKey(LabLocation, null=True, blank=True, on_delete=models.SET_NULL,
                                  help_text="The physical location at which the action was "
-                                 "performed")
+                                 "performed.")
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
     procedures = models.ManyToManyField('ProcedureType', blank=True,
-                                        help_text="The procedure(s) performed")
+                                        help_text="The procedure(s) performed.")
     #narrative was TextField before
     #narrative = models.TextField(blank = True)
     narrative = SideBySideMarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 

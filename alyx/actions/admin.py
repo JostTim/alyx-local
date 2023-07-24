@@ -509,16 +509,24 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
     list_display_links = ['alias']
-    fields = BaseActionAdmin.fields[:2] + ['number'] + BaseActionAdmin.fields[2:-1] +[# removed 'repo_url' as we are not web based but samba based
-        'projects'] + [BaseActionAdmin.fields[-1]] + [ 'qc', 'extended_qc', 'type', 'task_protocol',
-        'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime', 'default_data_repository']
+    fieldsets = (
+        ('Mandatory', {
+            'fields': BaseActionAdmin.fields[:2] + ['number']
+        }),
+        ('Main session infos', {
+            'fields': BaseActionAdmin.fields[2:-1] + ['projects'] + [BaseActionAdmin.fields[-1]]# removed 'repo_url' as we are not web based but samba based
+        }),
+        ('Post-acquisition session infos', {
+            'fields': [ 'default_data_repository', 'qc', 'extended_qc',
+        'n_correct_trials', 'n_trials', 'weighing', 'auto_datetime', 'json']
+        }),
+    )
     list_filter = [('users', RelatedDropdownFilter),
                    ('subject', RelatedDropdownFilter),
                    ('start_time', DateRangeFilter),
                    ('projects', RelatedDropdownFilter),
                    ('procedures', RelatedDropdownFilter),
                    QCFilter,
-                   #('lab', RelatedDropdownFilter),
                    ]
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
