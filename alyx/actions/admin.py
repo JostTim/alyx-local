@@ -509,6 +509,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
     list_display_links = ['alias']
+    fields = None
     fieldsets = (
         ('Mandatory', {
             'fields': BaseActionAdmin.fields[:2] + ['number']
