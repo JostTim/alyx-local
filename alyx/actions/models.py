@@ -301,6 +301,8 @@ class Session(BaseAction):
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
 
+        original = self.__class__.objects.filter(id=self.id).first()
+
         if not self.project_id:
             self.project = self.subject.projects.first()
         if not self.lab:
@@ -315,11 +317,8 @@ class Session(BaseAction):
                                       number=self.number,
                                       subject=self.subject)
         
-        if self.id is not None:
+        if original is not None:
             query_set = query_set.exclude(id=self.id)
-            original = self.__class__.objects.get(id=self.id)
-        else :
-            original = None
 
         existing_day_sessions = query_set.count() 
         #TODO : if number is null, autoincrement when setting
