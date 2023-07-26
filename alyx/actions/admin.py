@@ -539,7 +539,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     }
 
     def get_narrative_tooltip(self, obj):
-        label = "⊘" if not obj.narrative else "⊙"
+        label = "  ⊘  " if not obj.narrative else "> ⊙ <"
         return mark_safe(f'<span title="{obj.narrative}">{label}</span>')
         
     get_narrative_tooltip.short_description = "Narrative (hover)"
