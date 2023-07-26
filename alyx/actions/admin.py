@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Case, When
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, SimpleDropdownFilter
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
@@ -541,7 +541,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     def get_small_description(self, obj):
         return mark_safe(f'<span title="{obj.narrative}">{obj.narrative[:10]}</span>')
         
-    deg_small_description.short_description = "⊛"
+    get_small_description.short_description = "⊛"
 
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
