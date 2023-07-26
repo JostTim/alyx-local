@@ -539,7 +539,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     }
 
     def alias_with_tooltip(self, obj):
-        return format_html('<span title="{tooltip}">{alias}</span>', tooltip=obj.narrative, alias=obj.alias)
+        return format_html('<span title="Narrative :\n{tooltip}">{alias}</span>', tooltip=obj.narrative, alias=obj.alias)
         
     alias_with_tooltip.short_description = "Session Name"
 
