@@ -504,11 +504,11 @@ class QCFilter(SimpleDropdownFilter):
 class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     change_form_template = r'admin/session_change_form.html'
 
-    list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', 'get_narrative_tooltip', #removed 'lab' as we are in a single lab environment
+    list_display = ['alias_with_tooltip', 'subject_l', 'start_time', 'number', 'dataset_count', 'get_narrative_tooltip', #removed 'lab' as we are in a single lab environment
                     'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
     # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
-    list_display_links = ['alias']
+    list_display_links = ['alias_with_tooltip']
     fields = None
     fieldsets = (
         ('Mandatory', {
@@ -538,11 +538,10 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
         JSONField: {'widget': JSONEditor},
     }
 
-    def get_narrative_tooltip(self, obj):
-        label = "  ⊘  " if not obj.narrative else "> ⊙ <"
-        return mark_safe(f'<span title="{obj.narrative}">{label}</span>')
+    def alias_with_tooltip(self, obj):
+        return format_html('<span title="{tooltip}">{alias}</span>', tooltip=obj.narrative, alias=obj.alias)
         
-    get_narrative_tooltip.short_description = "Narrative (hover)"
+    alias_with_tooltip.short_description = "Session Name"
 
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
