@@ -504,7 +504,7 @@ class QCFilter(SimpleDropdownFilter):
 class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     change_form_template = r'admin/session_change_form.html'
 
-    list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', 'get_small_description', #removed 'lab' as we are in a single lab environment
+    list_display = ['alias', 'subject_l', 'start_time', 'number', 'dataset_count', 'get_narrative_tooltip', #removed 'lab' as we are in a single lab environment
                     'procedures_', 'qc', 'user_list', 'project_']  #removed 'task_protocol' as we do not currentely use it too much 
     # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
                    
@@ -538,10 +538,11 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
         JSONField: {'widget': JSONEditor},
     }
 
-    def get_small_description(self, obj):
-        return mark_safe(f'<span title="{obj.narrative}">{obj.narrative[:10]}</span>')
+    def get_narrative_tooltip(self, obj):
+        label = "⊘" if not obj.narrative else "⊙"
+        return mark_safe(f'<span title="{obj.narrative}">{label}</span>')
         
-    get_small_description.short_description = "⊛"
+    get_narrative_tooltip.short_description = "Narrative (hover)"
 
     def get_form(self, request, obj=None, **kwargs):
         from subjects.admin import Project
