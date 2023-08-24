@@ -308,7 +308,6 @@ class Session(BaseAction):
         if not self.lab:
             self.lab = self.subject.lab
 
-
         if not self.default_data_repository:
             self.default_data_repository = self.project.default_data_repository
 
@@ -326,6 +325,8 @@ class Session(BaseAction):
             raise ValidationError("Two session with same subject, date and number cannot exist")
         #TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
 
+        self.update_json_whiskers_from_narrative()
+
         super(Session, self).save(*args, **kwargs) #apply the save to the database
 
         # After change is applied, check if the values of 'subject', 'date' or 'number' have changed, and reflect on datasets if it's the case
@@ -336,7 +337,31 @@ class Session(BaseAction):
             for dataset in self.data_dataset_session_related.all():
                 dataset.save()
 
-    
+    def update_json_whiskers_from_narrative(self):
+        import re
+        json = self.json.copy()
+        
+        try : 
+            json["whisker_stims"]["Stimulus right"]
+            return  
+        except :
+            pattern = re.compile(r"(\w+).*((?:left)|(?:right))", re.IGNORECASE)
+
+            temp = {}
+            for results in pattern.findall(self.narrative) :
+                results = [result.title() for result in results]
+                try :
+                    index = results.index("Left")
+                    side = "0"
+                except ValueError :
+                    index = results.index("Right")
+                    side = "1"
+                whisker = results[~index]
+                temp.update({side:whisker}) 
+
+            json["whisker_stims"]["Stimulus right"].update(temp)
+            self.json = json
+
     def __str__(self):
         try:
             string = "%s with primary key : %s" % (self.alias, str(self.pk)) #"%s %s/%s/%s"
