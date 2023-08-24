@@ -339,7 +339,8 @@ class Session(BaseAction):
 
     def update_json_whiskers_from_narrative(self):
         import re
-        json = self.json.copy()
+        
+        json = {} if self.json is None else self.json.copy()
         
         try : 
             json["whisker_stims"]["Stimulus right"]
@@ -348,7 +349,10 @@ class Session(BaseAction):
             pattern = re.compile(r"(\w+).*((?:left)|(?:right))", re.IGNORECASE)
 
             temp = {}
-            for results in pattern.findall(self.narrative) :
+            matches = pattern.findall(self.narrative)
+            if len(matches) < 2 :
+                return
+            for results in matches :
                 results = [result.title() for result in results]
                 try :
                     index = results.index("Left")
@@ -358,9 +362,16 @@ class Session(BaseAction):
                     side = "1"
                 whisker = results[~index]
                 temp.update({side:whisker}) 
+            
+            if "whisker_stims" not in json.keys():
+                json["whisker_stims"] = {"Stimulus right":temp}
+            else :
+                if "Stimulus right" not in json.keys():
+                    json["whisker_stims"]["Stimulus right"] = temp
+                else :
+                    json["whisker_stims"]["Stimulus right"].update(temp)
 
-            json["whisker_stims"]["Stimulus right"].update(temp)
-            self.json = json
+            self.json = json 
 
     def __str__(self):
         try:
