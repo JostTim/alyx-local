@@ -626,7 +626,7 @@ class EphysSessionAdmin(SessionAdmin):
 
     def get_queryset(self, request):
         qs = super(EphysSessionAdmin, self).get_queryset(request)
-        return qs.filter(procedures__icontains='ephys')
+        return qs.filter(procedures__name__icontains='ephys').distinct()
 
 
 class NotificationUserFilter(DefaultListFilter):
