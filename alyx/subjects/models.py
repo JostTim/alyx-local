@@ -12,7 +12,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
-from alyx.base import BaseModel, alyx_mail, modify_fields
+from alyx.base import BaseModel, alyx_mail, modify_fields, ALF_SPEC
 from actions.notifications import responsible_user_changed
 from actions.water_control import water_control
 from actions.models import Surgery
@@ -146,7 +146,7 @@ class Subject(BaseModel):
     nickname_validator = validators.RegexValidator(r'^[-._~\+\*\w]+$',
                                                    "Nicknames must only contain letters, "
                                                    "numbers, or any of -._~.")
-
+    objects = SubjectManager()
     nickname = models.CharField(max_length=64,
                                 default='-',
                                 help_text="""Please follow the standard format : 
@@ -201,8 +201,6 @@ please use the Zygosities fields below, and the description field to put more de
     to_be_culled = models.BooleanField(default=False)
     reduced = models.BooleanField(default=False)
     reduced_date = models.DateField(null=True, blank=True)
-
-    objects = SubjectManager()
 
     # We save the history of these fields.
     _fields_history = ('nickname', 'responsible_user', 'cage')

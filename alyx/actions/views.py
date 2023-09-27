@@ -1,5 +1,4 @@
 from datetime import timedelta, date
-import itertools
 from operator import itemgetter
 
 from django.contrib.postgres.fields import JSONField
@@ -192,7 +191,7 @@ class SessionFilter(BaseFilterSet):
     dataset_types = django_filters.CharFilter(field_name='dataset_types',
                                               method='filter_dataset_types')
     performance_gte = django_filters.NumberFilter(field_name='performance',
-                                                  method=('filter_performance_gte'))
+                                                  method='filter_performance_gte')
     performance_lte = django_filters.NumberFilter(field_name='performance',
                                                   method=('filter_performance_lte'))
     users = django_filters.CharFilter(field_name='users__username', method=('filter_users'))
@@ -244,10 +243,12 @@ class SessionFilter(BaseFilterSet):
 
     def atlas(self, queryset, name, value):
         """
-        returns sessions containing at least one channel in the given brain region.
-        Hierarchical tree search"
+        returns sessions containing at least one channel or field of view in the given brain
+        region.
+
+        Uses hierarchical tree search
         """
-        return _filter_qs_with_brain_regions(self, queryset, name, value)
+        return _filter_qs_with_brain_regions(queryset, name, value)
 
     def has_histology(self, queryset, name, value):
         """returns sessions whose subjects have an histology session available"""
@@ -448,17 +449,6 @@ class WaterAdministrationAPIDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
     serializer_class = WaterAdministrationDetailSerializer
     queryset = WaterAdministration.objects.all()
-
-
-def _merge_lists_dicts(la, lb, key):
-    lst = sorted(itertools.chain(la, lb), key=itemgetter(key))
-    out = []
-    for k, v in itertools.groupby(lst, key=itemgetter(key)):
-        d = {}
-        for dct in v:
-            d.update(dct)
-        out.append(d)
-    return out
 
 
 class WaterRequirement(APIView):

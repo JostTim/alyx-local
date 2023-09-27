@@ -236,7 +236,7 @@
    "description": "Uncompresses TAR archive file",
    "file_extension": ".tar",
    "matlab_loader_function": "",
-   "python_loader_function": ""
+   "python_loader_function": "tarfile.TarFile"
   }
  },
  {

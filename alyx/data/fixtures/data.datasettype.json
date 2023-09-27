@@ -1492,7 +1492,7 @@
       "name": "widefieldU.images",
       "created_by": null,
       "description": "Projected SVD spatial components (denoised/decomposed) with the shape [H, W, nComponents] where H and W are the dimensions of a single frame.",
-      "filename_pattern": "widefieldU.images*"
+      "filename_pattern": "*widefieldU.images*"
     }
   },
   {
@@ -1503,7 +1503,7 @@
       "name": "widefieldSVT.uncorrected",
       "created_by": null,
       "description": "temporal SVD components (denoised/decomposed), s·Vᵀ with dimensions [nComponents, nFrames]",
-      "filename_pattern": "widefieldSVT.uncorrected.*"
+      "filename_pattern": "*widefieldSVT.uncorrected.*"
     }
   },
   {
@@ -1514,7 +1514,7 @@
       "name": "widefieldSVT.haemoCorrected",
       "created_by": null,
       "description": "hemodynamic corrected temporal SVD components with dimensions [nComponents, nFrames]",
-      "filename_pattern": "widefieldSVT.haemoCorrected.*"
+      "filename_pattern": "*widefieldSVT.haemoCorrected.*"
     }
   },
   {
@@ -1678,7 +1678,7 @@
       "json": null,
       "name": "imaging.frames",
       "created_by": null,
-      "description": "Frame images with the dimensions [nframes, nx, ny(, nchannels)].",
+      "description": "Raw frame images with the dimensions [nframes, nx, ny(, nchannels)]. Note that depending on modality, multiple planes and channels may be stitched together and/or presented in a different order.",
       "filename_pattern": "imaging.frames*"
     }
   },
@@ -1722,8 +1722,30 @@
       "json": null,
       "name": "DAQdata.raw",
       "created_by": null,
-      "description": "The output of the DAQ software for a given device.  The namespace should identify the DAQ model, e.g. 'mcc', 'ni' or 'ni-usb-6211'.",
+      "description": "The output of the DAQ software for a given device.  The namespace should identify the DAQ model or acquisition software, e.g. 'mcc', 'ni' or 'timeline'.",
       "filename_pattern": "_*_DAQdata.raw*"
+    }
+  },
+  {
+    "model": "data.datasettype",
+    "pk": "22e89603-0ce9-40c9-8db8-8765d43cf7a8",
+    "fields": {
+      "json": null,
+      "name": "DAQdata.timestamps",
+      "created_by": null,
+      "description": "The DAQ software timestamps for a given device.  The namespace should identify the DAQ model or acquisition software, e.g. 'mcc', 'ni' or 'timeline'.",
+      "filename_pattern": "_*_DAQdata.timestamps*"
+    }
+  },
+  {
+    "model": "data.datasettype",
+    "pk": "a8cc815d-c643-450f-af50-872b22744383",
+    "fields": {
+      "json": null,
+      "name": "DAQdata.meta",
+      "created_by": null,
+      "description": "Associated DAQ metadata, such as input and output channel configurations. The metadata structure varies between namespaces.",
+      "filename_pattern": "_*_DAQdata.meta*"
     }
   },
   {
