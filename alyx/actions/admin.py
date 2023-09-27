@@ -12,18 +12,19 @@ from django.utils.html import format_html, mark_safe
 from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter, SimpleDropdownFilter
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
-from rangefilter.filter import DateRangeFilter
+from rangefilter.filters import DateRangeFilter
 
 from alyx.base import (BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url)
 from .models import (OtherAction, ProcedureType, Session, EphysSession, Surgery, VirusInjection,
                      WaterAdministration, WaterRestriction, Weighing, WaterType,
-                     Notification, NotificationRule, Cull, CullReason, CullMethod,
+                     Notification, NotificationRule, Cull, CullReason, CullMethod, ImagingSession
                      )
 from data.models import Dataset, FileRecord, DatasetType
 from misc.admin import NoteInline
 from subjects.models import Subject
 from .water_control import WaterControl
-from experiments.models import ProbeInsertion
+from experiments.models import ProbeInsertion, FOV
+from jobs.models import Task
 
 #https://github.com/nnseva/django-jsoneditor
 from jsoneditor.forms import JSONEditor
@@ -469,7 +470,7 @@ class DatasetInline(BaseInlineAdmin):
     ordering = ("name",)
 
     def _online(self, obj):
-        return obj.online
+        return obj.is_online
     _online.short_description = 'On server'
     _online.boolean = True
 
@@ -483,6 +484,13 @@ class WaterAdminInline(BaseInlineAdmin):
     extra = 0
     fields = ('name', 'water_administered', 'water_type')
     readonly_fields = ('name', 'water_administered', 'water_type')
+
+
+class TasksAdminInline(BaseInlineAdmin):
+    model = Task
+    extra = 0
+    fields = ('status', 'name', 'version', 'parents', 'datetime', 'arguments')
+    readonly_fields = ('name', 'version', 'parents', 'datetime', 'arguments')
 
 
 def _pass_narrative_templates(context):
@@ -532,7 +540,7 @@ class SessionAdmin(BaseActionAdmin,MarkdownxModelAdmin):
     search_fields = ('subject__nickname', 'lab__name', 'projects__name', 'users__username',
                      'task_protocol', 'pk')
     ordering = ('-start_time', 'task_protocol', 'lab')
-    inlines = [WaterAdminInline, DatasetInline, NoteInline ]
+    inlines = [WaterAdminInline, DatasetInline, NoteInline, TasksAdminInline ]
     readonly_fields = ['repo_url', 'task_protocol', 'weighing','auto_datetime']
     formfield_overrides = {
         JSONField: {'widget': JSONEditor},
@@ -621,12 +629,33 @@ class ProbeInsertionInline(TabularInline):
     extra = 0
 
 
+class FOVInline(TabularInline):
+    fk_name = 'session'
+    show_change_link = True
+    model = FOV
+    fields = ('name', 'imaging_type')
+    extra = 0
+
+
 class EphysSessionAdmin(SessionAdmin):
-    inlines = [ProbeInsertionInline, WaterAdminInline, DatasetInline, NoteInline]
+    inlines = [ProbeInsertionInline, TasksAdminInline, WaterAdminInline, DatasetInline, NoteInline]
 
     def get_queryset(self, request):
         qs = super(EphysSessionAdmin, self).get_queryset(request)
         return qs.filter(procedures__name__icontains='ephys').distinct()
+
+
+class ImagingSessionAdmin(SessionAdmin):
+    inlines = [FOVInline, TasksAdminInline, WaterAdminInline, DatasetInline, NoteInline]
+    list_filter = [('users', RelatedDropdownFilter),
+                   ('start_time', DateRangeFilter),
+                   ('projects', RelatedDropdownFilter),
+                   ('lab', RelatedDropdownFilter),
+                   ('field_of_view__imaging_type', RelatedDropdownFilter)]
+
+    def get_queryset(self, request):
+        qs = super(ImagingSessionAdmin, self).get_queryset(request)
+        return qs.filter(procedures__name__icontains='imaging')
 
 
 class NotificationUserFilter(DefaultListFilter):
@@ -695,6 +724,7 @@ admin.site.register(WaterRestriction, WaterRestrictionAdmin)
 
 admin.site.register(Session, SessionAdmin)
 admin.site.register(EphysSession, EphysSessionAdmin)
+admin.site.register(ImagingSession, ImagingSessionAdmin)
 admin.site.register(OtherAction, BaseActionAdmin)
 admin.site.register(VirusInjection, BaseActionAdmin)
 

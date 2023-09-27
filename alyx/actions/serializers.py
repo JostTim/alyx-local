@@ -9,7 +9,9 @@ from .models import (ProcedureType, Session, Surgery, WaterAdministration, Weigh
 from subjects.models import Subject, Project
 from data.models import Dataset, DatasetType
 from misc.models import LabLocation, Lab
-from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetSerializer
+from experiments.serializers import (
+    ProbeInsertionListSerializer, FilterDatasetSerializer, FOVSerializer
+)
 from misc.serializers import NoteSerializer
 from data.serializers import DatasetSerializer
 from data.models import DataRepository
@@ -18,7 +20,7 @@ SESSION_FIELDS = ('id','subject', 'users', 'location', 'procedures', 'lab', 'pro
                   'task_protocol', 'number', 'start_time', 'end_time', 'narrative',
                   'parent_session', 'n_correct_trials', 'n_trials', 'url', 'extended_qc', 'qc',
                   'wateradmin_session_related', 'data_dataset_session_related',
-                  'auto_datetime', 'alias', 'u_alias','path')
+                  'auto_datetime', 'alias', 'u_alias','path', 'probe_insertion', 'field_of_view', 'notes')
 
 def _log_entry(instance, user):
     if instance.pk:
@@ -132,7 +134,7 @@ class SessionListSerializer(BaseActionSerializer):
     def setup_eager_loading(queryset):
         """ Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related('subject', 'lab')
-        queryset = queryset.prefetch_related('projects')
+        queryset = queryset.prefetch_related('projects', 'procedures')
         return queryset.order_by('-start_time')
 
     class Meta:
@@ -145,6 +147,7 @@ class SessionDetailSerializer(BaseActionSerializer):
     data_dataset_session_related = DatasetSerializer(read_only=True, many=True)
     wateradmin_session_related = SessionWaterAdminSerializer(read_only=True, many=True)
     probe_insertion = ProbeInsertionListSerializer(read_only=True, many=True)
+    field_of_view = FOVSerializer(read_only=True, many=True)
     projects = serializers.SlugRelatedField(read_only=False, slug_field='name', many=True,
                                             queryset=Project.objects.all(), required=False)
     notes = NoteSerializer(read_only=True, many=True)
@@ -175,12 +178,13 @@ class SessionDetailSerializer(BaseActionSerializer):
             'data_dataset_session_related__file_records',
             'wateradmin_session_related',
             'probe_insertion',
+            'field_of_view'
         )
         return queryset.order_by('-start_time')
 
     class Meta:
         model = Session
-        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository_path', 'default_data_repository_name', 'default_data_repository_pk', 'rel_path', "admin_url")
+        fields = SESSION_FIELDS + ('id', 'json', 'probe_insertion', 'notes' ,'default_data_repository_path', 'default_data_repository_name', 'default_data_repository_pk', 'rel_path', 'admin_url')
 
 class WeighingDetailSerializer(serializers.HyperlinkedModelSerializer):
 
