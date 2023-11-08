@@ -77,7 +77,7 @@ class Weighing(BaseModel):
 
     def save(self, *args, **kwargs):
         super(Weighing, self).save(*args, **kwargs)
-        from actions.notifications import check_underweight
+        from actions.notifications import check_weighing as check_underweight
 
         check_underweight(self.subject)
 
