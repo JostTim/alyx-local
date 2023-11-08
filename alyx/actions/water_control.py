@@ -524,6 +524,8 @@ class WaterControl(object):
             weights = np.array(weights, dtype=np.float64)
             start = start or weighing_dates.min()
             end = end or weighing_dates.max()
+            logger.warning(f"start  = {start}")
+            logger.warning(f"end  = {end}")
             expected_weights = np.array(
                 [self.expected_weight(date) for date in weighing_dates],
                 dtype=np.float64,
