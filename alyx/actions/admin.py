@@ -448,11 +448,14 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     expected_weight.short_description = "expected weight"
 
     def percentage_weight(self, obj):
-        if not obj.subject:
-            return
-        return "%.1f" % obj.subject.water_control.percentage_weight()
+        wc = obj.subject.water_control
+        return wc.percentage_weight_html(date=obj.date_time)
 
-    percentage_weight.short_description = r"current weight % of ref"
+        # if not obj.subject:
+        #     return
+        # return "%.1f" % obj.subject.water_control.percentage_weight()
+
+    percentage_weight.short_description = "weight %"
 
     def min_weight(self, obj):
         if not obj.subject:

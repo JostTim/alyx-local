@@ -19,6 +19,8 @@ import numpy as np
 logger = structlog.get_logger(__name__)
 
 
+LIMIT_POINT = 0.7
+
 PALETTE = {
     "green": "#E7FFF1",
     "orange": "#FFE2C9",
@@ -336,14 +338,16 @@ class WaterControl(object):
         either the reference weight
         if the reference_weight_pct is >0,
         or the zscore weight."""
-        pct_sum = self.reference_weight_pct + self.zscore_weight_pct
-        if pct_sum == 0:
+        # pct_sum = self.reference_weight_pct #+ self.zscore_weight_pct
+        # if pct_sum == 0:
+        if self.reference_weight_pct == 0:
             return 0
-        pz = self.zscore_weight_pct / pct_sum
-        pr = self.reference_weight_pct / pct_sum
-        return pz * self.zscore_weight(date=date) + pr * self.reference_weight(
-            date=date
-        )
+        # pz = self.zscore_weight_pct / pct_sum
+        # pr = self.reference_weight_pct / pct_sum
+        # return pz * self.zscore_weight(date=date) + pr * self.reference_weight(
+        #     date=date
+        # )
+        return self.reference_weight_pct * self.reference_weight(date=date)
 
     def percentage_weight(self, date=None):
         """Percentage of the weight relative to the expected weight.
@@ -385,10 +389,10 @@ class WaterControl(object):
 
     def min_weight(self, date=None):
         """Minimum weight for the mouse."""
-        date = date or self.today()
         return (
-            self.zscore_weight(date=date) * self.zscore_weight_pct
-            + self.reference_weight(date=date) * self.reference_weight_pct
+            # self.zscore_weight(date=date) * self.zscore_weight_pct +
+            self.reference_weight(date=date)
+            * LIMIT_POINT  # self.reference_weight_pct
         )
 
     def min_percentage(self, date=None):
@@ -409,15 +413,24 @@ class WaterControl(object):
         """Return the expected water for the specified date."""
         date = date or self.today()
         assert isinstance(date, datetime)
-        iw = self.implant_weight or 0.0
+        # iw = self.implant_weight or 0.0
         weight = self.last_weighing_before(date=date)
         weight = weight[1] if weight else 0.0
         expected_weight = self.expected_weight(date=date) or 0.0
-        return (
-            0.05 * (weight - iw)
-            if weight < 0.8 * expected_weight
-            else 0.04 * (weight - iw)
-        )
+        MINIMUM_DAILY_WATER_INTAKE = 0.500  # mL
+        MAXIMUM_DAILY_WATER_INTAKE = 1.200  # mL
+        # return (
+        #     0.05 * (weight - iw)
+        #     if weight < 0.8 * expected_weight
+        #     else 0.04 * (weight - iw)
+        # )
+        water_intake_estimation = (expected_weight - weight) * 1.5
+
+        if water_intake_estimation > MAXIMUM_DAILY_WATER_INTAKE:
+            return MAXIMUM_DAILY_WATER_INTAKE
+        if water_intake_estimation < MINIMUM_DAILY_WATER_INTAKE:
+            return MINIMUM_DAILY_WATER_INTAKE
+        return water_intake_estimation
 
     def given_water(self, date=None, has_session=None):
         """Return the amount of water given at a specified date."""
@@ -642,12 +655,15 @@ def water_control(subject):
         subject_id=subject.id,
         implant_weight=subject.implant_weight,
     )
+
+    wc.add_threshold(percentage=LIMIT_POINT, bgcolor=PALETTE["red"], fgcolor="#F08699")
     wc.add_threshold(
-        percentage=rw_pct + zw_pct, bgcolor=PALETTE["orange"], fgcolor="#FFC28E"
+        percentage=rw_pct + zw_pct,
+        bgcolor=PALETTE["orange"],
+        fgcolor="#FFC28E",
+        line_style="--",
     )
-    wc.add_threshold(
-        percentage=0.7, bgcolor=PALETTE["red"], fgcolor="#F08699", line_style="--"
-    )
+
     # Water restrictions.
     wrs = sorted(
         list(subject.actions_waterrestrictions.all()), key=attrgetter("start_time")
