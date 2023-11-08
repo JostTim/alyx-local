@@ -70,9 +70,9 @@ class ResponsibleUserListFilter(DefaultListFilter):
 
     def queryset(self, request, queryset):
         if self.value() is None:
-            return queryset.filter(subject__responsible_user=request.user)
-        elif self.value == "all":
             return queryset.all()
+        elif self.value == "me":
+            return queryset.filter(subject__responsible_user=request.user)
 
 
 class SubjectAliveListFilter(DefaultListFilter):
