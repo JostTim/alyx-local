@@ -512,10 +512,10 @@ class WaterControl(object):
 
         # Data arrays.
         if self.weighings:
-            loc = mpld.AutoDateLocator(maxticks=8, interval_multiples=False)
-            loc.intervald[HOURLY] = [1]
-            ax.xaxis.set_major_locator(loc)
-            ax.xaxis.set_major_formatter(mpld.DateFormatter("%Y-%m-%d"))
+            # loc = mpld.AutoDateLocator(maxticks=8, interval_multiples=False)
+            # loc.intervald[HOURLY] = [1]
+            # ax.xaxis.set_major_locator(loc)
+            # ax.xaxis.set_major_formatter(mpld.DateFormatter("%Y-%m-%d"))
 
             self.weighings[:] = sorted(self.weighings, key=itemgetter(0))
             weighing_dates, weights = zip(*self.weighings)
@@ -571,7 +571,7 @@ class WaterControl(object):
                 start_wr,
                 ref_weight,
                 marker="*",
-                color="k",
+                color="green",
                 lw=0,
                 markersize=10,
                 zorder=2,
@@ -601,10 +601,7 @@ class WaterControl(object):
 
         # Axes and legends.
         # ax.set_xlim(start, end)
-        eq = "weight > %.1f*ref + %.1f*zscore" % (
-            self.reference_weight_pct,
-            self.zscore_weight_pct,
-        )
+        eq = "weight > %.1f*ref" % (self.reference_weight_pct)
         # ax.set_xticklabels(ax.get_xticks(), rotation=20)
         ax.set_title("Weighings for %s (%s)" % (self.nickname, eq))
         ax.xaxis.set_major_locator(mdates.AutoDateLocator())
@@ -612,7 +609,7 @@ class WaterControl(object):
         ax.set_xlabel("Date")
         ax.set_ylabel("Weight (g)")
         leg = ["ref weight"] + ["%d%%" % (100 * t[0]) for t in self.thresholds]
-        ax.legend(leg, loc=2)
+        ax.legend(leg, loc=1)
         ax.grid(True)
         f.autofmt_xdate()
         f.tight_layout()
