@@ -649,6 +649,8 @@ class Line(BaseModel):
         elif isinstance(obj, Subject):
             field = 'nickname'
             m = self.new_subject_autoname
+        else :
+            raise ValueError("field must not be None. This is a a cause of set_autoname(obj) with obj not being one of : 'BreedingPair', 'Litter', nor 'Subject'")
         if getattr(obj, field, None) in (None, '-'):
             setattr(obj, field, m())
 

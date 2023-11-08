@@ -13,31 +13,35 @@ from misc.models import Lab, LabLocation, LabMember, Note
 
 import os
 
-#from markdownfield.models import MarkdownField, RenderedMarkdownField
-#from markdownfield.validators import VALIDATOR_STANDARD
-#https://pypi.org/project/django-markdownfield/
+# from markdownfield.models import MarkdownField, RenderedMarkdownField
+# from markdownfield.validators import VALIDATOR_STANDARD
+# https://pypi.org/project/django-markdownfield/
 
 from markdownx.models import MarkdownxField
 
 logger = structlog.get_logger("action.models")
 
+
 def _default_water_type():
-    s = WaterType.objects.filter(name='Water')
+    s = WaterType.objects.filter(name="Water")
     if s:
         return s[0].pk
     return None
 
 
-@modify_fields(name={
-    'blank': False,
-})
+@modify_fields(
+    name={
+        "blank": False,
+    }
+)
 class ProcedureType(BaseModel):
     """
     A procedure to be performed on a subject.
     """
-    description = models.TextField(blank=True,
-                                   help_text="Detailed description "
-                                   "of the procedure")
+
+    description = models.TextField(
+        blank=True, help_text="Detailed description " "of the procedure"
+    )
 
     def __str__(self):
         return self.name
@@ -47,18 +51,24 @@ class Weighing(BaseModel):
     """
     A weighing of a subject.
     """
+
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
-        help_text="The user who weighed the subject")
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The user who weighed the subject",
+    )
     subject = models.ForeignKey(
-        'subjects.Subject', related_name='weighings',
+        "subjects.Subject",
+        related_name="weighings",
         on_delete=models.CASCADE,
-        help_text="The subject which was weighed")
-    date_time = models.DateTimeField(
-        null=True, blank=True, default=timezone.now)
+        help_text="The subject which was weighed",
+    )
+    date_time = models.DateTimeField(null=True, blank=True, default=timezone.now)
     weight = models.FloatField(
-        validators=[MinValueValidator(limit_value=0)],
-        help_text="Weight in grams")
+        validators=[MinValueValidator(limit_value=0)], help_text="Weight in grams"
+    )
 
     def expected(self):
         """Expected weighing."""
@@ -67,13 +77,12 @@ class Weighing(BaseModel):
 
     def save(self, *args, **kwargs):
         super(Weighing, self).save(*args, **kwargs)
-        from actions.notifications import check_weighing
-        check_weighing(self.subject)
+        from actions.notifications import check_underweight
+
+        check_underweight(self.subject)
 
     def __str__(self):
-        return 'Weighing %.2f g for %s' % (self.weight,
-                                           str(self.subject),
-                                           )
+        return "Weighing %.2f g for %s" % (self.weight, str(self.subject))
 
 
 class WaterType(BaseModel):
@@ -87,27 +96,46 @@ class WaterAdministration(BaseModel):
     """
     For keeping track of water for subjects not on free water.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
-                             on_delete=models.SET_NULL,
-                             help_text="The user who administered water")
-    subject = models.ForeignKey('subjects.Subject',
-                                on_delete=models.CASCADE,
-                                related_name='water_administrations',
-                                help_text="The subject to which water was administered")
-    date_time = models.DateTimeField(null=True, blank=True,
-                                     default=timezone.now)
-    session = models.ForeignKey('Session', null=True, blank=True, on_delete=models.SET_NULL,
-                                related_name='wateradmin_session_related')
-    water_administered = models.FloatField(validators=[MinValueValidator(limit_value=0)],
-                                           null=True, blank=True,
-                                           help_text="Water administered, in milliliters")
-    water_type = models.ForeignKey(WaterType, null=True, blank=True, on_delete=models.SET_NULL)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The user who administered water",
+    )
+    subject = models.ForeignKey(
+        "subjects.Subject",
+        on_delete=models.CASCADE,
+        related_name="water_administrations",
+        help_text="The subject to which water was administered",
+    )
+    date_time = models.DateTimeField(null=True, blank=True, default=timezone.now)
+    session = models.ForeignKey(
+        "Session",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="wateradmin_session_related",
+    )
+    water_administered = models.FloatField(
+        validators=[MinValueValidator(limit_value=0)],
+        null=True,
+        blank=True,
+        help_text="Water administered, in milliliters",
+    )
+    water_type = models.ForeignKey(
+        WaterType, null=True, blank=True, on_delete=models.SET_NULL
+    )
     adlib = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.water_type:
-            wr = WaterRestriction.objects.filter(subject=self.subject).\
-                order_by('start_time').last()
+            wr = (
+                WaterRestriction.objects.filter(subject=self.subject)
+                .order_by("start_time")
+                .last()
+            )
             if wr:
                 self.water_type = wr.water_type
             else:
@@ -120,28 +148,34 @@ class WaterAdministration(BaseModel):
 
     @property
     def hydrogel(self):
-        return 'hydrogel' in self.water_type.name.lower() if self.water_type else None
+        return "hydrogel" in self.water_type.name.lower() if self.water_type else None
 
     def __str__(self):
         if self.water_administered:
-            return 'Water %.2fg for %s' % (self.water_administered,
-                                           str(self.subject),
-                                           )
+            return "Water %.2fg for %s" % (
+                self.water_administered,
+                str(self.subject),
+            )
         else:
-            return 'Water adlib for %s' % str(self.subject)
+            return "Water adlib for %s" % str(self.subject)
+
 
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
+
+
 class SideBySideMarkdownWidget(AdminMarkdownxWidget):
     def __init__(self, attrs=None):
         super().__init__(attrs)
-        self.template_name = r'markdownx/widget.html'
+        self.template_name = r"markdownx/widget.html"
+
 
 class SideBySideMarkdownxField(MarkdownxField):
     def formfield(self, **kwargs):
-        kwargs['widget'] = SideBySideMarkdownWidget
-        logger.warning(str(kwargs['widget']))
+        kwargs["widget"] = SideBySideMarkdownWidget
+        logger.warning(str(kwargs["widget"]))
         return super().formfield(**kwargs)
+
 
 class BaseAction(BaseModel):
     """
@@ -149,31 +183,42 @@ class BaseAction(BaseModel):
     surgery; etc. This should always be accessed through one of its subclasses.
     """
 
-    users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
-                                   help_text="The user(s) involved in this action.")
-    subject = models.ForeignKey('subjects.Subject',
-                                on_delete=models.CASCADE,
-                                related_name="%(app_label)s_%(class)ss",
-                                help_text="The subject on which this action was performed.")
-    location = models.ForeignKey(LabLocation, null=True, blank=True, on_delete=models.SET_NULL,
-                                 help_text="The physical location at which the action was "
-                                 "performed.")
+    users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        help_text="The user(s) involved in this action.",
+    )
+    subject = models.ForeignKey(
+        "subjects.Subject",
+        on_delete=models.CASCADE,
+        related_name="%(app_label)s_%(class)ss",
+        help_text="The subject on which this action was performed.",
+    )
+    location = models.ForeignKey(
+        LabLocation,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The physical location at which the action was " "performed.",
+    )
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
-    procedures = models.ManyToManyField('ProcedureType', blank=True,
-                                        help_text="The procedure(s) performed.")
-    #narrative was TextField before
-    #narrative = models.TextField(blank = True)
-    narrative = SideBySideMarkdownxField(help_text="All other details of the experiment you want to include, in a text format. (markdown capable)", 
-                               blank = True) 
-    #narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
-    #rendered_narrative = RenderedMarkdownField()
+    procedures = models.ManyToManyField(
+        "ProcedureType", blank=True, help_text="The procedure(s) performed."
+    )
+    # narrative was TextField before
+    # narrative = models.TextField(blank = True)
+    narrative = SideBySideMarkdownxField(
+        help_text="All other details of the experiment you want to include, in a text format. (markdown capable)",
+        blank=True,
+    )
+    # narrative = MarkdownField(rendered_field='rendered_narrative', validator=VALIDATOR_STANDARD)
+    # rendered_narrative = RenderedMarkdownField()
 
-    start_time = models.DateTimeField(
-        null=True, blank=False, default=timezone.now)
+    start_time = models.DateTimeField(null=True, blank=False, default=timezone.now)
     end_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return '%s for %s' % (self.__class__.__name__, self.subject)
+        return "%s for %s" % (self.__class__.__name__, self.subject)
 
     class Meta:
         abstract = True
@@ -183,24 +228,29 @@ class VirusInjection(BaseAction):
     """
     A virus injection.
     """
+
     INJECTION_TYPES = (
-        ('I', 'Iontophoresis'),
-        ('P', 'Pressure'),
+        ("I", "Iontophoresis"),
+        ("P", "Pressure"),
     )
     virus_batch = models.CharField(max_length=255, null=True, blank=True)
     injection_volume = models.FloatField(
-        null=True, blank=True, help_text="Volume in nanoliters")
+        null=True, blank=True, help_text="Volume in nanoliters"
+    )
     rate_of_injection = models.FloatField(
-        null=True, blank=True, help_text="TODO: Nanoliters per second / per minute?")
-    injection_type = models.CharField(max_length=1,
-                                      choices=INJECTION_TYPES,
-                                      default='I', blank=True,
-                                      help_text="Whether the injection was through "
-                                      "iontophoresis or pressure")
+        null=True, blank=True, help_text="TODO: Nanoliters per second / per minute?"
+    )
+    injection_type = models.CharField(
+        max_length=1,
+        choices=INJECTION_TYPES,
+        default="I",
+        blank=True,
+        help_text="Whether the injection was through " "iontophoresis or pressure",
+    )
 
 
 def _default_surgery_location():
-    s = LabLocation.objects.filter(name='Surgery Room')
+    s = LabLocation.objects.filter(name="Surgery Room")
     if s:
         return s[0].pk
     return None
@@ -214,20 +264,25 @@ class Surgery(BaseAction):
     """
     Surgery performed on a subject.
     """
+
     OUTCOME_TYPES = (
-        ('a', 'Acute'),
-        ('r', 'Recovery'),
-        ('n', 'Non-recovery'),
+        ("a", "Acute"),
+        ("r", "Recovery"),
+        ("n", "Non-recovery"),
     )
-    outcome_type = models.CharField(max_length=1,
-                                    choices=OUTCOME_TYPES,
-                                    blank=True,
-                                    )
-    location = models.ForeignKey(LabLocation, null=True, blank=True,
-                                 on_delete=models.SET_NULL,
-                                 default=_default_surgery_location,
-                                 help_text="The physical location at which the surgery was "
-                                 "performed")
+    outcome_type = models.CharField(
+        max_length=1,
+        choices=OUTCOME_TYPES,
+        blank=True,
+    )
+    location = models.ForeignKey(
+        LabLocation,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=_default_surgery_location,
+        help_text="The physical location at which the surgery was " "performed",
+    )
 
     class Meta:
         verbose_name_plural = "surgeries"
@@ -238,7 +293,7 @@ class Surgery(BaseAction):
         self.subject.set_protocol_number()
         if self.subject.actual_severity == 2:
             self.subject.actual_severity = 3
-        if self.outcome_type == 'a' and self.start_time:
+        if self.outcome_type == "a" and self.start_time:
             self.subject.death_date = self.start_time
         self.subject.save()
         return output
@@ -262,41 +317,80 @@ class Session(BaseAction):
 
     If the fields (e.g. users) of a subsession are null, they should inherited from the parent.
     """
+
     objects = BaseManager()
 
-    parent_session = models.ForeignKey('Session', null=True, blank=True,
-                                       on_delete=models.SET_NULL,
-                                       help_text="Hierarchical parent to this session")
-    project = models.ForeignKey('subjects.Project', null=True, blank=True,
-                                on_delete=models.SET_NULL, verbose_name='Session Project',
-                                related_name='oldproject')
-    projects = models.ManyToManyField('subjects.Project', blank=True,
-                                      verbose_name='Session Projects')
-    type = models.CharField(max_length=255, null=True, blank=True,
-                            help_text="User-defined session type (e.g. Base, Experiment)")
-    number = models.IntegerField(null=True, blank=False,
-                                 help_text="Necessary session number for this subject, this day. Must be unique")
-    task_protocol = models.CharField(max_length=1023, blank=True, default='')
+    parent_session = models.ForeignKey(
+        "Session",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Hierarchical parent to this session",
+    )
+    project = models.ForeignKey(
+        "subjects.Project",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Session Project",
+        related_name="oldproject",
+    )
+    projects = models.ManyToManyField(
+        "subjects.Project", blank=True, verbose_name="Session Projects"
+    )
+    type = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="User-defined session type (e.g. Base, Experiment)",
+    )
+    number = models.IntegerField(
+        null=True,
+        blank=False,
+        help_text="Necessary session number for this subject, this day. Must be unique",
+    )
+    task_protocol = models.CharField(max_length=1023, blank=True, default="")
     n_trials = models.IntegerField(blank=True, null=True)
     n_correct_trials = models.IntegerField(blank=True, null=True)
 
     QC_CHOICES = [
-        (50, 'CRITICAL',),
-        (40, 'FAIL',),
-        (30, 'WARNING',),
-        (0, 'NOT_SET',),
-        (10, 'PASS',),
+        (
+            50,
+            "CRITICAL",
+        ),
+        (
+            40,
+            "FAIL",
+        ),
+        (
+            30,
+            "WARNING",
+        ),
+        (
+            0,
+            "NOT_SET",
+        ),
+        (
+            10,
+            "PASS",
+        ),
     ]
 
-    qc = models.IntegerField(default=0, choices=QC_CHOICES,
-                             help_text=' / '.join([str(q[0]) + ': ' + q[1] for q in QC_CHOICES]))
-    
-    extended_qc = models.JSONField(null=True, blank=True,
-                                   help_text="Structured data about session QC,"
-                                             "formatted in a user-defined way")
+    qc = models.IntegerField(
+        default=0,
+        choices=QC_CHOICES,
+        help_text=" / ".join([str(q[0]) + ": " + q[1] for q in QC_CHOICES]),
+    )
 
-    auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True,
-                                         verbose_name='last updated')
+    extended_qc = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Structured data about session QC," "formatted in a user-defined way",
+    )
+
+    auto_datetime = models.DateTimeField(
+        auto_now=True, blank=True, null=True, verbose_name="last updated"
+    )
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
@@ -312,107 +406,133 @@ class Session(BaseAction):
             self.default_data_repository = self.project.default_data_repository
 
         query_set = self.__class__.objects.filter(
-                                      start_time__date=self.start_time.date(),
-                                      number=self.number,
-                                      subject=self.subject)
-        
+            start_time__date=self.start_time.date(),
+            number=self.number,
+            subject=self.subject,
+        )
+
         if original is not None:
             query_set = query_set.exclude(id=self.id)
 
-        existing_day_sessions = query_set.count() 
-        #TODO : if number is null, autoincrement when setting
-        if existing_day_sessions :
-            raise ValidationError("Two session with same subject, date and number cannot exist")
-        #TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
+        existing_day_sessions = query_set.count()
+        # TODO : if number is null, autoincrement when setting
+        if existing_day_sessions:
+            raise ValidationError(
+                "Two session with same subject, date and number cannot exist"
+            )
+        # TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
 
         self.update_json_whiskers_from_narrative()
 
-        super(Session, self).save(*args, **kwargs) #apply the save to the database
+        super(Session, self).save(*args, **kwargs)  # apply the save to the database
 
         # After change is applied, check if the values of 'subject', 'date' or 'number' have changed, and reflect on datasets if it's the case
-        if original and (self.start_time.date() != original.start_time.date() or 
-            self.number != original.number or 
-            self.subject != original.subject):
-
+        if original and (
+            self.start_time.date() != original.start_time.date()
+            or self.number != original.number
+            or self.subject != original.subject
+        ):
             for dataset in self.data_dataset_session_related.all():
                 dataset.save()
 
     def update_json_whiskers_from_narrative(self):
         import re
-        
+
         json = {} if self.json is None else self.json.copy()
-        
-        try : 
+
+        try:
             json["whisker_stims"]["Stimulus right"]
-            return  
-        except :
+            return
+        except:
             pattern = re.compile(r"(\w+).*((?:left)|(?:right))", re.IGNORECASE)
 
             temp = {}
             matches = pattern.findall(self.narrative)
-            if len(matches) < 2 :
+            if len(matches) < 2:
                 return
-            for results in matches :
+            for results in matches:
                 results = [result.title() for result in results]
-                try :
+                try:
                     index = results.index("Left")
                     side = "0"
-                except ValueError :
+                except ValueError:
                     index = results.index("Right")
                     side = "1"
                 whisker = results[~index]
-                temp.update({side:whisker}) 
-            
+                temp.update({side: whisker})
+
             if "whisker_stims" not in json.keys():
-                json["whisker_stims"] = {"Stimulus right":temp}
-            else :
+                json["whisker_stims"] = {"Stimulus right": temp}
+            else:
                 if "Stimulus right" not in json.keys():
                     json["whisker_stims"]["Stimulus right"] = temp
-                else :
+                else:
                     json["whisker_stims"]["Stimulus right"].update(temp)
 
-            self.json = json 
+            self.json = json
 
     def __str__(self):
         try:
-            string = "%s with primary key : %s" % (self.alias, str(self.pk)) #"%s %s/%s/%s"
-                                      #self.subject,
-                                      #str(self.start_time)[:10],
-                                      #str(self.number).zfill(3))
+            string = "%s with primary key : %s" % (
+                self.alias,
+                str(self.pk),
+            )  # "%s %s/%s/%s"
+            # self.subject,
+            # str(self.start_time)[:10],
+            # str(self.number).zfill(3))
         except Exception:
             string = "%s %s" % (str(self.pk), self.subject)
         return string
 
     @property
     def alias(self):
-        string = "%s/%s/%s" % (self.subject,
-                                str(self.start_time)[:10],
-                                str(self.number).zfill(3))
+        string = "%s/%s/%s" % (
+            self.subject,
+            str(self.start_time)[:10],
+            str(self.number).zfill(3),
+        )
         return string
 
     @property
     def u_alias(self):
-        return self.alias.replace("/","_")
+        return self.alias.replace("/", "_")
 
     @property
     def notes(self):
         return Note.objects.filter(object_id=self.pk)
-    
-    default_data_repository =  models.ForeignKey(
-                        'data.DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+
+    default_data_repository = models.ForeignKey(
+        "data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     @property
     def path(self):
-        return os.path.join( self.default_data_repository.data_path , self.alias )
+        return os.path.join(self.default_data_repository.data_path, self.alias)
+
 
 class EphysSession(Session):
     """
     This proxy class allows to register as a different admin page.
-    The database is left untouched
-    New methods are fine but not new fields
+    The database is left untouched.
+    New methods are fine but not new fields.
+    For what defines an ephys session see actions.admin.EphysSessionAdmin.get_queryset.
     """
+
     class Meta:
         proxy = True
+
+
+class ImagingSession(Session):
+    """
+    This proxy class allows to register as a different admin page.
+    The database is left untouched.
+    New methods are fine but not new fields.
+    For what defines an ephys session see actions.admin.ImagingSessionAdmin.get_queryset.
+    """
+
+    class Meta:
+        proxy = True
+
 
 class WaterRestriction(BaseAction):
     """
@@ -422,10 +542,16 @@ class WaterRestriction(BaseAction):
     reference_weight = models.FloatField(
         validators=[MinValueValidator(limit_value=0)],
         default=0,
-        help_text="Weight in grams")
-    water_type = models.ForeignKey(WaterType, null=True, blank=True,
-                                   default=_default_water_type, on_delete=models.SET_NULL,
-                                   help_text='Default Water Type when creating water admin')
+        help_text="Weight in grams",
+    )
+    water_type = models.ForeignKey(
+        WaterType,
+        null=True,
+        blank=True,
+        default=_default_water_type,
+        on_delete=models.SET_NULL,
+        help_text="Default Water Type when creating water admin",
+    )
 
     def is_active(self):
         return self.start_time is not None and self.end_time is None
@@ -453,10 +579,12 @@ class WaterRestriction(BaseAction):
             self.subject.save()
         return output
 
+
 class OtherAction(BaseAction):
     """
     Another type of action.
     """
+
     pass
 
 
@@ -464,28 +592,33 @@ class OtherAction(BaseAction):
 # ---------------------------------------------------------------------------------
 
 NOTIFICATION_TYPES = (
-    ('responsible_user_change', 'responsible user has changed'),
-    ('mouse_underweight', 'mouse is underweight'),
-    ('mouse_water', 'water to give to mouse'),
-    ('mouse_training', 'check training days'),
+    ("responsible_user_change", "responsible user has changed"),
+    ("mouse_underweight", "mouse is underweight"),
+    ("mouse_water", "water to give to mouse"),
+    ("mouse_training", "check training days"),
+    ("mouse_not_weighed", "no weight entered for date"),
 )
 
 
 # Minimum delay, in seconds, until the same notification can be sent again.
 NOTIFICATION_MIN_DELAYS = {
-    'responsible_user_change': 3600,
-    'mouse_underweight': 3600,
-    'mouse_water': 3600,
+    "responsible_user_change": 3600,
+    "mouse_underweight": 3600,
+    "mouse_water": 3600,
 }
 
 
 def delay_since_last_notification(notification_type, title, subject):
     """Return the delay since the last notification corresponding to the given
     type, title, subject, in seconds, wheter it was actually sent or not."""
-    last_notif = Notification.objects.filter(
-        notification_type=notification_type,
-        title=title,
-        subject=subject).exclude(status='no-send').order_by('send_at').last()
+    last_notif = (
+        Notification.objects.filter(
+            notification_type=notification_type, title=title, subject=subject
+        )
+        .exclude(status="no-send")
+        .order_by("send_at")
+        .last()
+    )
     if last_notif:
         date = last_notif.sent_at or last_notif.send_at
         return (timezone.now() - date).total_seconds()
@@ -496,15 +629,15 @@ def check_scope(user, subject, scope):
     if subject is None:
         return True
     # Default scope: mine.
-    scope = scope or 'mine'
-    assert scope in ('none', 'mine', 'lab', 'all')
-    if scope == 'mine':
+    scope = scope or "mine"
+    assert scope in ("none", "mine", "lab", "all")
+    if scope == "mine":
         return subject.responsible_user == user
-    elif scope == 'lab':
+    elif scope == "lab":
         return subject.lab.name in (user.lab or ())
-    elif scope == 'all':
+    elif scope == "all":
         return True
-    elif scope == 'none':
+    elif scope == "none":
         return False
 
 
@@ -523,49 +656,60 @@ def get_recipients(notification_type, subject=None, users=None):
     user_rules = {user: None for user in members}
     user_rules.update({rule.user: rule.subjects_scope for rule in rules})
     # Remove 'none' users from the specified users.
-    users = [user for user in users if user_rules.get(user, None) != 'none']
+    users = [user for user in users if user_rules.get(user, None) != "none"]
     # Return the selected users, and those who opted in in the notification rules.
-    return users + [member for member in members
-                    if check_scope(member, subject, user_rules.get(member, None)) and
-                    member not in users]
+    return users + [
+        member
+        for member in members
+        if check_scope(member, subject, user_rules.get(member, None))
+        and member not in users
+    ]
 
 
 def create_notification(
-        notification_type, message, subject=None, users=None, force=None, details=''):
+    notification_type, message, subject=None, users=None, force=None, details=""
+):
     delay = delay_since_last_notification(notification_type, message, subject)
     max_delay = NOTIFICATION_MIN_DELAYS.get(notification_type, 0)
     if not force and delay < max_delay:
         logger.warning(
-            "This notification was sent %d s ago (< %d s), skipping.", delay, max_delay)
+            "This notification was sent %d s ago (< %d s), skipping.", delay, max_delay
+        )
         return
     notif = Notification.objects.create(
         notification_type=notification_type,
         title=message,
-        message=message + '\n\n' + details,
-        subject=subject)
+        message=message + "\n\n" + details,
+        subject=subject,
+    )
     recipients = get_recipients(notification_type, subject=subject, users=users)
     if recipients:
         notif.users.add(*recipients)
     logger.debug(
         "Create notification '%s' for %s (%s %s)",
-        message, ', '.join(map(str, notif.users.all())),
-        notif.status, notif.send_at.strftime('%Y-%m-%d %H:%M'))
+        message,
+        ", ".join(map(str, notif.users.all())),
+        notif.status,
+        notif.send_at.strftime("%Y-%m-%d %H:%M"),
+    )
     notif.send_if_needed()
     return notif
 
 
 def send_pending_emails():
     """Send all pending notifications."""
-    notifications = Notification.objects.filter(status='to-send', send_at__lte=timezone.now())
+    notifications = Notification.objects.filter(
+        status="to-send", send_at__lte=timezone.now()
+    )
     for notification in notifications:
         notification.send_if_needed()
 
 
 class Notification(BaseModel):
     STATUS_TYPES = (
-        ('no-send', 'do not send'),
-        ('to-send', 'to send'),
-        ('sent', 'sent'),
+        ("no-send", "do not send"),
+        ("to-send", "to send"),
+        ("sent", "sent"),
     )
 
     send_at = models.DateTimeField(default=timezone.now)
@@ -574,19 +718,17 @@ class Notification(BaseModel):
     title = models.CharField(max_length=255)
     message = models.TextField(blank=True)
     subject = models.ForeignKey(
-        'subjects.Subject', null=True, blank=True, on_delete=models.SET_NULL)
+        "subjects.Subject", null=True, blank=True, on_delete=models.SET_NULL
+    )
     users = models.ManyToManyField(LabMember)
-    status = models.CharField(max_length=16, default='to-send', choices=STATUS_TYPES)
+    status = models.CharField(max_length=16, default="to-send", choices=STATUS_TYPES)
 
     def ready_to_send(self):
-        return (
-            self.status == 'to-send' and
-            self.send_at <= timezone.now()
-        )
+        return self.status == "to-send" and self.send_at <= timezone.now()
 
     def send_if_needed(self):
         """Send the email if needed and change the status to 'sent'"""
-        if self.status == 'sent':
+        if self.status == "sent":
             logger.warning("Email already sent at %s.", self.sent_at)
             return False
         if not self.ready_to_send():
@@ -594,7 +736,7 @@ class Notification(BaseModel):
             return False
         emails = [user.email for user in self.users.all() if user.email]
         if alyx_mail(emails, self.title, self.message):
-            self.status = 'sent'
+            self.status = "sent"
             self.sent_at = timezone.now()
             self.save()
             return True
@@ -608,10 +750,10 @@ class NotificationRule(BaseModel):
     a given set of mice (none, all, mine, lab)."""
 
     SUBJECT_SCOPES = (
-        ('none', 'none'),
-        ('all', 'all'),
-        ('mine', 'mine'),
-        ('lab', 'lab')
+        ("none", "none"),
+        ("all", "all"),
+        ("mine", "mine"),
+        ("lab", "lab"),
     )
 
     user = models.ForeignKey(LabMember, on_delete=models.CASCADE)
@@ -619,11 +761,14 @@ class NotificationRule(BaseModel):
     subjects_scope = models.CharField(max_length=16, choices=SUBJECT_SCOPES)
 
     class Meta:
-        unique_together = [('user', 'notification_type')]
+        unique_together = [("user", "notification_type")]
 
     def __str__(self):
         return "<Notification rule for %s: %s '%s'>" % (
-            self.user, self.notification_type, self.subjects_scope)
+            self.user,
+            self.notification_type,
+            self.subjects_scope,
+        )
 
 
 class CullReason(BaseModel):
@@ -644,21 +789,39 @@ class Cull(BaseModel):
     """
     Culling action
     """
+
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
-        help_text="The user who culled the subject")
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="The user who culled the subject",
+    )
     subject = models.OneToOneField(
-        'subjects.Subject', related_name='cull', on_delete=models.CASCADE,
-        help_text="The culled subject")
+        "subjects.Subject",
+        related_name="cull",
+        on_delete=models.CASCADE,
+        help_text="The culled subject",
+    )
     date = models.DateField(null=False, blank=False)
-    description = models.TextField(blank=True, max_length=255, help_text='Narrative/Details')
+    description = models.TextField(
+        blank=True, max_length=255, help_text="Narrative/Details"
+    )
 
     cull_reason = models.ForeignKey(
-        CullReason, null=True, blank=True, on_delete=models.SET_NULL,
-        help_text="Reason for culling the subject")
+        CullReason,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Reason for culling the subject",
+    )
     cull_method = models.ForeignKey(
-        CullMethod, null=True, blank=True, on_delete=models.SET_NULL,
-        help_text="How the subject was culled")
+        CullMethod,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="How the subject was culled",
+    )
 
     def __str__(self):
         return "%s Cull" % (self.subject)
@@ -674,7 +837,8 @@ class Cull(BaseModel):
         if subject_change:
             # End all open water restrictions.
             for wr in WaterRestriction.objects.filter(
-                    subject=self.subject, start_time__isnull=False, end_time__isnull=True):
+                subject=self.subject, start_time__isnull=False, end_time__isnull=True
+            ):
                 wr.end_time = self.date
                 logger.debug("Ending water restriction %s.", wr)
                 wr.save()
@@ -687,6 +851,6 @@ class Cull(BaseModel):
         output = super(Cull, self).delete(*args, **kwargs)
         sub.cull = None
         sub.death_date = None
-        sub.cull_method = ''
+        sub.cull_method = ""
         sub.save()
         return output

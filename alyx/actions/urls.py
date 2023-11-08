@@ -5,6 +5,7 @@ import actions.views as av
 from markdownx import urls as markdownx
 
 urlpatterns = [
+    
      path('admin-actions/weighing-plot/<uuid:subject_id>',
           av.weighing_plot,
           name='weighing-plot',
