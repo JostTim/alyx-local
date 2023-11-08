@@ -500,7 +500,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
         date = wc.restriction_end_date(obj)
         return "%.2f" % wc.given_water_total(date=date)
 
-    given_water_total.short_description = "daily total water"
+    given_water_total.short_description = "daily total water recieved"
 
     def has_change_permission(self, request, obj=None):
         # setting to override edition of water restrictions in the settings.lab file
@@ -519,7 +519,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
         date = wc.restriction_end_date(obj)
         return "%.2f" % wc.expected_water(date=date)
 
-    expected_water.short_description = "daily water expected"
+    expected_water.short_description = "daily total water expected"
 
     # method name is misleading, to change it, would require to change WaterControl._columns
     # posponing. # TODO
