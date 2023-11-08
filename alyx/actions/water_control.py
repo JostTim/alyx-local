@@ -563,16 +563,16 @@ class WaterControl(object):
 
             ax.plot(start_wr, ref_weight, marker="*", color="b", zorder=2)
 
-            for d, w, e in zip(ds, ws, es):
-                c = find_color(w, e, self.thresholds)
-                # Skip identical consecutive colors.
-                if c == spans[-1][1]:
-                    continue
-                spans.append((d, c))
-            spans.append((end_wr, None))
+            # for d, w, e in zip(ds, ws, es):
+            #     c = find_color(w, e, self.thresholds)
+            #     # Skip identical consecutive colors.
+            #     if c == spans[-1][1]:
+            #         continue
+            #     spans.append((d, c))
+            # spans.append((end_wr, None))
 
-            for (d0, c), (d1, _) in zip(spans, spans[1:]):
-                ax.axvspan(d0, d1, color=c or "w")
+            # for (d0, c), (d1, _) in zip(spans, spans[1:]):
+            #     ax.axvspan(d0, d1, color=c or "w")
 
             # Plot reference weight and zscore
             ax.plot(ds, rw, "--", color="b", lw=1)
