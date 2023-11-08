@@ -325,6 +325,23 @@ class WaterAdministrationAdmin(BaseActionAdmin):
     session_l.short_description = "Session"
     session_l.allow_tags = True
 
+    def add_view(self, request, form_url="", extra_context=None):
+        data = request.GET.copy()
+        extra_context = extra_context or {}
+        extra_context["water_administered"] = data.get("water_administered", "")
+        extra_context["subject"] = data.get("subject", "")
+        return super(WaterAdministrationAdmin, self).add_view(
+            request, form_url, extra_context=extra_context
+        )
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        data = request.GET.copy()
+        extra_context = extra_context or {}
+        extra_context["water_administered"] = data.get("water_administered", "")
+        return super(WaterAdministrationAdmin, self).change_view(
+            request, object_id, form_url, extra_context=extra_context
+        )
+
 
 class WaterRestrictionForm(forms.ModelForm):
     implant_weight = forms.FloatField()
