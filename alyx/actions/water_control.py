@@ -519,6 +519,7 @@ class WaterControl(object):
             self.weighings[:] = sorted(self.weighings, key=itemgetter(0))
             weighing_dates, weights = zip(*self.weighings)
             weighing_dates = np.array(weighing_dates, dtype=datetime)
+            logger.warning(f"weighing_dates = {weighing_dates}")
             weights = np.array(weights, dtype=np.float64)
             start = start or weighing_dates.min()
             end = end or weighing_dates.max()
@@ -535,7 +536,7 @@ class WaterControl(object):
             )
         else:
             return HttpResponse("There is not weighings for that subject.")
-        logger.warning(f"weighing_dates = {weighing_dates}")
+
         # spans is a list of pairs (date, color) where there are changes of background colors.
         for start_wr, end_wr, ref_weight in self.water_restrictions:
             end_wr = end_wr or end
