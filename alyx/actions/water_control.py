@@ -555,8 +555,8 @@ class WaterControl(object):
             # Plot background colors.
             spans = [(start_wr, None)]
 
-            ds = np.concatenate((np.array([start_wr]), ds))
-            ws = np.concatenate((np.array([ref_weight]), ws))
+            ds = np.array([start_wr]).append(ds)
+            ws = np.array([ref_weight]).append(ws)
 
             logger.warning(f"start_wr = {start_wr}")
             logger.warning(f"ref_weight = {ref_weight}")
