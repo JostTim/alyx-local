@@ -518,7 +518,6 @@ class WaterControl(object):
 
             self.weighings[:] = sorted(self.weighings, key=itemgetter(0))
             weighing_dates, weights = zip(*self.weighings)
-            weighing_dates = []
             weighing_dates = np.array(weighing_dates, dtype=datetime)
             weights = np.array(weights, dtype=np.float64)
             start = start or weighing_dates.min()
