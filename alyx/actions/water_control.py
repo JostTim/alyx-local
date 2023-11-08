@@ -413,16 +413,14 @@ class WaterControl(object):
             return wa_before[-1]
 
     def expected_weight_range(self, date=None):
-        w = self.weight(date=date)
+        min_wdisp = self.implantless_weight_percentage(
+            self.reference_weight(date=date),
+            self.reference_weight_pct + self.zscore_weight_pct,
+        )
 
-        # acceptable weight disparity from the expected weight
-        expext_w = self.expected_weight(date=date)
-
-        wdisp = self.zscore_weight_pct * expext_w
-
-        min_wdisp, max_wdisp = (
-            expext_w - wdisp,
-            expext_w + wdisp,
+        max_wdisp = self.implantless_weight_percentage(
+            self.reference_weight(date=date),
+            self.reference_weight_pct - self.zscore_weight_pct,
         )
 
         return min_wdisp, max_wdisp
