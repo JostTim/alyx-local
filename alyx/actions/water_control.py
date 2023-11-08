@@ -400,6 +400,23 @@ class WaterControl(object):
                 url=url,
             )
 
+    def remaining_water_html(self, date=None):
+        colour_code = "008000"  # all is good, green
+
+        remaining_water = self.remaining_water(date=date)
+
+        # mouse still needs more water today, red, to not forget it
+        if remaining_water > 0:
+            colour_code = "FF0000"
+
+        # mouse recieved too much water, orange
+        if remaining_water < 0:
+            colour_code = "FFA500"
+
+        return format_html(
+            f'<b><span style="color: #{colour_code};">{remaining_water :2.1f}%</span></b>'
+        )
+
     def min_weight(self, date=None):
         """Minimum weight for the mouse."""
         return (
@@ -520,11 +537,11 @@ class WaterControl(object):
         elif w < self.min_weight(date=date):
             return 2
 
-        # edge case
-        elif w > max_wdisp or w < min_wdisp or self.remaining_water(date=date) > 0:
-            return 0
+        # either mouse is too far from the expected weight, (too heavy, too thin) or we miss giving it water yet
+        elif w > max_wdisp or w < min_wdisp:
+            return 1
 
-        return 1
+        return 0  # all is well
 
     def to_jsonable(self, start_date=None, end_date=None):
         start_date = to_date(start_date) if start_date else self.first_date()
