@@ -333,6 +333,7 @@ class WaterAdministrationAdmin(BaseActionAdmin):
 
     def add_view(self, request, form_url="", extra_context=None):
         data = request.GET.copy()
+        logger.warning(f"GET params: {request.GET}")
         extra_context = extra_context or {}
         extra_context["water_administered"] = data.get("water_administered", "")
         extra_context["subject"] = data.get("subject", "")
@@ -342,6 +343,7 @@ class WaterAdministrationAdmin(BaseActionAdmin):
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
         data = request.GET.copy()
+        logger.warning(f"GET params: {request.GET}")
         extra_context = extra_context or {}
         extra_context["water_administered"] = data.get("water_administered", "")
         return super(WaterAdministrationAdmin, self).change_view(
