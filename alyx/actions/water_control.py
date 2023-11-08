@@ -682,7 +682,7 @@ class WaterControl(object):
             + ["%d%%" % (100 * t[0]) for t in self.thresholds]
             + ["exp range"]
         )
-        ax.legend(leg)
+        ax.legend(leg, loc="center right", bbox_to_anchor=(1.25, 0.5))
         ax.grid(True)
         f.autofmt_xdate()
         f.tight_layout()
