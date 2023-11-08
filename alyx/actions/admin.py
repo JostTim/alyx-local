@@ -337,6 +337,7 @@ class WaterAdministrationAdmin(BaseActionAdmin):
         extra_context = extra_context or {}
         extra_context["water_administered"] = data.get("water_administered", "")
         extra_context["subject"] = data.get("subject", "")
+        logger.warning(f"{extra_context=}")
         return super(WaterAdministrationAdmin, self).add_view(
             request, form_url, extra_context=extra_context
         )
