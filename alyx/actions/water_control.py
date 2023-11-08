@@ -15,8 +15,6 @@ from django.utils import timezone
 
 from urllib.parse import urlencode
 
-from subjects.models import Subject
-
 import numpy as np
 
 logger = structlog.get_logger(__name__)
@@ -380,6 +378,8 @@ class WaterControl(object):
             )
 
     def remaining_water_html(self, date=None):
+        from subjects.models import Subject
+
         colour_code = PALETTE["green"]  # all is good, green
 
         remaining_water = self.remaining_water(date=date)
