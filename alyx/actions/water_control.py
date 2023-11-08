@@ -395,10 +395,7 @@ class WaterControl(object):
         else:
             url = reverse("water-history", kwargs={"subject_id": self.subject_id})
             return format_html(
-                '<b><a href="{url}" style="color: #{};">{}%</a></b>',
-                colour_code,
-                "{:2.1f}".format(pct_wei),
-                url=url,
+                f'<b><a href="{url}" style="color: {colour_code};">{pct_wei:2.1f}%</a></b>'
             )
 
     def remaining_water_html(self, date=None):
