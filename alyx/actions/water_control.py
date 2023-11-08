@@ -15,16 +15,16 @@ from django.utils import timezone
 
 import numpy as np
 
-
 logger = structlog.get_logger(__name__)
 
 
 LIMIT_POINT = 0.7
 
 PALETTE = {
-    "green": "#E7FFF1",
-    "orange": "#FFE2C9",
-    "red": "#FFC9D2",
+    "green": "#029e07",
+    "orange": "#d17526",
+    "red": "#d61e3d",
+    "gray": "#1c1c1c",
 }
 
 
@@ -379,15 +379,15 @@ class WaterControl(object):
         pct_wei = self.percentage_weight(date=date)
 
         # Determine the color.
-        colour_code = "008000"  # status = 0 : all good
+        colour_code = PALETTE["green"]  # status = 0 : all good
         if not self.is_water_restricted(date=date):
-            colour_code = "333333"
+            colour_code = PALETTE["gray"]
 
         elif status == 1:  # orange colour code for reminders
-            colour_code = "FFA500"
+            colour_code = PALETTE["orange"]
 
         elif status == 2:  # red colour code for errors
-            colour_code = "FF0000"
+            colour_code = PALETTE["red"]
 
         if pct_wei == 0:
             return "-"
@@ -402,20 +402,20 @@ class WaterControl(object):
             )
 
     def remaining_water_html(self, date=None):
-        colour_code = "008000"  # all is good, green
+        colour_code = PALETTE["green"]  # all is good, green
 
         remaining_water = self.remaining_water(date=date)
 
         # mouse still needs more water today, red, to not forget it
         if remaining_water > 0:
-            colour_code = "FF0000"
+            colour_code = PALETTE["red"]
 
         # mouse recieved too much water, orange
         if remaining_water < 0:
-            colour_code = "FFA500"
+            colour_code = PALETTE["orange"]
 
         return format_html(
-            f'<b><span style="color: #{colour_code};">{remaining_water :2.1f}%</span></b>'
+            f'<b><span style="color: {colour_code};">{remaining_water :2.1f}%</span></b>'
         )
 
     def min_weight(self, date=None):
