@@ -546,11 +546,6 @@ class WaterControl(object):
 
         # Data arrays.
         if self.weighings:
-            # loc = mpld.AutoDateLocator(maxticks=8, interval_multiples=False)
-            # loc.intervald[HOURLY] = [1]
-            # ax.xaxis.set_major_locator(loc)
-            # ax.xaxis.set_major_formatter(mpld.DateFormatter("%Y-%m-%d"))
-
             self.weighings[:] = sorted(self.weighings, key=itemgetter(0))
             weighing_dates, weights = zip(*self.weighings)
             weighing_dates = np.array(weighing_dates, dtype=datetime)
@@ -564,9 +559,6 @@ class WaterControl(object):
                 [self.expected_weight(date) for date in weighing_dates],
                 dtype=np.float64,
             )
-            # zscore_weights = np.array(
-            #     [self.zscore_weight(date) for date in weighing_dates], dtype=np.float64
-            # )
             reference_weights = np.array(
                 [self.reference_weight(date) for date in weighing_dates],
                 dtype=np.float64,
@@ -612,26 +604,11 @@ class WaterControl(object):
                 zorder=3,
             )
 
-            # for d, w, e in zip(ds, ws, es):
-            #     c = find_color(w, e, self.thresholds)
-            #     # Skip identical consecutive colors.
-            #     if c == spans[-1][1]:
-            #         continue
-            #     spans.append((d, c))
-            # spans.append((end_wr, None))
-
-            # for (d0, c), (d1, _) in zip(spans, spans[1:]):
-            #     ax.axvspan(d0, d1, color=c or "w")
-
-            # # Plot reference weight and zscore
-            # ax.plot(ds, rw, "--", color="b", lw=1)
-            # ax.plot(ds, zw, "-.", color="g", lw=1)
-
             # Plot weight thresholds.
             for perc, _, fgc, ls in self.thresholds:
                 trsh = [
-                    self.implantless_weight_percentage(refw, p)
-                    for refw, p in zip(rw, perc)
+                    self.implantless_weight_percentage(ref_weight, perc)
+                    for ref_weight in rw
                 ]
                 ax.plot(ds, trsh, ls, color=fgc, lw=2)
 
