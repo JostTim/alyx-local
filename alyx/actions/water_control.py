@@ -558,6 +558,9 @@ class WaterControl(object):
             ds = np.append(np.array([start_wr]), ds)
             ws = np.append(np.array([ref_weight]), ws)
 
+            zw = np.append(zw[0], zw)
+            rw = np.append(rw[0], rw)
+
             logger.warning(f"start_wr = {start_wr}")
             logger.warning(f"ref_weight = {ref_weight}")
 
