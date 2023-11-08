@@ -597,7 +597,7 @@ class WaterControl(object):
                 ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
             # Plot weights.
-            ax.plot(ds, ws, "-ok", lw=2)
+            ax.plot(ds, ws, "-ok", lw=2, zorder=1)
 
         # Axes and legends.
         # ax.set_xlim(start, end)
