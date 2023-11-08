@@ -397,7 +397,7 @@ class WaterControl(object):
         if wrs.exists():
             url = reverse(
                 "admin:actions_wateradministration_change",
-                args={"id": wrs.first().id},
+                args=(wrs.first().id,),
             )
         else:
             url = reverse("admin:actions_wateradministration_add")
