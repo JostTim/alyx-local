@@ -159,6 +159,12 @@ class WaterAdministration(BaseModel):
         else:
             return "Water adlib for %s" % str(self.subject)
 
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        initial["subject"] = request.GET.get("subject", "")
+        initial["water_administered"] = request.GET.get("water_administered", "")
+        return initial
+
 
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget

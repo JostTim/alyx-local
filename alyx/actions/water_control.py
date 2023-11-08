@@ -13,6 +13,10 @@ from django.utils.html import format_html
 from django.http import HttpResponse
 from django.utils import timezone
 
+from urllib.parse import urlencode
+
+from subjects.models import Subject
+
 import numpy as np
 
 logger = structlog.get_logger(__name__)
@@ -388,8 +392,21 @@ class WaterControl(object):
         if remaining_water < 0:
             colour_code = PALETTE["orange"]
 
+        subject = Subject.objects.get(id=self.subject_id)
+        wrs = subject.actions_waterrestrictions.filter(date_time__date=date.today())
+        if wrs.exists():
+            url = reverse(
+                "actions_wateradministration_change", kwargs={"id": wrs.first().id}
+            )
+        else:
+            url = reverse("actions_wateradministration_add")
+            query_string = urlencode(
+                {"subject": self.nickname, "water_administered": remaining_water}
+            )
+            url = f"{url}?{query_string}"
+
         return format_html(
-            f'<b><span style="color: {colour_code};">{remaining_water :2.1f}%</span></b>'
+            f'<b><a href="{url}" style="color: {colour_code};">{remaining_water :2.1f}</a></b>'
         )
 
     def min_weight(self, date=None):
