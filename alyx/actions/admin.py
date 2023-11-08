@@ -257,7 +257,13 @@ class ProcedureTypeAdmin(BaseActionAdmin):
 
 class WaterAdministrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        water_administered = kwargs.pop("water_administered", None)
+        subject = kwargs.pop("subject", None)
         super(WaterAdministrationForm, self).__init__(*args, **kwargs)
+        if subject:
+            self.fields["subject"].initial = subject
+        if water_administered:
+            self.fields["water_administered"].initial = water_administered
         # Only show subjects that are on water restriction.
         ids = [
             wr.subject.pk
