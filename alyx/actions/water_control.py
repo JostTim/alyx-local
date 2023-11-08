@@ -535,7 +535,7 @@ class WaterControl(object):
             )
         else:
             return HttpResponse("There is not weighings for that subject.")
-
+        print(weighing_dates)
         # spans is a list of pairs (date, color) where there are changes of background colors.
         for start_wr, end_wr, ref_weight in self.water_restrictions:
             end_wr = end_wr or end
@@ -549,6 +549,7 @@ class WaterControl(object):
                 zscore_weights,
                 reference_weights,
             )
+            print(ds)
             # Plot background colors.
             spans = [(start_wr, None)]
             for d, w, e in zip(ds, ws, es):
