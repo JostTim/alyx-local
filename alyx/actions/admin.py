@@ -508,7 +508,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     is_water_restricted.boolean = True
 
 
-class WeighingForm(BaseActionForm):
+class WeighingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(WeighingForm, self).__init__(*args, **kwargs)
         if self.fields.keys():
