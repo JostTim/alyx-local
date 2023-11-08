@@ -720,7 +720,7 @@ def water_control(subject):
     wc.add_threshold(
         percentage=rw_pct,
         bgcolor=PALETTE["green"],
-        fgcolor="#FFC28E",
+        fgcolor="#008000",
         line_style="--",
     )
 
