@@ -319,30 +319,6 @@ class WaterControl(object):
         cw = self.last_weighing_before(date=date)
         return cw[1] if cw else 0
 
-    def zscore_weight(self, date=None):
-        """Return the expected zscored weight at the specified date."""
-        date = date or self.today()
-        rw = self.reference_weighing_at(date=date)
-        if not rw:
-            return 0
-        ref_date, ref_weight = rw
-        iw = self.implant_weight
-        if not self.birth_date:
-            logger.warning(
-                "The birth date of %s has not been specified.", self.nickname
-            )
-            return 0
-        # Age at the time of the reference weighing.
-        age_ref = to_weeks(self.birth_date, ref_date)
-        age_date = to_weeks(self.birth_date, date)
-        # Expected mean/std at that time.
-        mrw_ref, srw_ref = expected_weighing_mean_std(self.sex, age_ref)
-        # z-score.
-        zscore = (ref_weight - iw - mrw_ref) / srw_ref
-        # Expected weight.
-        mrw_date, srw_date = expected_weighing_mean_std(self.sex, age_date)
-        return (srw_date * zscore) + mrw_date + iw
-
     def expected_weight(self, date=None):
         """Expected weight of the mouse at the specified date,
         either the reference weight
@@ -352,13 +328,10 @@ class WaterControl(object):
         # if pct_sum == 0:
         if self.reference_weight_pct == 0:
             return 0
-        iw = self.implant_weight or 0.0
-        # pz = self.zscore_weight_pct / pct_sum
-        # pr = self.reference_weight_pct / pct_sum
-        # return pz * self.zscore_weight(date=date) + pr * self.reference_weight(
-        #     date=date
-        # )
-        return self.reference_weight_pct * (self.reference_weight(date=date) - iw)
+
+        return self.implantless_weight_percentage(
+            self.reference_weight(date=date), self.reference_weight_pct
+        )
 
     def percentage_weight(self, date=None):
         """Percentage of the weight relative to the reference weight.
@@ -373,6 +346,10 @@ class WaterControl(object):
         w = self.weight(date=date)
         e = self.reference_weight(date=date)
         return 100 * (w - iw) / (e - iw) if (e - iw) > 0 else 0.0
+
+    def implantless_weight_percentage(self, weight, percentage=1):
+        iw = self.implant_weight or 0.0
+        return (percentage * (weight - iw)) + iw
 
     def percentage_weight_html(self, date=None):
         status = self.weight_status(date=date)
@@ -417,11 +394,8 @@ class WaterControl(object):
 
     def min_weight(self, date=None):
         """Minimum weight for the mouse."""
-        iw = self.implant_weight or 0.0
-        return (
-            # self.zscore_weight(date=date) * self.zscore_weight_pct +
-            (self.reference_weight(date=date) - iw)
-            * LIMIT_POINT  # self.reference_weight_pct
+        return self.implantless_weight_percentage(
+            self.reference_weight(date=date), LIMIT_POINT
         )
 
     def min_percentage(self, date=None):
@@ -457,17 +431,13 @@ class WaterControl(object):
         """Return the expected water for the specified date."""
         date = date or self.today()
         assert isinstance(date, datetime)
-        # iw = self.implant_weight or 0.0
+
         weight = self.last_weighing_before(date=date)
         weight = weight[1] if weight else 0.0
         expected_weight = self.expected_weight(date=date) or 0.0
         MINIMUM_DAILY_WATER_INTAKE = 0.500  # mL
         MAXIMUM_DAILY_WATER_INTAKE = 1.200  # mL
-        # return (
-        #     0.05 * (weight - iw)
-        #     if weight < 0.8 * expected_weight
-        #     else 0.04 * (weight - iw)
-        # )
+
         water_intake_estimation = (expected_weight - weight) * 1.5
 
         if water_intake_estimation > MAXIMUM_DAILY_WATER_INTAKE:
@@ -594,9 +564,9 @@ class WaterControl(object):
                 [self.expected_weight(date) for date in weighing_dates],
                 dtype=np.float64,
             )
-            zscore_weights = np.array(
-                [self.zscore_weight(date) for date in weighing_dates], dtype=np.float64
-            )
+            # zscore_weights = np.array(
+            #     [self.zscore_weight(date) for date in weighing_dates], dtype=np.float64
+            # )
             reference_weights = np.array(
                 [self.reference_weight(date) for date in weighing_dates],
                 dtype=np.float64,
@@ -609,13 +579,12 @@ class WaterControl(object):
             end_wr = end_wr or end
             # Get the dates and weights for the current water restriction.
 
-            ds, ws, es, zw, rw = restrict_dates(
+            ds, ws, es, rw = restrict_dates(
                 weighing_dates,
                 start_wr,
                 end_wr,
                 weights,
                 expected_weights,
-                zscore_weights,
                 reference_weights,
             )
             logger.warning(f"datestring = {ds}")
@@ -659,8 +628,11 @@ class WaterControl(object):
             # ax.plot(ds, zw, "-.", color="g", lw=1)
 
             # Plot weight thresholds.
-            for p, _, fgc, ls in self.thresholds:
-                trsh = (rw - iw) * p
+            for perc, _, fgc, ls in self.thresholds:
+                trsh = [
+                    self.implantless_weight_percentage(refw, p)
+                    for refw, p in zip(rw, perc)
+                ]
                 ax.plot(ds, trsh, ls, color=fgc, lw=2)
 
             logger.warning(f"min_wdisp = {min_wdisp}, max_wdisp = {max_wdisp}")
