@@ -506,6 +506,7 @@ class WaterControl(object):
         matplotlib.use("AGG")
         import matplotlib.pyplot as plt
         import matplotlib.dates as mpld
+        from matplotlib import dates as mdates
 
         f, ax = plt.subplots(1, 1, figsize=(8, 3))
 
@@ -564,7 +565,15 @@ class WaterControl(object):
             logger.warning(f"start_wr = {start_wr}")
             logger.warning(f"ref_weight = {ref_weight}")
 
-            ax.plot(start_wr, ref_weight, marker="*", color="b", zorder=2)
+            ax.plot(
+                start_wr,
+                ref_weight,
+                marker="*",
+                color="k",
+                lw=0,
+                markersize=10,
+                zorder=2,
+            )
 
             # for d, w, e in zip(ds, ws, es):
             #     c = find_color(w, e, self.thresholds)
@@ -594,15 +603,16 @@ class WaterControl(object):
             self.reference_weight_pct,
             self.zscore_weight_pct,
         )
-        ax.set_xticklabels(ax.get_xticks(), rotation=20)
+        # ax.set_xticklabels(ax.get_xticks(), rotation=20)
         ax.set_title("Weighings for %s (%s)" % (self.nickname, eq))
+        ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
         ax.set_xlabel("Date")
         ax.set_ylabel("Weight (g)")
-        leg = ["ref weight", "zscore"] + [
-            "%d%%" % (100 * t[0]) for t in self.thresholds
-        ]
+        leg = ["ref weight"] + ["%d%%" % (100 * t[0]) for t in self.thresholds]
         ax.legend(leg, loc=2)
         ax.grid(True)
+        f.autofmt_xdate()
         f.tight_layout()
         return return_figure(f)
 
