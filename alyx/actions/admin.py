@@ -257,6 +257,7 @@ class ProcedureTypeAdmin(BaseActionAdmin):
 
 class WaterAdministrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        logger.warning(f"Optionnal form params: {kwargs}")
         water_administered = kwargs.pop("water_administered", None)
         subject = kwargs.pop("subject", None)
         super(WaterAdministrationForm, self).__init__(*args, **kwargs)
