@@ -583,7 +583,7 @@ class WaterControl(object):
 
             # Plot weight thresholds.
             for p, bgc, fgc, ls in self.thresholds:
-                ax.plot(ds, p * es, ls, color=fgc, lw=2)
+                ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
             # Plot weights.
             ax.plot(ds, ws, "-ok", lw=2)
