@@ -395,9 +395,12 @@ class WaterControl(object):
         subject = Subject.objects.get(id=self.subject_id)
         wrs = subject.water_administrations.filter(date_time__date=date.today())
         if wrs.exists():
-            url = reverse("wateradministration_change", kwargs={"id": wrs.first().id})
+            url = reverse(
+                "admin:actions_wateradministration_change",
+                kwargs={"id": wrs.first().id},
+            )
         else:
-            url = reverse("wateradministration_add")
+            url = reverse("admin:actions_wateradministration_add")
             query_string = urlencode(
                 {"subject": self.nickname, "water_administered": remaining_water}
             )
