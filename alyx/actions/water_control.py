@@ -600,7 +600,7 @@ class WaterControl(object):
             ax.plot(ds, ws, "-ok", lw=2)
 
         # Axes and legends.
-        ax.set_xlim(start, end)
+        # ax.set_xlim(start, end)
         eq = "weight > %.1f*ref + %.1f*zscore" % (
             self.reference_weight_pct,
             self.zscore_weight_pct,
