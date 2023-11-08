@@ -670,7 +670,7 @@ class WaterControl(object):
 
         # Axes and legends.
         # ax.set_xlim(start, end)
-        eq = f"target weight > {self.reference_weight_pct*100:d}%ref +/- {self.zscore_weight_pct*100:d}%"
+        eq = f"target weight > {int(self.reference_weight_pct*100)}%ref +/- {int(self.zscore_weight_pct*100)}%"
         # ax.set_xticklabels(ax.get_xticks(), rotation=20)
         ax.set_title("Weighings for %s (%s)" % (self.nickname, eq))
         ax.xaxis.set_major_locator(mdates.AutoDateLocator())
