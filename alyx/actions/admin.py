@@ -444,21 +444,21 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         return "%.1f" % obj.subject.water_control.expected_weight()
 
-    expected_weight.short_description = "weight target"
+    expected_weight.short_description = "expected weight"
 
     def percentage_weight(self, obj):
         if not obj.subject:
             return
         return "%.1f" % obj.subject.water_control.percentage_weight()
 
-    percentage_weight.short_description = "weight percent."
+    percentage_weight.short_description = r"current weight % of ref"
 
     def min_weight(self, obj):
         if not obj.subject:
             return
         return "%.1f" % obj.subject.water_control.min_weight()
 
-    min_weight.short_description = "limit min weight"
+    min_weight.short_description = "min limit weight"
 
     def given_water_reward(self, obj):
         if not obj.subject:
@@ -496,19 +496,19 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         return "%.2f" % obj.subject.water_control.expected_water()
 
-    expected_water.short_description = "water expected"
+    expected_water.short_description = "daily water expected"
 
     def excess_water(self, obj):
         if not obj.subject:
             return
         return "%.2f" % obj.subject.water_control.excess_water()
 
-    excess_water.short_description = "water excess"
+    excess_water.short_description = "daily water excess"
 
     def is_water_restricted(self, obj):
         return obj.is_active()
 
-    is_water_restricted.short_description = "is active"
+    is_water_restricted.short_description = "restriction active"
     is_water_restricted.boolean = True
 
 
