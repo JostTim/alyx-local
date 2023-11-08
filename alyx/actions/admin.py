@@ -430,7 +430,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         return "%.1f" % obj.subject.water_control.weight()
 
-    weight.short_description = "weight"
+    weight.short_description = "current weight"
 
     def weight_ref(self, obj):
         if not obj.subject:
@@ -444,42 +444,42 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         return "%.1f" % obj.subject.water_control.expected_weight()
 
-    expected_weight.short_description = "weight exp"
+    expected_weight.short_description = "weight target"
 
     def percentage_weight(self, obj):
         if not obj.subject:
             return
         return "%.1f" % obj.subject.water_control.percentage_weight()
 
-    percentage_weight.short_description = "weight pct"
+    percentage_weight.short_description = "weight percent."
 
     def min_weight(self, obj):
         if not obj.subject:
             return
         return "%.1f" % obj.subject.water_control.min_weight()
 
-    min_weight.short_description = "weight min"
+    min_weight.short_description = "limit min weight"
 
     def given_water_reward(self, obj):
         if not obj.subject:
             return
         return "%.2f" % obj.subject.water_control.given_water_reward()
 
-    given_water_reward.short_description = "water reward"
+    given_water_reward.short_description = "daily water reward"
 
     def given_water_supplement(self, obj):
         if not obj.subject:
             return
         return "%.2f" % obj.subject.water_control.given_water_supplement()
 
-    given_water_supplement.short_description = "water suppl"
+    given_water_supplement.short_description = "daily water supplied"
 
     def given_water_total(self, obj):
         if not obj.subject:
             return
         return "%.2f" % obj.subject.water_control.given_water_total()
 
-    given_water_total.short_description = "water tot"
+    given_water_total.short_description = "daily total water"
 
     def has_change_permission(self, request, obj=None):
         # setting to override edition of water restrictions in the settings.lab file
