@@ -70,7 +70,6 @@ class ResponsibleUserListFilter(DefaultListFilter):
 
     def queryset(self, request, queryset):
         value = self.value()
-        print(value)
         if value is None:
             return queryset.all()
         elif value == "me":
@@ -378,6 +377,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
         "users",
         "narrative",
     ]
+
     list_display = (
         (
             "subject_w",
@@ -387,7 +387,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             "weight",
             "weight_ref",
         )
-        + WaterControl._columns[3:]
+        + WaterControl._columns[4:]
         + ("projects",)
     )
     list_select_related = ("subject",)
@@ -436,6 +436,8 @@ class WaterRestrictionAdmin(BaseActionAdmin):
         if not obj.subject:
             return
         return "%.1f" % obj.subject.water_control.reference_weight()
+
+    weight_ref.short_description = "reference weight"
 
     def expected_weight(self, obj):
         if not obj.subject:
@@ -494,7 +496,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         return "%.2f" % obj.subject.water_control.expected_water()
 
-    expected_water.short_description = "water exp"
+    expected_water.short_description = "water expected"
 
     def excess_water(self, obj):
         if not obj.subject:
