@@ -588,9 +588,9 @@ class WaterControl(object):
             # for (d0, c), (d1, _) in zip(spans, spans[1:]):
             #     ax.axvspan(d0, d1, color=c or "w")
 
-            # Plot reference weight and zscore
-            ax.plot(ds, rw, "--", color="b", lw=1)
-            ax.plot(ds, zw, "-.", color="g", lw=1)
+            # # Plot reference weight and zscore
+            # ax.plot(ds, rw, "--", color="b", lw=1)
+            # ax.plot(ds, zw, "-.", color="g", lw=1)
 
             # Plot weight thresholds.
             for p, bgc, fgc, ls in self.thresholds:
