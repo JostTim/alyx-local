@@ -578,6 +578,7 @@ class WaterControl(object):
             self.reference_weight_pct,
             self.zscore_weight_pct,
         )
+        ax.set_xticklabels(ax.get_xticks(), rotation=20)
         ax.set_title("Weighings for %s (%s)" % (self.nickname, eq))
         ax.set_xlabel("Date")
         ax.set_ylabel("Weight (g)")
