@@ -517,7 +517,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         wc = obj.subject.water_control
         date = wc.restriction_end_date(obj)
-        return wc.remaining_water_html(date=date)
+        return "%.2f" % wc.expected_water(date=date)
 
     expected_water.short_description = "daily water expected"
 
@@ -528,7 +528,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
             return
         wc = obj.subject.water_control
         date = wc.restriction_end_date(obj)
-        return "%.2f" % wc.remaining_water(date=date)
+        return wc.remaining_water_html(date=date)
 
     excess_water.short_description = "daily missing water"
 

@@ -439,6 +439,21 @@ class WaterControl(object):
         if wa_before:
             return wa_before[-1]
 
+    def expected_weight_range(self, date=None):
+        w = self.weight(date=date)
+
+        # acceptable weight disparity from the expected weight
+        expext_w = self.expected_weight(date=date)
+
+        wdisp = self.zscore_weight_pct * expext_w
+
+        min_wdisp, max_wdisp = (
+            expext_w - wdisp,
+            expext_w + wdisp,
+        )
+
+        return min_wdisp, max_wdisp
+
     def expected_water(self, date=None):
         """Return the expected water for the specified date."""
         date = date or self.today()
@@ -516,18 +531,8 @@ class WaterControl(object):
     )
 
     def weight_status(self, date=None):
-        # threshold = max(self.zscore_weight_pct, self.reference_weight_pct)
-        # thresh_remind = threshold + 0.02
-
         w = self.weight(date=date)
-
-        # acceptable weight disparity from the expected value
-        expext_w = self.expected_weight(date=date)
-        wdisp = self.zscore_weight_pct * expext_w
-        min_wdisp, max_wdisp = (
-            expext_w - wdisp,
-            expext_w + wdisp,
-        )
+        min_wdisp, max_wdisp = self.expected_weight_range(date=date)
 
         # edge case
         if w == 0:
@@ -622,6 +627,8 @@ class WaterControl(object):
             zw = np.append(zw[0], zw)
             rw = np.append(rw[0], rw)
 
+            min_wdisp, max_wdisp = self.expected_weight_range(date=start_wr)
+
             logger.warning(f"start_wr = {start_wr}")
             logger.warning(f"ref_weight = {ref_weight}")
 
@@ -654,6 +661,8 @@ class WaterControl(object):
             for p, bgc, fgc, ls in self.thresholds:
                 ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
+            ax.axhspan(min_wdisp, max_wdisp, facecolor="green", zorder=0, alpha=0.3)
+
             # Plot weights.
             ax.plot(ds, ws, "-ok", lw=2, zorder=2)
 
@@ -666,7 +675,11 @@ class WaterControl(object):
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
         ax.set_xlabel("Date")
         ax.set_ylabel("Weight (g)")
-        leg = ["ref weight"] + ["%d%%" % (100 * t[0]) for t in self.thresholds]
+        leg = (
+            ["ref weight"]
+            + ["%d%%" % (100 * t[0]) for t in self.thresholds]
+            + ["exp range"]
+        )
         ax.legend(leg, loc=1)
         ax.grid(True)
         f.autofmt_xdate()
@@ -704,7 +717,7 @@ def water_control(subject):
     wc.add_threshold(percentage=LIMIT_POINT, bgcolor=PALETTE["red"], fgcolor="#F08699")
     wc.add_threshold(
         percentage=rw_pct + zw_pct,
-        bgcolor=PALETTE["orange"],
+        bgcolor=PALETTE["green"],
         fgcolor="#FFC28E",
         line_style="--",
     )
