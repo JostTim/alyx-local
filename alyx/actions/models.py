@@ -161,6 +161,7 @@ class WaterAdministration(BaseModel):
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)
+        logger.warning(f"GET params: {request.GET}")
         initial["subject"] = request.GET.get("subject", "")
         initial["water_administered"] = request.GET.get("water_administered", "")
         return initial
