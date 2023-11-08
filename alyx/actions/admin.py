@@ -429,21 +429,27 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     def weight(self, obj):
         if not obj.subject:
             return
-        return "%.1f" % obj.subject.water_control.weight()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.1f" % wc.weight(date=date)
 
     weight.short_description = "current weight"
 
     def weight_ref(self, obj):
         if not obj.subject:
             return
-        return "%.1f" % obj.subject.water_control.reference_weight()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.1f" % wc.reference_weight(date=date)
 
     weight_ref.short_description = "reference weight"
 
     def expected_weight(self, obj):
         if not obj.subject:
             return
-        return "%.1f" % obj.subject.water_control.expected_weight(timezone.now())
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.1f" % wc.expected_weight(date=date)
 
     expected_weight.short_description = "expected weight"
 
@@ -461,28 +467,38 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     def min_weight(self, obj):
         if not obj.subject:
             return
-        return "%.1f" % obj.subject.water_control.min_weight()
+
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.1f" % wc.min_weight(date=date)
 
     min_weight.short_description = "min limit weight"
 
     def given_water_reward(self, obj):
         if not obj.subject:
             return
-        return "%.2f" % obj.subject.water_control.given_water_reward()
+
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.2f" % wc.given_water_reward(date=date)
 
     given_water_reward.short_description = "daily water reward"
 
     def given_water_supplement(self, obj):
         if not obj.subject:
             return
-        return "%.2f" % obj.subject.water_control.given_water_supplement()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.2f" % wc.given_water_supplement(date=date)
 
     given_water_supplement.short_description = "daily water supplied"
 
     def given_water_total(self, obj):
         if not obj.subject:
             return
-        return "%.2f" % obj.subject.water_control.given_water_total()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.2f" % wc.given_water_total(date=date)
 
     given_water_total.short_description = "daily total water"
 
@@ -499,16 +515,22 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     def expected_water(self, obj):
         if not obj.subject:
             return
-        return "%.2f" % obj.subject.water_control.expected_water()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.2f" % wc.expected_water(date=date)
 
     expected_water.short_description = "daily water expected"
 
+    # method name is misleading, to change it, would require to change WaterControl._columns
+    # posponing. # TODO
     def excess_water(self, obj):
         if not obj.subject:
             return
-        return "%.2f" % obj.subject.water_control.excess_water()
+        wc = obj.subject.water_control
+        date = wc.restriction_end_date(obj)
+        return "%.2f" % wc.remaining_water(date=date)
 
-    excess_water.short_description = "daily water excess"
+    excess_water.short_description = "daily missing water"
 
     def is_water_restricted(self, obj):
         return obj.is_active()

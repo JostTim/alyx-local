@@ -378,16 +378,19 @@ class WaterControl(object):
         pct_wei = self.percentage_weight(date=date)
 
         # Determine the color.
-        colour_code = "008000"
+        colour_code = "008000"  # status = 0 : all good
         if not self.is_water_restricted(date=date):
             colour_code = "333333"
+
         elif status == 1:  # orange colour code for reminders
             colour_code = "FFA500"
+
         elif status == 2:  # red colour code for errors
             colour_code = "FF0000"
 
         if pct_wei == 0:
             return "-"
+
         else:
             url = reverse("water-history", kwargs={"subject_id": self.subject_id})
             return format_html(
@@ -496,17 +499,32 @@ class WaterControl(object):
     )
 
     def weight_status(self, date=None):
-        threshold = max(self.zscore_weight_pct, self.reference_weight_pct)
-        thresh_remind = threshold + 0.02
-        w = self.percentage_weight(date=date)
+        # threshold = max(self.zscore_weight_pct, self.reference_weight_pct)
+        # thresh_remind = threshold + 0.02
+
+        w = self.weight(date=date)
+
+        # acceptable weight disparity from the expected value
+        expext_w = self.expected_weight(date=date)
+        wdisp = self.zscore_weight_pct * expext_w
+        min_wdisp, max_wdisp = (
+            expext_w - wdisp,
+            expext_w + wdisp,
+        )
+
+        # edge case
         if w == 0:
             return 0
-        elif (w / 100) < threshold:
+
+        # we are below the limit point !!! stop water restriction
+        elif w < self.min_weight(date=date):
             return 2
-        elif (w / 100) < thresh_remind:
-            return 1
-        else:
+
+        # edge case
+        elif w > max_wdisp or w < min_wdisp or self.remaining_water(date=date) > 0:
             return 0
+
+        return 1
 
     def to_jsonable(self, start_date=None, end_date=None):
         start_date = to_date(start_date) if start_date else self.first_date()
