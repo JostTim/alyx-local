@@ -332,8 +332,10 @@ class WaterControl(object):
         return (srw_date * zscore) + mrw_date + iw
 
     def expected_weight(self, date=None):
-        """Expected weight of the mouse at the specified date, either the reference weight
-        if the reference_weight_pct is >0, or the zscore weight."""
+        """Expected weight of the mouse at the specified date,
+        either the reference weight
+        if the reference_weight_pct is >0,
+        or the zscore weight."""
         pct_sum = self.reference_weight_pct + self.zscore_weight_pct
         if pct_sum == 0:
             return 0

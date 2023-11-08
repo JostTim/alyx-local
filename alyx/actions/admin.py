@@ -16,6 +16,7 @@ from django_admin_listfilter_dropdown.filters import (
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
 from rangefilter.filter import DateRangeFilter
+from django.utils import timezone
 
 from alyx.base import BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url
 from .models import (
@@ -442,7 +443,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
     def expected_weight(self, obj):
         if not obj.subject:
             return
-        return "%.1f" % obj.subject.water_control.expected_weight()
+        return "%.1f" % obj.subject.water_control.expected_weight(timezone.now())
 
     expected_weight.short_description = "expected weight"
 
