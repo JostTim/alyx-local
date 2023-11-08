@@ -393,7 +393,7 @@ class WaterControl(object):
             colour_code = PALETTE["orange"]
 
         subject = Subject.objects.get(id=self.subject_id)
-        wrs = subject.actions_waterrestrictions.filter(date_time__date=date.today())
+        wrs = subject.water_administrations.filter(date_time__date=date.today())
         if wrs.exists():
             url = reverse(
                 "actions_wateradministration_change", kwargs={"id": wrs.first().id}
