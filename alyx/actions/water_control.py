@@ -661,6 +661,7 @@ class WaterControl(object):
             for p, bgc, fgc, ls in self.thresholds:
                 ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
+            logger.warning(f"min_wdisp = {min_wdisp}, max_wdisp = {max_wdisp}")
             ax.axhspan(min_wdisp, max_wdisp, facecolor="green", zorder=0, alpha=0.3)
 
             # Plot weights.
