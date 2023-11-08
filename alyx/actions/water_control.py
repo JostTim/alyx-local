@@ -352,12 +352,13 @@ class WaterControl(object):
         # if pct_sum == 0:
         if self.reference_weight_pct == 0:
             return 0
+        iw = self.implant_weight or 0.0
         # pz = self.zscore_weight_pct / pct_sum
         # pr = self.reference_weight_pct / pct_sum
         # return pz * self.zscore_weight(date=date) + pr * self.reference_weight(
         #     date=date
         # )
-        return self.reference_weight_pct * self.reference_weight(date=date)
+        return self.reference_weight_pct * (self.reference_weight(date=date) - iw)
 
     def percentage_weight(self, date=None):
         """Percentage of the weight relative to the reference weight.
