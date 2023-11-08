@@ -350,7 +350,7 @@ class WaterControl(object):
         return self.reference_weight_pct * self.reference_weight(date=date)
 
     def percentage_weight(self, date=None):
-        """Percentage of the weight relative to the expected weight.
+        """Percentage of the weight relative to the reference weight.
         Expected weight is the reference weight or the zscore weight depending on the water
         restriction fields.
 
@@ -360,7 +360,7 @@ class WaterControl(object):
         date = date or self.today()
         iw = self.implant_weight or 0.0
         w = self.weight(date=date)
-        e = self.expected_weight(date=date)
+        e = self.reference_weight(date=date)
         return 100 * (w - iw) / (e - iw) if (e - iw) > 0 else 0.0
 
     def percentage_weight_html(self, date=None):
