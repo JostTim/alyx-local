@@ -518,6 +518,7 @@ class WaterControl(object):
 
             self.weighings[:] = sorted(self.weighings, key=itemgetter(0))
             weighing_dates, weights = zip(*self.weighings)
+            weighing_dates = []
             weighing_dates = np.array(weighing_dates, dtype=datetime)
             weights = np.array(weights, dtype=np.float64)
             start = start or weighing_dates.min()
@@ -540,6 +541,7 @@ class WaterControl(object):
         for start_wr, end_wr, ref_weight in self.water_restrictions:
             end_wr = end_wr or end
             # Get the dates and weights for the current water restriction.
+
             ds, ws, es, zw, rw = restrict_dates(
                 weighing_dates,
                 start_wr,
@@ -553,8 +555,13 @@ class WaterControl(object):
             # Plot background colors.
             spans = [(start_wr, None)]
 
+            ds = np.concatenate((np.array([start_wr]), ds))
+            ws = np.concatenate((np.array([ref_weight]), ws))
+
             logger.warning(f"start_wr = {start_wr}")
             logger.warning(f"ref_weight = {ref_weight}")
+
+            ax.plot(start_wr, ref_weight, marker="*", color="b", zorder=2)
 
             for d, w, e in zip(ds, ws, es):
                 c = find_color(w, e, self.thresholds)
@@ -563,6 +570,7 @@ class WaterControl(object):
                     continue
                 spans.append((d, c))
             spans.append((end_wr, None))
+
             for (d0, c), (d1, _) in zip(spans, spans[1:]):
                 ax.axvspan(d0, d1, color=c or "w")
 
