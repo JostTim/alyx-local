@@ -624,7 +624,7 @@ class WaterControl(object):
             ds = np.append(np.array([start_wr]), ds)
             ws = np.append(np.array([ref_weight]), ws)
 
-            zw = np.append(zw[0], zw)
+            # zw = np.append(zw[0], zw)
             rw = np.append(rw[0], rw)
 
             min_wdisp, max_wdisp = self.expected_weight_range(date=start_wr)
@@ -636,7 +636,7 @@ class WaterControl(object):
                 start_wr,
                 ref_weight,
                 marker="*",
-                color="green",
+                color="blue",
                 lw=0,
                 markersize=15,
                 zorder=3,
@@ -662,6 +662,7 @@ class WaterControl(object):
                 ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
             logger.warning(f"min_wdisp = {min_wdisp}, max_wdisp = {max_wdisp}")
+
             ax.axhspan(min_wdisp, max_wdisp, facecolor="green", zorder=0, alpha=0.3)
 
             # Plot weights.
@@ -717,7 +718,7 @@ def water_control(subject):
 
     wc.add_threshold(percentage=LIMIT_POINT, bgcolor=PALETTE["red"], fgcolor="#F08699")
     wc.add_threshold(
-        percentage=rw_pct + zw_pct,
+        percentage=rw_pct,
         bgcolor=PALETTE["green"],
         fgcolor="#FFC28E",
         line_style="--",
