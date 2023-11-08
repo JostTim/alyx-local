@@ -552,6 +552,10 @@ class WaterControl(object):
             logger.warning(f"datestring = {ds}")
             # Plot background colors.
             spans = [(start_wr, None)]
+
+            logger.warning(f"start_wr = {start_wr}")
+            logger.warning(f"ref_weight = {ref_weight}")
+
             for d, w, e in zip(ds, ws, es):
                 c = find_color(w, e, self.thresholds)
                 # Skip identical consecutive colors.
