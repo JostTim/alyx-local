@@ -449,7 +449,8 @@ class WaterRestrictionAdmin(BaseActionAdmin):
 
     def percentage_weight(self, obj):
         wc = obj.subject.water_control
-        return wc.percentage_weight_html(date=obj.date_time)
+        date = wc.restriction_end_date(obj)
+        return wc.percentage_weight_html(date=date)
 
         # if not obj.subject:
         #     return

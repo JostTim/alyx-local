@@ -148,6 +148,16 @@ class WaterControl(object):
         """The date at the timezone if the current subject."""
         return tzone_convert(today(), self.timezone)
 
+    def restriction_end_date(self, water_restriction_instance):
+        wr_starts = [start for start, _, _ in self.water_restrictions]
+        selected_wr_index = wr_starts.index(water_restriction_instance.start_time)
+
+        return (
+            self.water_restrictions[selected_wr_index][1]
+            if self.water_restrictions[selected_wr_index][1]
+            else self.today()
+        )
+
     def first_date(self):
         dwa = dwe = None
         if self.water_administrations:
@@ -668,10 +678,12 @@ def water_control(subject):
     wrs = sorted(
         list(subject.actions_waterrestrictions.all()), key=attrgetter("start_time")
     )
+
     # Reference weight.
     last_wr = wrs[-1] if wrs else None
     if last_wr and last_wr.reference_weight:
         wc.set_reference_weight(last_wr.start_time, last_wr.reference_weight)
+
     for wr in wrs:
         wc.add_water_restriction(wr.start_time, wr.end_time, wr.reference_weight)
 
