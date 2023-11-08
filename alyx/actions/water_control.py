@@ -573,8 +573,8 @@ class WaterControl(object):
                 marker="*",
                 color="green",
                 lw=0,
-                markersize=10,
-                zorder=2,
+                markersize=15,
+                zorder=3,
             )
 
             # for d, w, e in zip(ds, ws, es):
@@ -597,7 +597,7 @@ class WaterControl(object):
                 ax.plot(ds, p * rw, ls, color=fgc, lw=2)
 
             # Plot weights.
-            ax.plot(ds, ws, "-ok", lw=2, zorder=1)
+            ax.plot(ds, ws, "-ok", lw=2, zorder=2)
 
         # Axes and legends.
         # ax.set_xlim(start, end)
