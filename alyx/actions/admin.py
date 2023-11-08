@@ -69,9 +69,11 @@ class ResponsibleUserListFilter(DefaultListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() is None:
+        value = self.value()
+        print(value)
+        if value is None:
             return queryset.all()
-        elif self.value == "me":
+        elif value == "me":
             return queryset.filter(subject__responsible_user=request.user)
 
 
