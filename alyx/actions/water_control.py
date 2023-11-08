@@ -420,9 +420,10 @@ class WaterControl(object):
 
     def min_weight(self, date=None):
         """Minimum weight for the mouse."""
+        iw = self.implant_weight or 0.0
         return (
             # self.zscore_weight(date=date) * self.zscore_weight_pct +
-            self.reference_weight(date=date)
+            (self.reference_weight(date=date) - iw)
             * LIMIT_POINT  # self.reference_weight_pct
         )
 
@@ -574,6 +575,8 @@ class WaterControl(object):
 
         f, ax = plt.subplots(1, 1, figsize=(8, 3))
 
+        iw = self.implant_weight or 0.0
+
         # Data arrays.
         if self.weighings:
             # loc = mpld.AutoDateLocator(maxticks=8, interval_multiples=False)
@@ -659,8 +662,9 @@ class WaterControl(object):
             # ax.plot(ds, zw, "-.", color="g", lw=1)
 
             # Plot weight thresholds.
-            for p, bgc, fgc, ls in self.thresholds:
-                ax.plot(ds, p * rw, ls, color=fgc, lw=2)
+            for p, _, fgc, ls in self.thresholds:
+                trsh = (rw - iw) * p
+                ax.plot(ds, trsh, ls, color=fgc, lw=2)
 
             logger.warning(f"min_wdisp = {min_wdisp}, max_wdisp = {max_wdisp}")
 
@@ -717,11 +721,10 @@ def water_control(subject):
         implant_weight=subject.implant_weight,
     )
 
-    wc.add_threshold(percentage=LIMIT_POINT, bgcolor=PALETTE["red"], fgcolor="#F08699")
+    wc.add_threshold(percentage=LIMIT_POINT, fgcolor=PALETTE["red"])
     wc.add_threshold(
         percentage=rw_pct,
-        bgcolor=PALETTE["green"],
-        fgcolor="#008000",
+        fgcolor=PALETTE["green"],
         line_style="--",
     )
 
