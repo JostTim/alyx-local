@@ -61,6 +61,7 @@ logger = structlog.get_logger("actions.admin")
 class ResponsibleUserListFilter(DefaultListFilter):
     title = "responsible user"
     parameter_name = "responsible_user"
+    value = "all"
 
     def lookups(self, request, model_admin):
         return (
