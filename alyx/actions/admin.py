@@ -17,6 +17,7 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
 from rangefilter.filter import DateRangeFilter
 from django.utils import timezone
+from functools import partial
 
 from alyx.base import BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url
 from .models import (
@@ -299,6 +300,14 @@ class WaterAdministrationForm(forms.ModelForm):
 class WaterAdministrationAdmin(BaseActionAdmin):
     form = WaterAdministrationForm
 
+    def get_form(self, request, obj=None, **kwargs):
+        Form = super().get_form(request, obj, **kwargs)
+        return partial(
+            Form,
+            water_administered=request.GET.get("water_administered", None),
+            subject=request.GET.get("subject", None),
+        )
+
     fields = [
         "subject",
         "date_time",
@@ -336,25 +345,25 @@ class WaterAdministrationAdmin(BaseActionAdmin):
     session_l.short_description = "Session"
     session_l.allow_tags = True
 
-    def add_view(self, request, form_url="", extra_context=None):
-        data = request.GET.copy()
-        logger.warning(f"GET params: {request.GET}")
-        extra_context = extra_context or {}
-        extra_context["water_administered"] = data.get("water_administered", "")
-        extra_context["subject"] = data.get("subject", "")
-        logger.warning(f"{extra_context=}")
-        return super(WaterAdministrationAdmin, self).add_view(
-            request, form_url, extra_context=extra_context
-        )
+    # def add_view(self, request, form_url="", extra_context=None):
+    #     data = request.GET.copy()
+    #     logger.warning(f"GET params: {request.GET}")
+    #     extra_context = extra_context or {}
+    #     extra_context["water_administered"] = data.get("water_administered", "")
+    #     extra_context["subject"] = data.get("subject", "")
+    #     logger.warning(f"{extra_context=}")
+    #     return super(WaterAdministrationAdmin, self).add_view(
+    #         request, form_url, extra_context=extra_context
+    #     )
 
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        data = request.GET.copy()
-        logger.warning(f"GET params: {request.GET}")
-        extra_context = extra_context or {}
-        extra_context["water_administered"] = data.get("water_administered", "")
-        return super(WaterAdministrationAdmin, self).change_view(
-            request, object_id, form_url, extra_context=extra_context
-        )
+    # def change_view(self, request, object_id, form_url="", extra_context=None):
+    #     data = request.GET.copy()
+    #     logger.warning(f"GET params: {request.GET}")
+    #     extra_context = extra_context or {}
+    #     extra_context["water_administered"] = data.get("water_administered", "")
+    #     return super(WaterAdministrationAdmin, self).change_view(
+    #         request, object_id, form_url, extra_context=extra_context
+    #     )
 
 
 class WaterRestrictionForm(forms.ModelForm):
