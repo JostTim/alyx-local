@@ -288,7 +288,7 @@ class WaterAdministrationForm(forms.ModelForm):
             get_user_model().objects.all().order_by("username")
         )
         if subject:
-            subject = get_object_or_404(Subject, name=subject)
+            subject = get_object_or_404(Subject, nickname=subject)
             self.fields["subject"].initial = subject
         if water_administered:
             self.fields["water_administered"].initial = water_administered
