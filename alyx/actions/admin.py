@@ -13,6 +13,7 @@ from django_admin_listfilter_dropdown.filters import (
     RelatedDropdownFilter,
     SimpleDropdownFilter,
 )
+from django.shortcuts import get_object_or_404
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
 from rangefilter.filter import DateRangeFilter
@@ -261,15 +262,9 @@ class WaterAdministrationForm(forms.ModelForm):
         model = WaterAdministration
         fields = "__all__"
 
-    def __init__(self, *args, **kwargs):
-        logger.warning(f"Optionnal form params: {kwargs}")
-        water_administered = kwargs.pop("water_administered", None)
-        subject = kwargs.pop("subject", None)
+    def __init__(self, *args, water_administered=None, subject=None, **kwargs):
         super(WaterAdministrationForm, self).__init__(*args, **kwargs)
-        if subject:
-            self.fields["subject"].initial = subject
-        if water_administered:
-            self.fields["water_administered"].initial = water_administered
+
         # Only show subjects that are on water restriction.
         ids = [
             wr.subject.pk
@@ -292,6 +287,11 @@ class WaterAdministrationForm(forms.ModelForm):
         self.fields["user"].queryset = (
             get_user_model().objects.all().order_by("username")
         )
+        if subject:
+            subject = get_object_or_404(Subject, name=subject)
+            self.fields["subject"].initial = subject
+        if water_administered:
+            self.fields["water_administered"].initial = water_administered
         self.fields["water_administered"].widget.attrs.update(
             {"autofocus": "autofocus"}
         )
@@ -344,26 +344,6 @@ class WaterAdministrationAdmin(BaseActionAdmin):
 
     session_l.short_description = "Session"
     session_l.allow_tags = True
-
-    # def add_view(self, request, form_url="", extra_context=None):
-    #     data = request.GET.copy()
-    #     logger.warning(f"GET params: {request.GET}")
-    #     extra_context = extra_context or {}
-    #     extra_context["water_administered"] = data.get("water_administered", "")
-    #     extra_context["subject"] = data.get("subject", "")
-    #     logger.warning(f"{extra_context=}")
-    #     return super(WaterAdministrationAdmin, self).add_view(
-    #         request, form_url, extra_context=extra_context
-    #     )
-
-    # def change_view(self, request, object_id, form_url="", extra_context=None):
-    #     data = request.GET.copy()
-    #     logger.warning(f"GET params: {request.GET}")
-    #     extra_context = extra_context or {}
-    #     extra_context["water_administered"] = data.get("water_administered", "")
-    #     return super(WaterAdministrationAdmin, self).change_view(
-    #         request, object_id, form_url, extra_context=extra_context
-    #     )
 
 
 class WaterRestrictionForm(forms.ModelForm):
