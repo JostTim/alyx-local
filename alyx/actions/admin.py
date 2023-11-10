@@ -720,7 +720,7 @@ class SessionSubjectFilter(SimpleDropdownFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.queryset.filter(subject__id=self.value())
+            return queryset.filter(subject__id=self.value())
 
     def lookups(self, request, model_admin):
         return (
@@ -728,6 +728,34 @@ class SessionSubjectFilter(SimpleDropdownFilter):
             .order_by(natsort("nickname"))
             .values_list("id", "nickname")
         )
+
+
+def SortedRelatedDropdownFilter(
+    related_model,
+    field,
+):
+    def model_name(model):
+        import re
+
+        model_name = model.__class__.__name__
+        return re.sub(r"(?<!^)(?=[A-Z])", " ", model_name).lower()
+
+    class filter(SimpleDropdownFilter):
+        title = model_name(related_model)
+        parameter_name = model_name(related_model)
+
+        def queryset(self, request, queryset):
+            if self.value():
+                return queryset.filter(subject__id=self.value())
+
+        def lookups(self, request, model_admin):
+            return (
+                related_model.objects.all()
+                .order_by(natsort(field))
+                .values_list("pk", field)
+            )
+
+    return filter
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
@@ -778,7 +806,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     )
     list_filter = [
         ("users", RelatedDropdownFilter),
-        SessionSubjectFilter,
+        SortedRelatedDropdownFilter(Subject, "nickname"),
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
