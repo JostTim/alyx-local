@@ -746,7 +746,7 @@ def SortedRelatedDropdownFilter(
 
         def queryset(self, request, queryset):
             if self.value():
-                return queryset.filter(subject__id__in=self.value())
+                return queryset.filter(subject__pk=self.value())
 
         def lookups(self, request, model_admin):
             return (
