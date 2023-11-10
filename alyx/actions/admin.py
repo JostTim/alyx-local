@@ -267,16 +267,17 @@ class WaterAdministrationForm(forms.ModelForm):
         super(WaterAdministrationForm, self).__init__(*args, **kwargs)
 
         # Only show subjects that are on water restriction.
-        ids = [
-            wr.subject.pk
-            for wr in WaterRestriction.objects.filter(
-                start_time__isnull=False, end_time__isnull=True
-            ).order_by("subject__nickname")
-        ]
+        # ids = [
+        #     wr.subject.pk
+        #     for wr in WaterRestriction.objects.filter(
+        #         start_time__isnull=False, end_time__isnull=True
+        #     )
+        # ]
 
-        subjects = Subject.objects.filter(pk__in=ids).order_by(
-            Collate("nickname", "en-u-kn-true-x-icu")
-        )
+        subjects = Subject.objects.filter(
+            waterrestriction__start_time__isnull=False,
+            waterrestriction__end_time__isnull=True,
+        ).order_by(Collate("nickname", "natsort_collation "))
 
         if getattr(self, "last_subject_id", None):
             last_subject_id = self.last_subject_id
