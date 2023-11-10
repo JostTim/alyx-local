@@ -752,7 +752,7 @@ def SortedRelatedDropdownFilter(
             return (
                 related_model.objects.all()
                 .order_by(natsort(field))
-                .values_list("id", field)
+                .values_list("pk", field)
             )
 
     return filter
