@@ -159,6 +159,7 @@ class WaterAdministration(BaseModel):
         else:
             return "Water adlib for %s" % str(self.subject)
 
+
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
 
@@ -190,7 +191,12 @@ class BaseAction(BaseModel):
     subject = models.ForeignKey(
         "subjects.Subject",
         on_delete=models.CASCADE,
+
+        # this related_name composition means, that a related field name will be ,
+        # for a model WaterRestriction defined in actions: actions_waterrestrictions .
+        # Note that an s is added at the end.
         related_name="%(app_label)s_%(class)ss",
+        
         help_text="The subject on which this action was performed.",
     )
     location = models.ForeignKey(

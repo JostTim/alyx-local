@@ -275,8 +275,8 @@ class WaterAdministrationForm(forms.ModelForm):
         # ]
 
         subjects = Subject.objects.filter(
-            actions_waterrestriction__start_time__isnull=False,
-            actions_waterrestriction__end_time__isnull=True,
+            actions_waterrestrictions__start_time__isnull=False,
+            actions_waterrestrictions__end_time__isnull=True,
         ).order_by(Collate("nickname", "natsort_collation "))
 
         if getattr(self, "last_subject_id", None):
