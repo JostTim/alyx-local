@@ -714,7 +714,7 @@ class QCFilter(SimpleDropdownFilter):
         return model_admin.model.QC_CHOICES
 
 
-class SessionSubjectFilter(RelatedDropdownFilter):
+class SessionSubjectFilter(SimpleDropdownFilter):
     title = "subject"
     parameter_name = "subject"
 
