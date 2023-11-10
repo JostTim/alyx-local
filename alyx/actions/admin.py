@@ -273,26 +273,43 @@ class WaterAdministrationForm(forms.ModelForm):
                 start_time__isnull=False, end_time__isnull=True
             ).order_by("subject__nickname")
         ]
+
+        subjects = Subject.objects.filter(pk__in=ids).order_by(
+            Collate("nickname", "en-u-kn-true-x-icu")
+        )
+
         if getattr(self, "last_subject_id", None):
-            ids += [self.last_subject_id]
+            last_subject_id = self.last_subject_id
+        else:
+            last_subject_id = False
+
+        self.fields["subject"].queryset = subjects
+
         # These ids first in the list of subjects, if any ids
         if not self.fields:
             return
-        elif ids:
-            preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            self.fields["subject"].queryset = Subject.objects.order_by(
-                Collate("nickname", "en-u-kn-true-x-icu")
-            )
-        else:
-            self.fields["subject"].queryset = Subject.objects.order_by("nickname")
+
+        # elif ids:
+        #     # preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+        #     self.fields["subject"].queryset = Subject.objects.order_by(
+        #         Collate("nickname", "en-u-kn-true-x-icu")
+        #     )
+        # else:
+        #     self.fields["subject"].queryset = Subject.objects.order_by("nickname")
         self.fields["user"].queryset = (
             get_user_model().objects.all().order_by("username")
         )
+
         if subject:
             subject = get_object_or_404(Subject, nickname=subject)
             self.fields["subject"].initial = subject
+        elif last_subject_id:
+            subject = get_object_or_404(Subject, pk=last_subject_id)
+            self.fields["subject"].initial = subject
+
         if water_administered:
             self.fields["water_administered"].initial = water_administered
+
         self.fields["water_administered"].widget.attrs.update(
             {"autofocus": "autofocus"}
         )
