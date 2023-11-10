@@ -280,8 +280,8 @@ class WaterAdministrationForm(forms.ModelForm):
             return
         elif ids:
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            self.fields["subject"].queryset = Subject.objects.order_by( Collate("nickname", "en-u-kn-true-x-icu")
-                preserved, "nickname"
+            self.fields["subject"].queryset = Subject.objects.order_by(
+                Collate("nickname", "en-u-kn-true-x-icu")
             )
         else:
             self.fields["subject"].queryset = Subject.objects.order_by("nickname")
