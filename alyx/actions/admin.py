@@ -746,13 +746,13 @@ def SortedRelatedDropdownFilter(
 
         def queryset(self, request, queryset):
             if self.value():
-                return queryset.filter(subject__id=self.value())
+                return queryset.filter(subject__id__in=self.value())
 
         def lookups(self, request, model_admin):
             return (
                 related_model.objects.all()
                 .order_by(natsort(field))
-                .values_list("pk", field)
+                .values_list("id", field)
             )
 
     return filter
