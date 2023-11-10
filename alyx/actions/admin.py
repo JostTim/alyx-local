@@ -737,7 +737,7 @@ def SortedRelatedDropdownFilter(
     def model_name(model):
         import re
 
-        model_name = model.__class__.__name__
+        model_name = model.__name__
         return re.sub(r"(?<!^)(?=[A-Z])", " ", model_name).lower()
 
     class filter(SimpleDropdownFilter):
