@@ -720,7 +720,14 @@ class SessionSubjectFilter(SimpleDropdownFilter):
 
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.queryset.order_by(natsort("nickname"))
+            return queryset.queryset.filter(subject__id=self.value())
+
+    def lookups(self, request, model_admin):
+        return (
+            Subject.objects.all()
+            .order_by(natsort("nickname"))
+            .values_list("id", "nickname")
+        )
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
