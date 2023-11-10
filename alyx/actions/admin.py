@@ -771,7 +771,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     )
     list_filter = [
         ("users", RelatedDropdownFilter),
-        (SessionSubjectFilter),
+        SessionSubjectFilter,
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
