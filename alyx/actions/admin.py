@@ -16,6 +16,7 @@ from django_admin_listfilter_dropdown.filters import (
 from django.shortcuts import get_object_or_404
 from django.contrib.admin import SimpleListFilter
 from django.contrib.admin import TabularInline
+from django.db.models.functions import Collate
 from rangefilter.filter import DateRangeFilter
 from django.utils import timezone
 from functools import partial
@@ -279,7 +280,7 @@ class WaterAdministrationForm(forms.ModelForm):
             return
         elif ids:
             preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            self.fields["subject"].queryset = Subject.objects.order_by(
+            self.fields["subject"].queryset = Subject.objects.order_by( Collate("nickname", "en-u-kn-true-x-icu")
                 preserved, "nickname"
             )
         else:
