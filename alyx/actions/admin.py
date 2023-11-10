@@ -54,6 +54,7 @@ from markdownx.admin import MarkdownxModelAdmin
 
 # from mdeditor.widgets import MDeditorWidget
 
+natsort = partial(Collate, collation="natsort_collation")
 
 logger = structlog.get_logger("actions.admin")
 
@@ -277,7 +278,7 @@ class WaterAdministrationForm(forms.ModelForm):
         subjects = Subject.objects.filter(
             actions_waterrestrictions__start_time__isnull=False,
             actions_waterrestrictions__end_time__isnull=True,
-        ).order_by(Collate("nickname", "natsort_collation"))
+        ).order_by(natsort("nickname"))
 
         if getattr(self, "last_subject_id", None):
             last_subject_id = self.last_subject_id
@@ -702,7 +703,7 @@ def _pass_narrative_templates(context):
 
 
 class QCFilter(SimpleDropdownFilter):
-    title = "Quality Ckeck"
+    title = "quality check"
     parameter_name = "qc"
 
     def queryset(self, request, queryset):
@@ -711,6 +712,15 @@ class QCFilter(SimpleDropdownFilter):
 
     def lookups(self, request, model_admin):
         return model_admin.model.QC_CHOICES
+
+
+class SessionSubjectFilter(RelatedDropdownFilter):
+    title = "subject"
+    parameter_name = "subject"
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.queryset.order_by(natsort("nickname"))
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
@@ -761,7 +771,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     )
     list_filter = [
         ("users", RelatedDropdownFilter),
-        ("subject", RelatedDropdownFilter),
+        (SessionSubjectFilter),
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
