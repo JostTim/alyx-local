@@ -762,8 +762,8 @@ class SessionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        subjects = Subject.objects.filter(death_date__isnull=False).order_by(
-            natsort("nickname")
+        subjects = Subject.objects.order_by(
+            natsort("nickname")  # .filter(death_date__isnull=False)
         )
 
         self.fields["subject"].queryset = subjects
