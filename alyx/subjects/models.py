@@ -25,43 +25,44 @@ logger = structlog.get_logger("subjects.models")
 # ------------------------------------------------------------------------------------------------
 
 ZYGOSITY_TYPES = (
-    (0, 'Absent'),
-    (1, 'Heterozygous'),
-    (2, 'Homozygous'),
-    (3, 'Present'),
+    (0, "Absent"),
+    (1, "Heterozygous"),
+    (2, "Homozygous"),
+    (3, "Present"),
 )
 
-ZYGOSITY_SYMBOLS = ('-/-', '+/-', '+/+', '+')
+ZYGOSITY_SYMBOLS = ("-/-", "+/-", "+/+", "+")
 
 TEST_RESULTS = (
-    (0, 'Absent'),
-    (1, 'Present'),
+    (0, "Absent"),
+    (1, "Present"),
 )
 
 
 # Subject
 # ------------------------------------------------------------------------------------------------
 
+
 def _is_foreign_key(obj, field):
-    return hasattr(obj, field + '_id')
+    return hasattr(obj, field + "_id")
 
 
 def _get_current_field(obj, field):
     if _is_foreign_key(obj, field):
-        return str(getattr(obj, field + '_id', None))
+        return str(getattr(obj, field + "_id", None))
     else:
         return str(getattr(obj, field, None))
 
 
 def init_old_fields(obj, fields):
-    obj._original_fields = getattr(obj, '_original_fields', {})
+    obj._original_fields = getattr(obj, "_original_fields", {})
     for field in fields:
         obj._original_fields[field] = _get_current_field(obj, field)
 
 
 def save_old_fields(obj, fields):
     date_time = datetime.now(timezone.utc).isoformat()
-    d = (getattr(obj, 'json', None) or {}).get('history', {})
+    d = (getattr(obj, "json", None) or {}).get("history", {})
     for field in fields:
         v = _get_current_field(obj, field)
         if v is None or v == obj._original_fields.get(field, None):
@@ -69,15 +70,15 @@ def save_old_fields(obj, fields):
         if field not in d:
             d[field] = []
         l = d[field]
-        l.append({'date_time': date_time, 'value': obj._original_fields[field]})
+        l.append({"date_time": date_time, "value": obj._original_fields[field]})
         # Update the new value.
         # obj._original_fields[field] = v
         # Set the object's JSON if necessary.
         if not obj.json:
             obj.json = {}
-        if 'history' not in obj.json:
-            obj.json['history'] = {}
-        obj.json['history'].update(d)
+        if "history" not in obj.json:
+            obj.json["history"] = {}
+        obj.json["history"].update(d)
 
 
 def _get_old_field(obj, field):
@@ -100,27 +101,32 @@ def default_source():
 
 
 def default_responsible():
-    return get_user_model().objects.order_by('-is_stock_manager').first()
+    return get_user_model().objects.order_by("-is_stock_manager").first()
 
 
 def default_species():
     return Species.objects.get_or_create(
         name="Mus musculus",
-        nickname='Laboratory mouse',
-        pk='60f915ba-bdf4-444a-ada0-be7ebd3c1826')[0].pk
+        nickname="Laboratory mouse",
+        pk="60f915ba-bdf4-444a-ada0-be7ebd3c1826",
+    )[0].pk
 
 
 class Project(BaseModel):
     name = models.CharField(max_length=255, unique=True)
     description = models.CharField(
-        max_length=1023, blank=True, help_text="Description of the project")
+        max_length=1023, blank=True, help_text="Description of the project"
+    )
 
-    default_data_repository =  models.ForeignKey(
-                            'data.DataRepository', blank=True, null=True, on_delete=models.SET_NULL)
+    default_data_repository = models.ForeignKey(
+        "data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     users = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True,
-        help_text="Persons associated to the project.")
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        help_text="Persons associated to the project.",
+    )
 
     def __str__(self):
         return "<Project %s>" % self.name
@@ -128,74 +134,100 @@ class Project(BaseModel):
 
 class Subject(BaseModel):
     """Metadata about an experimental subject (animal or human)."""
-    SEXES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-        ('U', 'Unknown')
-    )
+
+    SEXES = (("M", "Male"), ("F", "Female"), ("U", "Unknown"))
     SEVERITY_CHOICES = (
-        (None, ''),
-        (1, 'Sub-threshold'),
-        (2, 'Mild'),
-        (3, 'Moderate'),
-        (4, 'Severe'),
-        (5, 'Non-recovery'),
+        (None, ""),
+        (1, "Sub-threshold"),
+        (2, "Mild"),
+        (3, "Moderate"),
+        (4, "Severe"),
+        (5, "Non-recovery"),
     )
     PROTOCOL_NUMBERS = tuple((str(i), str(i)) for i in range(1, 5))
 
-    nickname_validator = validators.RegexValidator(r'^[-._~\+\*\w]+$',
-                                                   "Nicknames must only contain letters, "
-                                                   "numbers, or any of -._~.")
+    nickname_validator = validators.RegexValidator(
+        r"^[-._~\+\*\w]+$",
+        "Nicknames must only contain letters, " "numbers, or any of -._~.",
+    )
 
-    nickname = models.CharField(max_length=64,
-                                default='-',
-                                help_text="""Please follow the standard format : 
+    nickname = models.CharField(
+        max_length=64,
+        default="-",
+        help_text="""Please follow the standard format : 
 Two or three initials of the person in charge + number of the animal for that person, in chronological order. 
 e.g. wm25 => Wilson Mena mouse n°25. 
 For following the identity of the mouses in term of genotype/injected viruses and the correspunding number in mayakind, 
 please use the Zygosities fields below, and the description field to put more details that you want to remember.""",
-                                validators=[nickname_validator])
-    species = models.ForeignKey('Species', null=True, blank=True, on_delete=models.SET_NULL,
-                                default=default_species)
-    litter = models.ForeignKey('Litter', null=True, blank=True, on_delete=models.SET_NULL)
-    sex = models.CharField(max_length=1, choices=SEXES,
-                           blank=True, default='U')
-    strain = models.ForeignKey('Strain', null=True, blank=True,
-                               on_delete=models.SET_NULL,
-                               )
-    genotype = models.ManyToManyField('Allele', through='Zygosity')
-    genotype_test = models.ManyToManyField('Sequence', through='GenotypeTest')
-    source = models.ForeignKey('Source', null=True, blank=True, on_delete=models.SET_NULL,
-                               default=default_source)
-    line = models.ForeignKey('Line', null=True, blank=True, on_delete=models.SET_NULL)
+        validators=[nickname_validator],
+    )
+    species = models.ForeignKey(
+        "Species",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=default_species,
+    )
+    litter = models.ForeignKey(
+        "Litter", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    sex = models.CharField(max_length=1, choices=SEXES, blank=True, default="U")
+    strain = models.ForeignKey(
+        "Strain",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    genotype = models.ManyToManyField("Allele", through="Zygosity")
+    genotype_test = models.ManyToManyField("Sequence", through="GenotypeTest")
+    source = models.ForeignKey(
+        "Source",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=default_source,
+    )
+    line = models.ForeignKey("Line", null=True, blank=True, on_delete=models.SET_NULL)
     birth_date = models.DateField(null=True, blank=True)
     death_date = models.DateField(null=True, blank=True)
     wean_date = models.DateField(null=True, blank=True)
     genotype_date = models.DateField(null=True, blank=True)
-    responsible_user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
-                                         on_delete=models.SET_NULL,
-                                         default=default_responsible,
-                                         related_name='subjects_responsible',
-                                         help_text="Who has primary or legal responsibility "
-                                         "for the subject.")
+    responsible_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=default_responsible,
+        related_name="subjects_responsible",
+        help_text="Who has primary or legal responsibility " "for the subject.",
+    )
     lab = models.ForeignKey(Lab, on_delete=models.CASCADE, default=default_lab)
 
     projects = models.ManyToManyField(
-        Project, blank=True, verbose_name="Subject Projects",
-        help_text='Project associated to this session')
+        Project,
+        blank=True,
+        verbose_name="Subject Projects",
+        help_text="Project associated to this session",
+    )
 
     cage = models.CharField(max_length=64, null=True, blank=True)
-    request = models.ForeignKey('SubjectRequest', null=True, blank=True,
-                                on_delete=models.SET_NULL)
-    implant_weight = models.FloatField(null=True, blank=True, help_text="Implant weight in grams")
+    request = models.ForeignKey(
+        "SubjectRequest", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    implant_weight = models.FloatField(
+        null=True, blank=True, help_text="Implant weight in grams"
+    )
     ear_mark = models.CharField(max_length=32, blank=True)
-    protocol_number = models.CharField(max_length=1, choices=PROTOCOL_NUMBERS,
-                                       default=settings.DEFAULT_PROTOCOL)
+    protocol_number = models.CharField(
+        max_length=1, choices=PROTOCOL_NUMBERS, default=settings.DEFAULT_PROTOCOL
+    )
     description = models.TextField(blank=True)
 
     cull_method = models.TextField(blank=True)
     adverse_effects = models.TextField(blank=True)
-    actual_severity = models.IntegerField(null=True, blank=True, choices=SEVERITY_CHOICES)
+    actual_severity = models.IntegerField(
+        null=True, blank=True, choices=SEVERITY_CHOICES
+    )
 
     to_be_genotyped = models.BooleanField(default=False)
     to_be_culled = models.BooleanField(default=False)
@@ -205,16 +237,20 @@ please use the Zygosities fields below, and the description field to put more de
     objects = SubjectManager()
 
     # We save the history of these fields.
-    _fields_history = ('nickname', 'responsible_user', 'cage')
+    _fields_history = ("nickname", "responsible_user", "cage")
     # We track the changes of these fields without saving their history in the JSON.
-    _track_field_changes = ('request', 'responsible_user', 'litter', 'genotype_date',
-                            'death_date', 'reduced')
+    _track_field_changes = (
+        "request",
+        "responsible_user",
+        "litter",
+        "genotype_date",
+        "death_date",
+        "reduced",
+    )
 
     class Meta:
-        ordering = ['nickname', '-birth_date']
-        unique_together = [('nickname', 'lab'),
-                           ('nickname', 'responsible_user')
-                           ]
+        ordering = ["nickname", "-birth_date"]
+        unique_together = [("nickname", "lab"), ("nickname", "responsible_user")]
 
     def __init__(self, *args, **kwargs):
         super(Subject, self).__init__(*args, **kwargs)
@@ -226,7 +262,8 @@ please use the Zygosities fields below, and the description field to put more de
     def housing(self):
         return Housing.objects.filter(
             housing_subjects__subject__in=[self],
-            housing_subjects__end_datetime__isnull=True).first()
+            housing_subjects__end_datetime__isnull=True,
+        ).first()
 
     @property
     def cage_name(self):
@@ -242,8 +279,9 @@ please use the Zygosities fields below, and the description field to put more de
     def light_cycle(self):
         if self.housing:
             if self.housing.light_cycle:
-                return self.housing._meta.get_field(
-                    'light_cycle').choices[self.housing.light_cycle][1]
+                return self.housing._meta.get_field("light_cycle").choices[
+                    self.housing.light_cycle
+                ][1]
 
     @property
     def enrichment(self):
@@ -261,17 +299,18 @@ please use the Zygosities fields below, and the description field to put more de
             return self.housing.subjects.exclude(pk=self.pk)
 
     def alive(self):
-        return not hasattr(self, 'cull')
+        return not hasattr(self, "cull")
+
     alive.boolean = True
 
     def nicknamesafe(self):
-        return urllib.parse.quote(str(self.nickname), '')
+        return urllib.parse.quote(str(self.nickname), "")
 
     def age_days(self):
-        if (self.death_date is None and self.birth_date is not None):
+        if self.death_date is None and self.birth_date is not None:
             # subject still alive
             age = datetime.now(timezone.utc).date() - self.birth_date
-        elif (self.death_date is not None and self.birth_date is not None):
+        elif self.death_date is not None and self.birth_date is not None:
             # subject is dead
             age = self.death_date - self.birth_date
         else:
@@ -299,8 +338,10 @@ please use the Zygosities fields below, and the description field to put more de
             try:
                 tz = pytz.timezone(self.lab.timezone)
             except Exception:
-                logger.warning('Incorrect TZ format. Assuming UTC instead of ' + self.lab.timezone)
-                tz = pytz.timezone('Europe/London')
+                logger.warning(
+                    "Incorrect TZ format. Assuming UTC instead of " + self.lab.timezone
+                )
+                tz = pytz.timezone("Europe/London")
             return tz
 
     def reinit_water_control(self):
@@ -325,9 +366,11 @@ please use the Zygosities fields below, and the description field to put more de
         return all(z.zygosity == 0 for z in Zygosity.objects.filter(subject=self))
 
     def genotype_test_string(self):
-        tests = GenotypeTest.objects.filter(subject=self).order_by('sequence__name')
-        return ','.join('%s%s' % ('-' if test.test_result == 0 else '', str(test.sequence))
-                        for test in tests)
+        tests = GenotypeTest.objects.filter(subject=self).order_by("sequence__name")
+        return ",".join(
+            "%s%s" % ("-" if test.test_result == 0 else "", str(test.sequence))
+            for test in tests
+        )
 
     @property
     def session_projects(self):
@@ -336,8 +379,9 @@ please use the Zygosities fields below, and the description field to put more de
 
     def save(self, *args, **kwargs):
         from actions.models import WaterRestriction, Cull, CullMethod
+
         # If the nickname is empty, use the autoname from the line.
-        if self.line and self.nickname in (None, '', '-'):
+        if self.line and self.nickname in (None, "", "-"):
             self.line.set_autoname(self)
         # Default strain.
         if self.line and not self.strain:
@@ -350,38 +394,45 @@ please use the Zygosities fields below, and the description field to put more de
         #     ZygosityFinder().genotype_from_litter(self)
 
         # Remove "to be genotyped" if genotype date is set.
-        if self.genotype_date and not _get_old_field(self, 'genotype_date'):
+        if self.genotype_date and not _get_old_field(self, "genotype_date"):
             self.to_be_genotyped = False
         # When a subject dies.
-        if self.death_date and not _get_old_field(self, 'death_date'):
+        if self.death_date and not _get_old_field(self, "death_date"):
             # Close all water restrictions without an end date.
-            for wr in WaterRestriction.objects.filter(subject=self,
-                                                      start_time__isnull=False,
-                                                      end_time__isnull=True):
+            for wr in WaterRestriction.objects.filter(
+                subject=self, start_time__isnull=False, end_time__isnull=True
+            ):
                 wr.end_time = self.death_date
                 wr.save()
         # deal with the synchronisation of cull object, ideally this should be done in a form
         # Get the cull_method instance with the same name, if it exists, or None.
         cull_method = CullMethod.objects.filter(name=self.cull_method).first()
-        if self.death_date and not hasattr(self, 'cull'):
+        if self.death_date and not hasattr(self, "cull"):
             Cull.objects.create(
-                subject=self, cull_method=cull_method, date=self.death_date,
-                user=self.responsible_user)
-        elif hasattr(self, 'cull') and self.cull_method != str(self.cull.cull_method):
+                subject=self,
+                cull_method=cull_method,
+                date=self.death_date,
+                user=self.responsible_user,
+            )
+        elif hasattr(self, "cull") and self.cull_method != str(self.cull.cull_method):
             self.cull.cull_method = cull_method
             self.cull.save()
-        elif hasattr(self, 'cull') and self.death_date != self.cull.date:
+        elif hasattr(self, "cull") and self.death_date != self.cull.date:
             self.cull.date = self.death_date
             self.cull.save()
         # Save the reduced date.
-        if self.reduced and _has_field_changed(self, 'reduced'):
+        if self.reduced and _has_field_changed(self, "reduced"):
             self.reduced_date = timezone.now().date()
         # Update subject request.
-        if (self.responsible_user_id and _has_field_changed(self, 'responsible_user') and
-                self.line is not None and
-                self.request is None):
-            srs = SubjectRequest.objects.filter(user=self.responsible_user,
-                                                line=self.line)
+        if (
+            self.responsible_user_id
+            and _has_field_changed(self, "responsible_user")
+            and self.line is not None
+            and self.request is None
+        ):
+            srs = SubjectRequest.objects.filter(
+                user=self.responsible_user, line=self.line
+            )
             if srs:
                 self.request = srs[0]
         # Keep the history of some fields in the JSON.
@@ -390,31 +441,39 @@ please use the Zygosities fields below, and the description field to put more de
 
     def set_protocol_number(self):
         if self.water_control.is_water_restricted():
-            self.protocol_number = '3'
+            self.protocol_number = "3"
         elif Surgery.objects.filter(subject=self).count() > 0:
-            self.protocol_number = '2'
+            self.protocol_number = "2"
         else:
-            self.protocol_number = '1'
+            self.protocol_number = "1"
 
     def __str__(self):
         return self.nickname
-    
-    def human_field_string(self):
+
+    @staticmethod
+    def human_field_string():
         return "nickname"
+
 
 class SubjectRequestManager(models.Manager):
     def get_queryset(self, *args, **kwargs):
-        return super(SubjectRequestManager, self).get_queryset(*args, **kwargs).select_related(
-            'line', 'user'
+        return (
+            super(SubjectRequestManager, self)
+            .get_queryset(*args, **kwargs)
+            .select_related("line", "user")
         )
 
 
 class SubjectRequest(BaseModel):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
-        related_name='subjects_requested',
-        help_text="Who requested this subject.")
-    line = models.ForeignKey('Line', null=True, blank=True, on_delete=models.SET_NULL)
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="subjects_requested",
+        help_text="Who requested this subject.",
+    )
+    line = models.ForeignKey("Line", null=True, blank=True, on_delete=models.SET_NULL)
     count = models.IntegerField(null=True, blank=True)
     date_time = models.DateField(default=timezone.now, null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
@@ -423,35 +482,46 @@ class SubjectRequest(BaseModel):
     objects = SubjectRequestManager()
 
     class Meta:
-        ordering = ['-date_time']
+        ordering = ["-date_time"]
 
     def status(self):
-        return 'Open' if self.remaining() > 0 else 'Closed'
+        return "Open" if self.remaining() > 0 else "Closed"
 
     def remaining(self):
         return (self.count or 0) - len(self.subjects())
 
     def subjects(self):
         subjects = self.subject_set.all()
-        return [s for s in subjects
-                if s.responsible_user_id == self.user_id and
-                s.line_id == self.line_id and s.death_date is None]
+        return [
+            s
+            for s in subjects
+            if s.responsible_user_id == self.user_id
+            and s.line_id == self.line_id
+            and s.death_date is None
+        ]
 
     def __str__(self):
-        return '{count} {line} due {due_date} for {user}'.format(
-            count=self.count, line=self.line, due_date=self.due_date, user=self.user,
+        return "{count} {line} due {due_date} for {user}".format(
+            count=self.count,
+            line=self.line,
+            due_date=self.due_date,
+            user=self.user,
         )
 
 
 def stock_managers_emails():
-    return [sm.email for sm in get_user_model().objects.filter(
-            is_stock_manager=True, email__isnull=False)]
+    return [
+        sm.email
+        for sm in get_user_model().objects.filter(
+            is_stock_manager=True, email__isnull=False
+        )
+    ]
 
 
 @receiver(post_save, sender=SubjectRequest)
 def send_subject_request_mail_new(sender, instance=None, **kwargs):
     """Send en email when a subject request is created."""
-    if not instance or not kwargs['created']:
+    if not instance or not kwargs["created"]:
         return
     subject = "%s requested: %s" % (instance.user, str(instance))
     to = stock_managers_emails()
@@ -464,14 +534,18 @@ def send_subject_request_mail_change(sender, instance=None, **kwargs):
     if not instance:
         return
     # Only continue if the request has changed.
-    if not (_get_current_field(instance, 'request') is not None and
-            _get_old_field(instance, 'request') is None):
+    if not (
+        _get_current_field(instance, "request") is not None
+        and _get_old_field(instance, "request") is None
+    ):
         return
     # Only continue if there's an email.
     if not instance.responsible_user.email:
         return
-    subject = ("Subject %s was assigned to you for request %s" %
-               (instance.nickname, str(instance.request)))
+    subject = "Subject %s was assigned to you for request %s" % (
+        instance.nickname,
+        str(instance.request),
+    )
     alyx_mail(instance.responsible_user.email, subject)
 
 
@@ -481,10 +555,11 @@ def send_subject_responsible_user_mail_change(sender, instance=None, **kwargs):
     if not instance:
         return
     # Only continue if the responsible user has changed.
-    if not _has_field_changed(instance, 'responsible_user'):
+    if not _has_field_changed(instance, "responsible_user"):
         return
     from misc.models import LabMember
-    old_user = LabMember.objects.get(pk=_get_old_field(instance, 'responsible_user'))
+
+    old_user = LabMember.objects.get(pk=_get_old_field(instance, "responsible_user"))
     new_user = instance.responsible_user
     responsible_user_changed(instance, old_user, new_user)
 
@@ -492,24 +567,29 @@ def send_subject_responsible_user_mail_change(sender, instance=None, **kwargs):
 # Other
 # ------------------------------------------------------------------------------------------------
 
+
 class LitterManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
 
 
-@modify_fields(name={
-    'blank': False,
-    'default': '-'
-})
+@modify_fields(name={"blank": False, "default": "-"})
 class Litter(BaseModel):
     """A litter, containing a mother, father, and children with a
     shared date of birth."""
-    line = models.ForeignKey('Line', null=True, blank=True,
-                             on_delete=models.SET_NULL,
-                             )
-    breeding_pair = models.ForeignKey('BreedingPair', null=True, blank=True,
-                                      on_delete=models.SET_NULL,
-                                      )
+
+    line = models.ForeignKey(
+        "Line",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+    breeding_pair = models.ForeignKey(
+        "BreedingPair",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     description = models.TextField(blank=True)
     birth_date = models.DateField(null=True, blank=True)
 
@@ -519,11 +599,11 @@ class Litter(BaseModel):
         return (self.name,)
 
     class Meta:
-        ordering = ['name', '-birth_date']
-        unique_together = [('name',)]
+        ordering = ["name", "-birth_date"]
+        unique_together = [("name",)]
 
     def save(self, *args, **kwargs):
-        if self.line and self.name in (None, '', '-'):
+        if self.line and self.name in (None, "", "-"):
             self.line.set_autoname(self)
         return super(Litter, self).save(*args, **kwargs)
 
@@ -536,29 +616,42 @@ class BreedingPairManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={
-    'blank': False,
-    'default': '-',
-    'help_text': 'Leave to - to autofill.'
-})
+@modify_fields(
+    name={"blank": False, "default": "-", "help_text": "Leave to - to autofill."}
+)
 class BreedingPair(BaseModel):
-    line = models.ForeignKey('Line', null=True, blank=True,
-                             on_delete=models.SET_NULL,
-                             )
+    line = models.ForeignKey(
+        "Line",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    father = models.ForeignKey('Subject', null=True, blank=True,
-                               on_delete=models.SET_NULL,
-                               limit_choices_to={'sex': 'M'},
-                               related_name="litter_father")
-    mother1 = models.ForeignKey('Subject', null=True, blank=True,
-                                on_delete=models.SET_NULL,
-                                limit_choices_to={'sex': 'F'},
-                                related_name="mother1")
-    mother2 = models.ForeignKey('Subject', null=True, blank=True,
-                                on_delete=models.SET_NULL,
-                                limit_choices_to={'sex': 'F'},
-                                related_name="mother2")
+    father = models.ForeignKey(
+        "Subject",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        limit_choices_to={"sex": "M"},
+        related_name="litter_father",
+    )
+    mother1 = models.ForeignKey(
+        "Subject",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        limit_choices_to={"sex": "F"},
+        related_name="mother1",
+    )
+    mother2 = models.ForeignKey(
+        "Subject",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        limit_choices_to={"sex": "F"},
+        related_name="mother2",
+    )
     description = models.TextField(blank=True)
 
     objects = BreedingPairManager()
@@ -567,11 +660,11 @@ class BreedingPair(BaseModel):
         return (self.name,)
 
     class Meta:
-        ordering = ['name']
-        verbose_name_plural = 'Breeding pairs'
+        ordering = ["name"]
+        verbose_name_plural = "Breeding pairs"
 
     def save(self, *args, **kwargs):
-        if self.line and self.name in (None, '', '-'):
+        if self.line and self.name in (None, "", "-"):
             self.line.set_autoname(self)
         return super(BreedingPair, self).save(*args, **kwargs)
 
@@ -584,21 +677,28 @@ class LineManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(name={
-    'blank': False
-})
+@modify_fields(name={"blank": False})
 class Line(BaseModel):
     description = models.TextField(blank=True)
     target_phenotype = models.CharField(max_length=1023)
     nickname = models.CharField(max_length=255, unique=True)
-    alleles = models.ManyToManyField('Allele')
-    strain = models.ForeignKey('Strain', null=True, blank=True, on_delete=models.SET_NULL)
-    source = models.ForeignKey('Source', null=True, blank=True, on_delete=models.SET_NULL)
+    alleles = models.ManyToManyField("Allele")
+    strain = models.ForeignKey(
+        "Strain", null=True, blank=True, on_delete=models.SET_NULL
+    )
+    source = models.ForeignKey(
+        "Source", null=True, blank=True, on_delete=models.SET_NULL
+    )
     source_identifier = models.CharField(max_length=64, blank=True)
     source_url = models.URLField(blank=True)
     expression_data_url = models.URLField(blank=True)
-    species = models.ForeignKey('Species', null=True, blank=True, on_delete=models.SET_NULL,
-                                default=default_species)
+    species = models.ForeignKey(
+        "Species",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        default=default_species,
+    )
     subject_autoname_index = models.IntegerField(default=0)
     breeding_pair_autoname_index = models.IntegerField(default=0)
     litter_autoname_index = models.IntegerField(default=0)
@@ -620,8 +720,8 @@ class Line(BaseModel):
         return (self.nickname,)
 
     class Meta:
-        ordering = ['name']
-        unique_together = ('nickname', 'lab')
+        ordering = ["name"]
+        unique_together = ("nickname", "lab")
 
     def __str__(self):
         return self.name
@@ -629,31 +729,33 @@ class Line(BaseModel):
     def new_breeding_pair_autoname(self):
         self.breeding_pair_autoname_index = self.breeding_pair_autoname_index + 1
         self.save()
-        return '%s_BP_%03d' % (self.nickname, self.breeding_pair_autoname_index)
+        return "%s_BP_%03d" % (self.nickname, self.breeding_pair_autoname_index)
 
     def new_litter_autoname(self):
         self.litter_autoname_index = self.litter_autoname_index + 1
         self.save()
-        return '%s_L_%03d' % (self.nickname, self.litter_autoname_index)
+        return "%s_L_%03d" % (self.nickname, self.litter_autoname_index)
 
     def new_subject_autoname(self):
         self.subject_autoname_index = self.subject_autoname_index + 1
         self.save()
-        return '%s_%04d' % (self.nickname, self.subject_autoname_index)
+        return "%s_%04d" % (self.nickname, self.subject_autoname_index)
 
     def set_autoname(self, obj):
         if isinstance(obj, BreedingPair):
-            field = 'name'
+            field = "name"
             m = self.new_breeding_pair_autoname
         elif isinstance(obj, Litter):
-            field = 'name'
+            field = "name"
             m = self.new_litter_autoname
         elif isinstance(obj, Subject):
-            field = 'nickname'
+            field = "nickname"
             m = self.new_subject_autoname
-        else :
-            raise ValueError("field must not be None. This is a a cause of set_autoname(obj) with obj not being one of : 'BreedingPair', 'Litter', nor 'Subject'")
-        if getattr(obj, field, None) in (None, '-'):
+        else:
+            raise ValueError(
+                "field must not be None. This is a a cause of set_autoname(obj) with obj not being one of : 'BreedingPair', 'Litter', nor 'Subject'"
+            )
+        if getattr(obj, field, None) in (None, "-"):
             setattr(obj, field, m())
 
 
@@ -662,13 +764,11 @@ class SpeciesManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(name={
-    'blank': False,
-    'help_text': 'Binomial name, e.g. "mus musculus"'
-})
+@modify_fields(name={"blank": False, "help_text": 'Binomial name, e.g. "mus musculus"'})
 class Species(BaseModel):
-    nickname = models.CharField(max_length=255, unique=True,
-                                help_text="common name, e.g. \"mouse\"")
+    nickname = models.CharField(
+        max_length=255, unique=True, help_text='common name, e.g. "mouse"'
+    )
 
     objects = SpeciesManager()
 
@@ -687,12 +787,15 @@ class StrainManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={
-    'help_text': "Standard descriptive name E.g. \"C57BL/6J\", "
-                 "http://www.informatics.jax.org/mgihome/nomen/",
-})
+@modify_fields(
+    name={
+        "help_text": 'Standard descriptive name E.g. "C57BL/6J", '
+        "http://www.informatics.jax.org/mgihome/nomen/",
+    }
+)
 class Strain(BaseModel):
-    """A strain with a standardised name. """
+    """A strain with a standardised name."""
+
     description = models.TextField(blank=True)
 
     objects = StrainManager()
@@ -701,7 +804,7 @@ class Strain(BaseModel):
         return (self.name,)
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -712,11 +815,10 @@ class SourceManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={
-    'blank': False
-})
+@modify_fields(name={"blank": False})
 class Source(BaseModel):
     """A supplier / source of subjects."""
+
     description = models.TextField(blank=True)
 
     objects = SourceManager
@@ -728,14 +830,16 @@ class Source(BaseModel):
 # Genotypes
 # ------------------------------------------------------------------------------------------------
 
+
 def _update_zygosities(line, sequence):
     # Apply the rule.
     zf = ZygosityFinder()
     # Subjects from the line and that have a test with the first sequence.
-    subjects = set(gt.subject for gt in GenotypeTest.objects.filter(
-        sequence=sequence,
-        subject__line=line))
-    for subject in sorted(subjects, key=attrgetter('nickname')):
+    subjects = set(
+        gt.subject
+        for gt in GenotypeTest.objects.filter(sequence=sequence, subject__line=line)
+    )
+    for subject in sorted(subjects, key=attrgetter("nickname")):
         # Note: need force=True when deleting a zygosity rule.
         zf.genotype_from_litter(subject, force=True)
         zf.update_subject(subject)
@@ -743,29 +847,52 @@ def _update_zygosities(line, sequence):
 
 class ZygosityRule(BaseModel):
     """This model encodes a rule to automatically create a zygosity from genotyping results."""
-    line = models.ForeignKey('Line', null=True, on_delete=models.SET_NULL)
-    allele = models.ForeignKey('Allele', null=True, on_delete=models.SET_NULL)
-    sequence0 = models.ForeignKey('Sequence', blank=True, null=True, on_delete=models.SET_NULL,
-                                  related_name='zygosity_rule_sequence0')
+
+    line = models.ForeignKey("Line", null=True, on_delete=models.SET_NULL)
+    allele = models.ForeignKey("Allele", null=True, on_delete=models.SET_NULL)
+    sequence0 = models.ForeignKey(
+        "Sequence",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="zygosity_rule_sequence0",
+    )
     sequence0_result = models.IntegerField(choices=TEST_RESULTS, null=True, blank=True)
-    sequence1 = models.ForeignKey('Sequence', blank=True, null=True, on_delete=models.SET_NULL,
-                                  related_name='zygosity_rule_sequence1')
+    sequence1 = models.ForeignKey(
+        "Sequence",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="zygosity_rule_sequence1",
+    )
     sequence1_result = models.IntegerField(choices=TEST_RESULTS, null=True, blank=True)
     zygosity = models.IntegerField(choices=ZYGOSITY_TYPES)
 
     class Meta:
         unique_together = [
-            ('line', 'allele', 'sequence0', 'sequence0_result', 'sequence1', 'sequence1_result')]
+            (
+                "line",
+                "allele",
+                "sequence0",
+                "sequence0_result",
+                "sequence1",
+                "sequence1_result",
+            )
+        ]
 
     def save(self, *args, **kwargs):
         super(ZygosityRule, self).save(*args, **kwargs)
         _update_zygosities(self.line, self.sequence0)
 
     def __str__(self):
-        return '<Rule {line} {allele}: {seq0} {res0}, {seq1} {res1} => {z}>'.format(
-            line=self.line, allele=self.allele,
-            seq0=self.sequence0, res0=self.sequence0_result,
-            seq1=self.sequence1, res1=self.sequence1_result, z=self.zygosity
+        return "<Rule {line} {allele}: {seq0} {res0}, {seq1} {res1} => {z}>".format(
+            line=self.line,
+            allele=self.allele,
+            seq0=self.sequence0,
+            res0=self.sequence0_result,
+            seq1=self.sequence1,
+            res1=self.sequence1_result,
+            z=self.zygosity,
         )
 
 
@@ -801,27 +928,38 @@ class ZygosityFinder(object):
 
     def _create_zygosity(self, subject, allele_name, symbol, force=True):
         if symbol is not None:
-            zygosity = Zygosity.objects.filter(subject=subject,
-                                               allele=self._get_allele(allele_name),
-                                               )
+            zygosity = Zygosity.objects.filter(
+                subject=subject,
+                allele=self._get_allele(allele_name),
+            )
             z = Zygosity.from_symbol(symbol)
             # Get or create the zygosity.
             if zygosity:
                 zygosity = zygosity[0]
                 if z != zygosity.zygosity:
                     if force:
-                        logger.warning("Zygosity mismatch for %s: was %s, now set to %s.",
-                                       subject, zygosity, symbol)
+                        logger.warning(
+                            "Zygosity mismatch for %s: was %s, now set to %s.",
+                            subject,
+                            zygosity,
+                            symbol,
+                        )
                     else:
-                        logger.warning("Zygosity mismatch for %s: was %s, would have been set "
-                                       "to %s but aborting now.", subject, zygosity, symbol)
+                        logger.warning(
+                            "Zygosity mismatch for %s: was %s, would have been set "
+                            "to %s but aborting now.",
+                            subject,
+                            zygosity,
+                            symbol,
+                        )
                         return
                 zygosity.zygosity = z
             else:
-                zygosity = Zygosity(subject=subject,
-                                    allele=self._get_allele(allele_name),
-                                    zygosity=z,
-                                    )
+                zygosity = Zygosity(
+                    subject=subject,
+                    allele=self._get_allele(allele_name),
+                    zygosity=z,
+                )
             zygosity.save()
 
     def update_subject(self, subject, force=True):
@@ -837,50 +975,56 @@ class ZygosityFinder(object):
             if z is None:
                 continue
             symbol = ZYGOSITY_SYMBOLS[z]
-            logger.debug("Zygosity %s: %s %s from tests %s.",
-                         subject, allele, symbol, ', '.join(str(_) for _ in tests))
+            logger.debug(
+                "Zygosity %s: %s %s from tests %s.",
+                subject,
+                allele,
+                symbol,
+                ", ".join(str(_) for _ in tests),
+            )
             self._create_zygosity(subject, allele, symbol, force=force)
 
     def _get_parents_alleles(self, subject, allele):
-        out = {'mother': None, 'father': None}
-        for which_parent in ('mother', 'father'):
+        out = {"mother": None, "father": None}
+        for which_parent in ("mother", "father"):
             parent = getattr(subject, which_parent)()
             if parent is not None:
-                zygosities = Zygosity.objects.filter(subject=parent,
-                                                     allele__nickname=allele,
-                                                     )
+                zygosities = Zygosity.objects.filter(
+                    subject=parent,
+                    allele__nickname=allele,
+                )
                 if zygosities:
                     z = zygosities[0]
                     out[which_parent] = z.symbol()
-        return out['mother'], out['father']
+        return out["mother"], out["father"]
 
     def _zygosity_from_parents(self, zm, zf):
         return {
-            ('+/+', '+/+'): '+/+',
-            ('+/+', '+/-'): '+',
-            ('+/+', '-/-'): '+/-',
-            ('+/+', '+'): '+',
-            ('+/+', None): '+/-',
-            ('+/-', '+/+'): '+',
-            ('+/-', '+/-'): None,
-            ('+/-', '-/-'): None,
-            ('+/-', '+'): None,
-            ('+/-', None): None,
-            ('-/-', '+/+'): '+/-',
-            ('-/-', '+/-'): None,
-            ('-/-', '-/-'): '-/-',
-            ('-/-', '+'): None,
-            ('-/-', None): '-/-',
-            ('+', '+/+'): '+',
-            ('+', '+/-'): None,
-            ('+', '-/-'): None,
-            ('+', '+'): None,
-            ('+', None): None,
-            (None, '+/+'): '+/-',
-            (None, '+/-'): None,
-            (None, '-/-'): '-/-',
-            (None, '+'): None,
-            (None, None): '-/-',
+            ("+/+", "+/+"): "+/+",
+            ("+/+", "+/-"): "+",
+            ("+/+", "-/-"): "+/-",
+            ("+/+", "+"): "+",
+            ("+/+", None): "+/-",
+            ("+/-", "+/+"): "+",
+            ("+/-", "+/-"): None,
+            ("+/-", "-/-"): None,
+            ("+/-", "+"): None,
+            ("+/-", None): None,
+            ("-/-", "+/+"): "+/-",
+            ("-/-", "+/-"): None,
+            ("-/-", "-/-"): "-/-",
+            ("-/-", "+"): None,
+            ("-/-", None): "-/-",
+            ("+", "+/+"): "+",
+            ("+", "+/-"): None,
+            ("+", "-/-"): None,
+            ("+", "+"): None,
+            ("+", None): None,
+            (None, "+/+"): "+/-",
+            (None, "+/-"): None,
+            (None, "-/-"): "-/-",
+            (None, "+"): None,
+            (None, None): "-/-",
         }.get((zm, zf), None)
 
     def genotype_from_litter(self, subject, force=False):
@@ -900,11 +1044,16 @@ class ZygosityFinder(object):
             z = self._zygosity_from_parents(zm, zf)
             if not z:
                 continue
-            logger.debug("Zygosity %s: %s %s from parents %s (%s) and %s (%s).",
-                         subject, allele, z,
-                         mother, zm,
-                         father, zf,
-                         )
+            logger.debug(
+                "Zygosity %s: %s %s from parents %s (%s) and %s (%s).",
+                subject,
+                allele,
+                z,
+                mother,
+                zm,
+                father,
+                zf,
+            )
             # If there is a conflict when setting a litter, we don't update the zygosities.
             self._create_zygosity(subject, allele, z, force=force)
 
@@ -920,18 +1069,22 @@ class AlleleManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(name={
-    'help_text': "MGNC-standard genotype name e.g. "
-                 "Pvalb<tm1(cre)Arbr>, "
-                 "http://www.informatics.jax.org/mgihome/nomen/",
-    'max_length': 1023,
-    'blank': False
-})
+@modify_fields(
+    name={
+        "help_text": "MGNC-standard genotype name e.g. "
+        "Pvalb<tm1(cre)Arbr>, "
+        "http://www.informatics.jax.org/mgihome/nomen/",
+        "max_length": 1023,
+        "blank": False,
+    }
+)
 class Allele(BaseModel):
     """A single allele."""
-    nickname = models.CharField(max_length=255, unique=True,
-                                help_text="informal name in lab, e.g. Pvalb-Cre")
-    sequences = models.ManyToManyField('Sequence')
+
+    nickname = models.CharField(
+        max_length=255, unique=True, help_text="informal name in lab, e.g. Pvalb-Cre"
+    )
+    sequences = models.ManyToManyField("Sequence")
 
     objects = AlleleManager()
 
@@ -939,7 +1092,7 @@ class Allele(BaseModel):
         return (self.nickname,)
 
     class Meta:
-        ordering = ['nickname']
+        ordering = ["nickname"]
 
     def __str__(self):
         return self.nickname
@@ -950,8 +1103,8 @@ class Zygosity(BaseModel):
     A junction table between Subject and Allele.
     """
 
-    subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
-    allele = models.ForeignKey('Allele', on_delete=models.CASCADE)
+    subject = models.ForeignKey("Subject", on_delete=models.CASCADE)
+    allele = models.ForeignKey("Allele", on_delete=models.CASCADE)
     zygosity = models.IntegerField(choices=ZYGOSITY_TYPES)
 
     @staticmethod
@@ -959,12 +1112,10 @@ class Zygosity(BaseModel):
         return ZYGOSITY_SYMBOLS.index(symbol)
 
     def symbol(self):
-        return (ZYGOSITY_SYMBOLS[self.zygosity]
-                if self.zygosity is not None else '?')
+        return ZYGOSITY_SYMBOLS[self.zygosity] if self.zygosity is not None else "?"
 
     def __str__(self):
-        return "{0:s} {1:s}".format(
-            str(self.allele), self.symbol())
+        return "{0:s} {1:s}".format(str(self.allele), self.symbol())
 
     class Meta:
         verbose_name_plural = "zygosities"
@@ -977,12 +1128,16 @@ class SequenceManager(models.Manager):
 
 class Sequence(BaseModel):
     """A genetic sequence that you run a genotyping test for."""
+
     name = models.CharField(
-        max_length=255, unique=True, help_text="informal name in lab, e.g. ROSA-WT")
+        max_length=255, unique=True, help_text="informal name in lab, e.g. ROSA-WT"
+    )
     base_pairs = models.TextField(
-        help_text="the actual sequence of base pairs in the test")
-    description = models.CharField(max_length=1023,
-                                   help_text="any other relevant information about this test")
+        help_text="the actual sequence of base pairs in the test"
+    )
+    description = models.CharField(
+        max_length=1023, help_text="any other relevant information about this test"
+    )
 
     objects = SequenceManager()
 
@@ -990,7 +1145,7 @@ class Sequence(BaseModel):
         return (self.name,)
 
     class Meta:
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -1001,15 +1156,16 @@ class GenotypeTest(BaseModel):
     """
     A junction table between Subject and Sequence.
     """
-    subject = models.ForeignKey('Subject', on_delete=models.CASCADE)
-    sequence = models.ForeignKey('Sequence', on_delete=models.CASCADE)
+
+    subject = models.ForeignKey("Subject", on_delete=models.CASCADE)
+    sequence = models.ForeignKey("Sequence", on_delete=models.CASCADE)
     test_result = models.IntegerField(choices=TEST_RESULTS)
 
     class Meta:
         verbose_name_plural = "genotype tests"
 
     def __str__(self):
-        return "%s %s" % (self.sequence, '-+'[self.test_result])
+        return "%s %s" % (self.sequence, "-+"[self.test_result])
 
     def save(self, *args, **kwargs):
         super(GenotypeTest, self).save(*args, **kwargs)

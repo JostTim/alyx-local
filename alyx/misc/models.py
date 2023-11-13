@@ -50,7 +50,8 @@ class LabMember(AbstractUser):
         else:
             return labs[0].timezone
 
-    def human_field_string(self):
+    @staticmethod
+    def human_field_string():
         return "username"
 
 
