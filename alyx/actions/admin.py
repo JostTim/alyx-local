@@ -730,6 +730,7 @@ class SRelatedDropdownFilter(RelatedDropdownFilter):
     def lookups(self, request, model_admin):
         human_readable_name = model_admin.model.human_field_string()
         qs = model_admin.model.objects.order_by(human_readable_name)
+        return []
         return [(obj.id, str(obj)) for obj in qs]
 
 
