@@ -733,7 +733,8 @@ class SRelatedDropdownFilter(RelatedDropdownFilter):
     #     return [(obj.id, str(obj)) for obj in qs]
 
     def field_choices(self, field, request, model_admin):
-        field_c = field.get_choices(include_blank=False)
+        ordering = self.field_admin_ordering(field, request, model_admin)
+        field_c = field.get_choices(include_blank=False, ordering=ordering)
         logger.warning(f"{field_c=}")
         return
 
