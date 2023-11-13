@@ -732,13 +732,21 @@ class SRelatedDropdownFilter(RelatedDropdownFilter):
     #     qs = model_admin.model.objects.order_by(human_readable_name)
     #     return [(obj.id, str(obj)) for obj in qs]
 
+    # def field_choices(self, field, request, model_admin):
+    #     ordering = self.field_admin_ordering(field, request, model_admin)
+    #     field_c = field.get_choices(include_blank=False, ordering=ordering)
+    #     logger.warning(f"{field_c=}")
+    #     logger.warning(f"{field=}")
+    #     logger.warning(f"{model_admin=}")
+    #     return field_c
+
     def field_choices(self, field, request, model_admin):
-        ordering = self.field_admin_ordering(field, request, model_admin)
-        field_c = field.get_choices(include_blank=False, ordering=ordering)
-        logger.warning(f"{field_c=}")
-        logger.warning(f"{field=}")
-        logger.warning(f"{model_admin=}")
-        return field_c
+        related_model = field.related_model
+        human_readable_name = related_model.human_field_string()
+        choices = related_model.objects.order_by(human_readable_name).values_list(
+            "id", human_readable_name
+        )
+        return list(choices)
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
