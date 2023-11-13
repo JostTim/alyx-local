@@ -726,25 +726,18 @@ class SessionSubjectFilter(SimpleDropdownFilter):
         return Subject.objects.all().order_by("nickname").values_list("id", "nickname")
 
 
-class SRelatedDropdownFilter(RelatedDropdownFilter):
-    # def lookups(self, request, model_admin):
-    #     human_readable_name = model_admin.model.human_field_string()
-    #     qs = model_admin.model.objects.order_by(human_readable_name)
-    #     return [(obj.id, str(obj)) for obj in qs]
-
-    # def field_choices(self, field, request, model_admin):
-    #     ordering = self.field_admin_ordering(field, request, model_admin)
-    #     field_c = field.get_choices(include_blank=False, ordering=ordering)
-    #     logger.warning(f"{field_c=}")
-    #     logger.warning(f"{field=}")
-    #     logger.warning(f"{model_admin=}")
-    #     return field_c
-
+class SortedRelatedDropdownFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
         related_model = field.related_model
         human_readable_name = related_model.human_field_string()
-        choices = related_model.objects.order_by(human_readable_name).values_list(
-            "id", human_readable_name
+
+        related_ids = model_admin.model.objects.values_list(
+            f"{field.name}_id", flat=True
+        )
+        choices = (
+            related_model.objects.filter(id__in=related_ids)
+            .order_by(human_readable_name)
+            .values_list("id", human_readable_name)
         )
         return list(choices)
 
@@ -796,8 +789,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ),
     )
     list_filter = [
-        ("users", SRelatedDropdownFilter),
-        ("subject", SRelatedDropdownFilter),
+        ("users", SortedRelatedDropdownFilter),
+        ("subject", SortedRelatedDropdownFilter),
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
