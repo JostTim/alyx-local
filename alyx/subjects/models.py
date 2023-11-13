@@ -398,7 +398,9 @@ please use the Zygosities fields below, and the description field to put more de
 
     def __str__(self):
         return self.nickname
-
+    
+    def human_field_string(self):
+        return "nickname"
 
 class SubjectRequestManager(models.Manager):
     def get_queryset(self, *args, **kwargs):

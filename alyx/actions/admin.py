@@ -726,6 +726,13 @@ class SessionSubjectFilter(SimpleDropdownFilter):
         return Subject.objects.all().order_by("nickname").values_list("id", "nickname")
 
 
+class SRelatedDropdownFilter(RelatedDropdownFilter):
+    def lookups(self, request, model_admin):
+        human_readable_name = model_admin.model.human_field_string()
+        qs = model_admin.model.objects.order_by(human_readable_name)
+        return [(obj.id, str(obj)) for obj in qs]
+
+
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
 
@@ -773,8 +780,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ),
     )
     list_filter = [
-        ("users", RelatedDropdownFilter),
-        ("subject", RelatedDropdownFilter),
+        ("users", SRelatedDropdownFilter),
+        ("subject", SRelatedDropdownFilter),
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
