@@ -54,7 +54,7 @@ from markdownx.admin import MarkdownxModelAdmin
 
 # from mdeditor.widgets import MDeditorWidget
 
-natsort = partial(Collate, collation="natsort_collation")
+# natsort = partial(Collate, collation="natsort_collation")
 
 logger = structlog.get_logger("actions.admin")
 
@@ -278,7 +278,7 @@ class WaterAdministrationForm(forms.ModelForm):
         subjects = Subject.objects.filter(
             actions_waterrestrictions__start_time__isnull=False,
             actions_waterrestrictions__end_time__isnull=True,
-        ).order_by(natsort("nickname"))
+        ).order_by("nickname")
 
         if getattr(self, "last_subject_id", None):
             last_subject_id = self.last_subject_id
@@ -299,7 +299,7 @@ class WaterAdministrationForm(forms.ModelForm):
         # else:
         #     self.fields["subject"].queryset = Subject.objects.order_by("nickname")
         self.fields["user"].queryset = (
-            get_user_model().objects.all().order_by(natsort("username"))
+            get_user_model().objects.all().order_by("username")
         )
 
         if subject:
@@ -723,64 +723,10 @@ class SessionSubjectFilter(SimpleDropdownFilter):
             return queryset.filter(subject__id=self.value())
 
     def lookups(self, request, model_admin):
-        return (
-            Subject.objects.all()
-            .order_by(natsort("nickname"))
-            .values_list("id", "nickname")
-        )
-
-
-def SortedRelatedDropdownFilter(
-    related_model,
-    field,
-):
-    def model_name(model):
-        import re
-
-        model_name = model.__name__
-        return re.sub(r"(?<!^)(?=[A-Z])", " ", model_name).lower()
-
-    class filter(SimpleDropdownFilter):
-        title = model_name(related_model)
-        parameter_name = model_name(related_model)
-
-        def queryset(self, request, queryset):
-            if self.value():
-                return queryset.filter(subject__pk=self.value())
-
-        def lookups(self, request, model_admin):
-            return (
-                related_model.objects.all()
-                .order_by(natsort(field))
-                .values_list("pk", field)
-            )
-
-    return filter
-
-
-class SessionForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        subjects = Subject.objects.order_by(
-            natsort("nickname")  # .filter(death_date__isnull=False)
-        )
-
-        self.fields["subject"].queryset = subjects
-
-        if getattr(self, "last_subject_id", None):
-            last_subject_id = self.last_subject_id
-            subject = get_object_or_404(Subject, pk=last_subject_id)
-            self.fields["subject"].initial = subject
-
-    class Meta:
-        model = Session
-        fields = "__all__"
+        return Subject.objects.all().order_by("nickname").values_list("id", "nickname")
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
-    form = SessionForm
-
     change_form_template = r"admin/session_change_form.html"
 
     list_display = [
@@ -828,7 +774,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     )
     list_filter = [
         ("users", RelatedDropdownFilter),
-        SortedRelatedDropdownFilter(Subject, "nickname"),
+        ("subject__nickname", RelatedDropdownFilter),
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
