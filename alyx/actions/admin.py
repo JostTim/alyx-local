@@ -732,7 +732,7 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
         human_readable_name = related_model.human_field_string()
 
         related_ids = model_admin.model.objects.values_list(
-            f"{field.name}_id", flat=True
+            f"{field.name}__id", flat=True
         )
         choices = (
             related_model.objects.filter(id__in=related_ids)
