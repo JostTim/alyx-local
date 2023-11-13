@@ -727,30 +727,16 @@ class SessionSubjectFilter(SimpleDropdownFilter):
 
 
 class SRelatedDropdownFilter(RelatedDropdownFilter):
-    def lookups(self, request, model_admin):
-        human_readable_name = model_admin.model.human_field_string()
-        qs = model_admin.model.objects.order_by(human_readable_name)
-        return [(obj.id, str(obj)) for obj in qs]
+    # def lookups(self, request, model_admin):
+    #     human_readable_name = model_admin.model.human_field_string()
+    #     qs = model_admin.model.objects.order_by(human_readable_name)
+    #     return [(obj.id, str(obj)) for obj in qs]
 
-    def choices(self, cl):
-        yield {
-            'selected': self.value() is None,
-            'query_string': cl.get_query_string({}, [self.lookup_kwarg]),
-            'display': _('All'),
-        }
+    def field_choices(self, field, request, model_admin):
+        field_c = field.get_choices(include_blank=False)
+        logger.warning(f"{field_c=}")
+        return
 
-        # Get human readable field
-        human_readable_name = self.field.model.human_field_string()
-
-        # Order by human readable field
-        for rel_obj in self.field.model.objects.order_by(human_readable_name):
-            yield {
-                'selected': self.value() == str(rel_obj._get_pk_val()),
-                'query_string': cl.get_query_string({
-                    self.lookup_kwarg: rel_obj._get_pk_val()
-                }, []),
-                'display': str(rel_obj),
-            }
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
