@@ -737,7 +737,7 @@ class SRelatedDropdownFilter(RelatedDropdownFilter):
         field_c = field.get_choices(include_blank=False, ordering=ordering)
         logger.warning(f"{field_c=}")
         logger.warning(f"{field=}")
-        logger.warning(f"{fimodel_adminld=}")
+        logger.warning(f"{model_admin=}")
         return field_c
 
 
