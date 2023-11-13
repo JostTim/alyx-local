@@ -299,7 +299,7 @@ class WaterAdministrationForm(forms.ModelForm):
         # else:
         #     self.fields["subject"].queryset = Subject.objects.order_by("nickname")
         self.fields["user"].queryset = (
-            get_user_model().objects.all().order_by("username")
+            get_user_model().objects.all().order_by(natsort("username"))
         )
 
         if subject:
@@ -758,7 +758,29 @@ def SortedRelatedDropdownFilter(
     return filter
 
 
+class SessionForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        subjects = Subject.objects.filter(death_date__isnull=False).order_by(
+            natsort("nickname")
+        )
+
+        self.fields["subject"].queryset = subjects
+
+        if getattr(self, "last_subject_id", None):
+            last_subject_id = self.last_subject_id
+            subject = get_object_or_404(Subject, pk=last_subject_id)
+            self.fields["subject"].initial = subject
+
+    class Meta:
+        model = Session
+        fields = "__all__"
+
+
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
+    form = SessionForm
+
     change_form_template = r"admin/session_change_form.html"
 
     list_display = [
