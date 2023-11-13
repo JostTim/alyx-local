@@ -736,7 +736,9 @@ class SRelatedDropdownFilter(RelatedDropdownFilter):
         ordering = self.field_admin_ordering(field, request, model_admin)
         field_c = field.get_choices(include_blank=False, ordering=ordering)
         logger.warning(f"{field_c=}")
-        return
+        logger.warning(f"{field=}")
+        logger.warning(f"{fimodel_adminld=}")
+        return field_c
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
