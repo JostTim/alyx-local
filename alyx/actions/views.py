@@ -11,84 +11,102 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 
+
 import django_filters
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ParseError
 
 from alyx.base import base_json_filter, BaseFilterSet, rest_permission_classes
 from subjects.models import Subject
 from experiments.views import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
 from .models import (
-    BaseAction, Session, WaterAdministration, WaterRestriction,
-    Weighing, WaterType, LabLocation, Surgery, ProcedureType)
-from .serializers import (LabLocationSerializer,
-                          ProcedureTypeSerializer,
-                          SessionListSerializer,
-                          SessionDetailSerializer,
-                          SurgerySerializer,
-                          WaterAdministrationDetailSerializer,
-                          WeighingDetailSerializer,
-                          WaterTypeDetailSerializer,
-                          WaterRestrictionListSerializer,
-                          )
+    BaseAction,
+    Session,
+    WaterAdministration,
+    WaterRestriction,
+    Weighing,
+    WaterType,
+    LabLocation,
+    Surgery,
+    ProcedureType,
+)
+from .serializers import (
+    LabLocationSerializer,
+    ProcedureTypeSerializer,
+    SessionListSerializer,
+    SessionDetailSerializer,
+    SurgerySerializer,
+    WaterAdministrationDetailSerializer,
+    WeighingDetailSerializer,
+    WaterTypeDetailSerializer,
+    WaterRestrictionListSerializer,
+)
 
 import logging
 
+
 class SubjectHistoryListView(ListView):
-    template_name = 'subject_history.html'
+    template_name = "subject_history.html"
 
     CLASS_FIELDS = {
-        'Session': ('number', 'n_correct_trials', 'n_trials'),
-        'Weighing': ('weight',),
-        'WaterRestriction': (),
+        "Session": ("number", "n_correct_trials", "n_trials"),
+        "Weighing": ("weight",),
+        "WaterRestriction": (),
     }
 
     CLASS_TYPE_FIELD = {
-        'Session': 'type',
-        'WaterRestriction': 'water_type',
+        "Session": "type",
+        "WaterRestriction": "water_type",
     }
 
     def get_context_data(self, **kwargs):
         context = super(SubjectHistoryListView, self).get_context_data(**kwargs)
-        subject = Subject.objects.get(pk=self.kwargs['subject_id'])
-        context['title'] = mark_safe(
-            'Subject history of <a href="%s">%s</a>' % (
-                reverse('admin:subjects_subject_change',
-                        args=[subject.id]),
-                subject.nickname))
-        context['site_header'] = 'Alyx'
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
+        context["title"] = mark_safe(
+            'Subject history of <a href="%s">%s</a>'
+            % (
+                reverse("admin:subjects_subject_change", args=[subject.id]),
+                subject.nickname,
+            )
+        )
+        context["site_header"] = "Alyx"
         return context
 
     def get_queryset(self):
-        subject = Subject.objects.get(pk=self.kwargs['subject_id'])
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
         collector = Collector(using="default")
         collector.collect([subject])
         out = []
         for model, instance in collector.instances_with_model():
-            if model._meta.app_label == 'data':
+            if model._meta.app_label == "data":
                 continue
             if not isinstance(instance, BaseAction):
                 continue
-            url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
-                                                  instance._meta.model_name), args=[instance.id])
+            url = reverse(
+                "admin:%s_%s_change"
+                % (instance._meta.app_label, instance._meta.model_name),
+                args=[instance.id],
+            )
             item = {}
             clsname = instance.__class__.__name__
-            item['url'] = url
-            item['name'] = model.__name__
-            item['type'] = getattr(
-                instance, self.CLASS_TYPE_FIELD.get(clsname, ''), None)
-            item['date_time'] = instance.start_time
+            item["url"] = url
+            item["name"] = model.__name__
+            item["type"] = getattr(
+                instance, self.CLASS_TYPE_FIELD.get(clsname, ""), None
+            )
+            item["date_time"] = instance.start_time
             i = 0
             for n in self.CLASS_FIELDS.get(clsname, ()):
                 v = getattr(instance, n, None)
                 if v is None:
                     continue
-                item['arg%d' % i] = '%s: %s' % (n, v)
+                item["arg%d" % i] = "%s: %s" % (n, v)
                 i += 1
             out.append(item)
-        out = sorted(out, key=itemgetter('date_time'), reverse=True)
+        out = sorted(out, key=itemgetter("date_time"), reverse=True)
         return out
 
 
@@ -98,23 +116,25 @@ def date_range(start_date, end_date):
 
 
 class WaterHistoryListView(ListView):
-    template_name = 'water_history.html'
+    template_name = "water_history.html"
 
     def get_context_data(self, **kwargs):
         context = super(WaterHistoryListView, self).get_context_data(**kwargs)
-        subject = Subject.objects.get(pk=self.kwargs['subject_id'])
-        context['title'] = mark_safe(
-            'Water history of <a href="%s">%s</a>' % (
-                reverse('admin:subjects_subject_change',
-                        args=[subject.id]),
-                subject.nickname))
-        context['site_header'] = 'Alyx'
-        url = reverse('weighing-plot', kwargs={'subject_id': subject.id})
-        context['plot_url'] = url
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
+        context["title"] = mark_safe(
+            'Water history of <a href="%s">%s</a>'
+            % (
+                reverse("admin:subjects_subject_change", args=[subject.id]),
+                subject.nickname,
+            )
+        )
+        context["site_header"] = "Alyx"
+        url = reverse("weighing-plot", kwargs={"subject_id": subject.id})
+        context["plot_url"] = url
         return context
 
     def get_queryset(self):
-        subject = Subject.objects.get(pk=self.kwargs['subject_id'])
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
         return water_control(subject).to_jsonable()[::-1]
 
 
@@ -128,43 +148,51 @@ def last_monday(reqdate=None):
 def training_days(reqdate=None):
     monday = last_monday(reqdate=reqdate)
     wr = WaterRestriction.objects.filter(
-        start_time__isnull=False, end_time__isnull=True,
-    ).order_by('subject__responsible_user__username', 'subject__nickname')
+        start_time__isnull=False,
+        end_time__isnull=True,
+    ).order_by("subject__responsible_user__username", "subject__nickname")
     next_monday = monday + timedelta(days=7)
     for w in wr:
         sessions = Session.objects.filter(
-            subject=w.subject, start_time__gte=monday, start_time__lt=next_monday)
-        dates = sorted(set([_[0] for _ in sessions.order_by('start_time').
-                            values_list('start_time')]))
+            subject=w.subject, start_time__gte=monday, start_time__lt=next_monday
+        )
+        dates = sorted(
+            set(
+                [
+                    _[0]
+                    for _ in sessions.order_by("start_time").values_list("start_time")
+                ]
+            )
+        )
         wds = set(date.weekday() for date in dates)
         yield {
-            'nickname': w.subject.nickname,
-            'username': w.subject.responsible_user.username,
-            'url': reverse('admin:subjects_subject_change', args=[w.subject.pk]),
-            'n_training_days': len(wds),
-            'training_ok': len(wds) >= 5,
-            'training_days': [wd in wds for wd in range(7)],
+            "nickname": w.subject.nickname,
+            "username": w.subject.responsible_user.username,
+            "url": reverse("admin:subjects_subject_change", args=[w.subject.pk]),
+            "n_training_days": len(wds),
+            "training_ok": len(wds) >= 5,
+            "training_days": [wd in wds for wd in range(7)],
         }
 
 
 class TrainingListView(ListView):
-    template_name = 'training.html'
+    template_name = "training.html"
 
     def get_context_data(self, **kwargs):
         context = super(TrainingListView, self).get_context_data(**kwargs)
-        reqdate = self.kwargs.get('date', None) or date.today().strftime('%Y-%m-%d')
+        reqdate = self.kwargs.get("date", None) or date.today().strftime("%Y-%m-%d")
         reqdate = to_date(reqdate)
         monday = last_monday(reqdate=reqdate)
         self.monday = monday
-        previous_week = (monday - timedelta(days=7)).strftime('%Y-%m-%d')
-        today = (date.today()).strftime('%Y-%m-%d')
-        next_week = (monday + timedelta(days=7)).strftime('%Y-%m-%d')
-        context['title'] = 'Training history for %s' % monday.strftime('%Y-%m-%d')
-        context['site_header'] = 'Alyx'
-        context['prev_url'] = reverse('training', args=[previous_week])
-        context['today_url'] = reverse('training', args=[today])
-        context['next_url'] = reverse('training', args=[next_week])
-        context['wds'] = [monday + timedelta(days=n) for n in range(7)]
+        previous_week = (monday - timedelta(days=7)).strftime("%Y-%m-%d")
+        today = (date.today()).strftime("%Y-%m-%d")
+        next_week = (monday + timedelta(days=7)).strftime("%Y-%m-%d")
+        context["title"] = "Training history for %s" % monday.strftime("%Y-%m-%d")
+        context["site_header"] = "Alyx"
+        context["prev_url"] = reverse("training", args=[previous_week])
+        context["today_url"] = reverse("training", args=[today])
+        context["next_url"] = reverse("training", args=[next_week])
+        context["wds"] = [monday + timedelta(days=n) for n in range(7)]
         return context
 
     def get_queryset(self):
@@ -173,9 +201,9 @@ class TrainingListView(ListView):
 
 def weighing_plot(request, subject_id=None):
     if not request.user.is_authenticated:
-        return HttpResponse('')
-    if subject_id in (None, 'None'):
-        return HttpResponse('')
+        return HttpResponse("")
+    if subject_id in (None, "None"):
+        return HttpResponse("")
     wc = water_control(Subject.objects.get(pk=subject_id))
     return wc.plot()
 
@@ -184,49 +212,109 @@ class ProcedureTypeList(generics.ListCreateAPIView):
     queryset = ProcedureType.objects.all()
     permission_classes = rest_permission_classes()
     serializer_class = ProcedureTypeSerializer
-    lookup_field = 'name'
+    lookup_field = "name"
+
+
+class SessionView(generics.ListAPIView):
+    serializer_class = SessionListSerializer
+
+    def get_queryset(self):
+        queryset = Session.objects.all()
+        json_field = "json"
+        request_params = self.request.query_params
+
+        json_filter = request_params.pop(json_field, None)
+        if json_filter:
+            # Expected format: "field__key,value,field__key,value"
+            filters = json_filter.split(",")
+            # WARNING TODO BUG : parsing as simply as that prevents list match from working, we would need to be a bit more clever than that....
+
+            # Must have an even number of elements in the list (key/value pairs)
+            if len(filters) % 2 != 0:
+                raise ParseError("Invalid json query format")
+
+            # Create Q objects for each key-value pair and add it to the queryset filter
+            for i in range(0, len(filters), 2):
+                # Assumes that the left side is the "key" and the right side is the "value"
+                queryset = queryset.filter(
+                    **{f"{json_field}__{filters[i]}": filters[i + 1]}
+                )
+
+        # Handle other filters (non-json fields)
+        for key, value in request_params.items():
+            queryset = queryset.filter(**{key: value})
+
+        return queryset
 
 
 class SessionFilter(BaseFilterSet):
-    subject = django_filters.CharFilter(field_name='subject__nickname', lookup_expr=('iexact'))
-    dataset_types = django_filters.CharFilter(field_name='dataset_types',
-                                              method='filter_dataset_types')
-    performance_gte = django_filters.NumberFilter(field_name='performance',
-                                                  method=('filter_performance_gte'))
-    performance_lte = django_filters.NumberFilter(field_name='performance',
-                                                  method=('filter_performance_lte'))
-    users = django_filters.CharFilter(field_name='users__username', method=('filter_users'))
-    date_range = django_filters.CharFilter(field_name='date_range', method=('filter_date_range'))
-    type = django_filters.CharFilter(field_name='type', lookup_expr=('iexact'))
-    lab = django_filters.CharFilter(field_name='lab__name', lookup_expr=('iexact'))
-    task_protocol = django_filters.CharFilter(field_name='task_protocol',
-                                              lookup_expr=('icontains'))
-    qc = django_filters.CharFilter(method='enum_field_filter')
-    json = django_filters.CharFilter(field_name='json', method=('filter_json'))
-    location = django_filters.CharFilter(field_name='location__name', lookup_expr=('icontains'))
-    extended_qc = django_filters.CharFilter(field_name='extended_qc',
-                                            method=('filter_extended_qc'))
-    projects = django_filters.CharFilter(field_name='projects__name', lookup_expr=('icontains'))
+    subject = django_filters.CharFilter(
+        field_name="subject__nickname", lookup_expr=("iexact")
+    )
+    dataset_types = django_filters.CharFilter(
+        field_name="dataset_types", method="filter_dataset_types"
+    )
+    performance_gte = django_filters.NumberFilter(
+        field_name="performance", method=("filter_performance_gte")
+    )
+    performance_lte = django_filters.NumberFilter(
+        field_name="performance", method=("filter_performance_lte")
+    )
+    users = django_filters.CharFilter(
+        field_name="users__username", method=("filter_users")
+    )
+    date_range = django_filters.CharFilter(
+        field_name="date_range", method=("filter_date_range")
+    )
+    type = django_filters.CharFilter(field_name="type", lookup_expr=("iexact"))
+    lab = django_filters.CharFilter(field_name="lab__name", lookup_expr=("iexact"))
+    task_protocol = django_filters.CharFilter(
+        field_name="task_protocol", lookup_expr=("icontains")
+    )
+    qc = django_filters.CharFilter(method="enum_field_filter")
+    json = django_filters.CharFilter(field_name="json", method=("filter_json"))
+    location = django_filters.CharFilter(
+        field_name="location__name", lookup_expr=("icontains")
+    )
+    extended_qc = django_filters.CharFilter(
+        field_name="extended_qc", method=("filter_extended_qc")
+    )
+    projects = django_filters.CharFilter(
+        field_name="projects__name", lookup_expr=("icontains")
+    )
     # below is an alias to keep compatibility after moving project FK field to projects M2M
-    project = django_filters.CharFilter(field_name='projects__name', lookup_expr=('icontains'))
-    procedures = django_filters.CharFilter(field_name='procedures', method='filter_procedures')
+    project = django_filters.CharFilter(
+        field_name="projects__name", lookup_expr=("icontains")
+    )
+    procedures = django_filters.CharFilter(
+        field_name="procedures", method="filter_procedures"
+    )
     # brain region filters
-    atlas_name = django_filters.CharFilter(field_name='name__icontains', method='atlas')
-    atlas_acronym = django_filters.CharFilter(field_name='acronym__iexact', method='atlas')
-    atlas_id = django_filters.NumberFilter(field_name='pk', method='atlas')
-    histology = django_filters.BooleanFilter(field_name='histology', method='has_histology')
-    tag = django_filters.CharFilter(field_name='tag', method='filter_tag')
+    atlas_name = django_filters.CharFilter(field_name="name__icontains", method="atlas")
+    atlas_acronym = django_filters.CharFilter(
+        field_name="acronym__iexact", method="atlas"
+    )
+    atlas_id = django_filters.NumberFilter(field_name="pk", method="atlas")
+    histology = django_filters.BooleanFilter(
+        field_name="histology", method="has_histology"
+    )
+    tag = django_filters.CharFilter(field_name="tag", method="filter_tag")
 
-    #dataset_object 
-    object = django_filters.CharFilter(field_name='object', method='filter_object')
+    # dataset_object
+    object = django_filters.CharFilter(field_name="object", method="filter_object")
 
-    #dataset_attribute : TODO
+    # dataset_attribute : TODO
 
     def filter_object(self, queryset, name, value):
-        objects = value.split(',')
-        queryset = queryset.filter(data_dataset_session_related__dataset_type__object__in=objects)
+        objects = value.split(",")
+        queryset = queryset.filter(
+            data_dataset_session_related__dataset_type__object__in=objects
+        )
         queryset = queryset.annotate(
-            dset_objects_count=Count('data_dataset_session_related__dataset_type', distinct=True))
+            dset_objects_count=Count(
+                "data_dataset_session_related__dataset_type", distinct=True
+            )
+        )
         queryset = queryset.filter(dset_objects_count__gte=len(objects))
         return queryset
 
@@ -239,7 +327,8 @@ class SessionFilter(BaseFilterSet):
         :return:
         """
         queryset = queryset.filter(
-            data_dataset_session_related__tags__name__icontains=value).distinct()
+            data_dataset_session_related__tags__name__icontains=value
+        ).distinct()
         return queryset
 
     def atlas(self, queryset, name, value):
@@ -255,24 +344,25 @@ class SessionFilter(BaseFilterSet):
             fcn_query = queryset.filter
         else:
             fcn_query = queryset.exclude
-        return fcn_query(subject__actions_sessions__procedures__name='Histology').distinct()
+        return fcn_query(
+            subject__actions_sessions__procedures__name="Histology"
+        ).distinct()
 
     def filter_json(self, queryset, name, value):
-        return base_json_filter('json', queryset, name, value)
+        return base_json_filter("json", queryset, name, value)
 
     def filter_extended_qc(self, queryset, name, value):
-        return base_json_filter('extended_qc', queryset, name, value)
+        return base_json_filter("extended_qc", queryset, name, value)
 
     def filter_users(self, queryset, name, value):
-        users = value.split(',')
+        users = value.split(",")
         queryset = queryset.filter(users__username__in=users)
-        queryset = queryset.annotate(
-            users_count=Count('users__username'))
+        queryset = queryset.annotate(users_count=Count("users__username"))
         queryset = queryset.filter(users_count__gte=len(users))
         return queryset
 
     def filter_date_range(self, queryset, name, value):
-        drange = value.split(',')
+        drange = value.split(",")
         queryset = queryset.filter(
             Q(start_time__date__gte=drange[0]),
             Q(start_time__date__lte=drange[1]),
@@ -280,34 +370,42 @@ class SessionFilter(BaseFilterSet):
         return queryset
 
     def filter_dataset_types(self, queryset, name, value):
-        dtypes = value.split(',')
-        queryset = queryset.filter(data_dataset_session_related__dataset_type__name__in=dtypes)
+        dtypes = value.split(",")
+        queryset = queryset.filter(
+            data_dataset_session_related__dataset_type__name__in=dtypes
+        )
         queryset = queryset.annotate(
-            dtypes_count=Count('data_dataset_session_related__dataset_type', distinct=True))
+            dtypes_count=Count(
+                "data_dataset_session_related__dataset_type", distinct=True
+            )
+        )
         queryset = queryset.filter(dtypes_count__gte=len(dtypes))
         return queryset
-    
+
     def filter_procedures(self, queryset, name, value):
-        #logger = logging.getLogger("filter_procedures")
-        procedures_names = value.split(',')
-        #logger.debug("procedures names = " + str(procedures_names))
+        # logger = logging.getLogger("filter_procedures")
+        procedures_names = value.split(",")
+        # logger.debug("procedures names = " + str(procedures_names))
         queryset = queryset.filter(procedures__name__in=procedures_names)
         queryset = queryset.annotate(
-            procedures_names_count=Count('procedures__name', distinct=True))
+            procedures_names_count=Count("procedures__name", distinct=True)
+        )
         queryset = queryset.filter(procedures_names_count__gte=len(procedures_names))
         return queryset
 
     def filter_performance_gte(self, queryset, name, perf):
         queryset = queryset.exclude(n_trials__isnull=True)
-        pf = ExpressionWrapper(100 * F('n_correct_trials') / F('n_trials'),
-                               output_field=FloatField())
+        pf = ExpressionWrapper(
+            100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField()
+        )
         queryset = queryset.annotate(performance=pf)
         return queryset.filter(performance__gte=float(perf))
 
     def filter_performance_lte(self, queryset, name, perf):
         queryset = queryset.exclude(n_trials__isnull=True)
-        pf = ExpressionWrapper(100 * F('n_correct_trials') / F('n_trials'),
-                               output_field=FloatField())
+        pf = ExpressionWrapper(
+            100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField()
+        )
         queryset = queryset.annotate(performance=pf)
         return queryset.filter(performance__lte=float(perf))
 
@@ -316,25 +414,29 @@ class SessionFilter(BaseFilterSet):
         exclude = []
         filter_overrides = {
             JSONField: {
-                'filter_class': CharFilter,
+                "filter_class": CharFilter,
             },
         }
 
 
 class WeighingFilter(BaseFilterSet):
-    nickname = django_filters.CharFilter(field_name='subject__nickname', lookup_expr='iexact')
+    nickname = django_filters.CharFilter(
+        field_name="subject__nickname", lookup_expr="iexact"
+    )
 
     class Meta:
         model = Weighing
-        exclude = ['json']
+        exclude = ["json"]
 
 
 class WaterAdministrationFilter(BaseFilterSet):
-    nickname = django_filters.CharFilter(field_name='subject__nickname', lookup_expr='iexact')
+    nickname = django_filters.CharFilter(
+        field_name="subject__nickname", lookup_expr="iexact"
+    )
 
     class Meta:
         model = WaterAdministration
-        exclude = ['json']
+        exclude = ["json"]
 
 
 class SessionAPIList(generics.ListCreateAPIView):
@@ -378,6 +480,7 @@ class SessionAPIList(generics.ListCreateAPIView):
 
     [===> session model reference](/admin/doc/models/actions.session)
     """
+
     queryset = Session.objects.all()
     queryset = SessionListSerializer.setup_eager_loading(queryset)
     permission_classes = rest_permission_classes()
@@ -387,9 +490,9 @@ class SessionAPIList(generics.ListCreateAPIView):
     def get_serializer_class(self):
         if not self.request:
             return SessionListSerializer
-        if self.request.method == 'GET':
+        if self.request.method == "GET":
             return SessionListSerializer
-        if self.request.method == 'POST':
+        if self.request.method == "POST":
             return SessionDetailSerializer
 
 
@@ -397,7 +500,8 @@ class SessionAPIDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Detail of one session
     """
-    queryset = Session.objects.all().order_by('-start_time')
+
+    queryset = Session.objects.all().order_by("-start_time")
     queryset = SessionDetailSerializer.setup_eager_loading(queryset)
     serializer_class = SessionDetailSerializer
     permission_classes = rest_permission_classes()
@@ -407,6 +511,7 @@ class WeighingAPIListCreate(generics.ListCreateAPIView):
     """
     Lists or creates a new weighing.
     """
+
     permission_classes = rest_permission_classes()
     serializer_class = WeighingDetailSerializer
     queryset = Weighing.objects.all()
@@ -418,6 +523,7 @@ class WeighingAPIDetail(generics.RetrieveDestroyAPIView):
     """
     Allows viewing of full detail and deleting a weighing.
     """
+
     permission_classes = rest_permission_classes()
     serializer_class = WeighingDetailSerializer
     queryset = Weighing.objects.all()
@@ -427,13 +533,14 @@ class WaterTypeList(generics.ListCreateAPIView):
     queryset = WaterType.objects.all()
     serializer_class = WaterTypeDetailSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class WaterAdministrationAPIListCreate(generics.ListCreateAPIView):
     """
     Lists or creates a new water administration.
     """
+
     permission_classes = rest_permission_classes()
     serializer_class = WaterAdministrationDetailSerializer
     queryset = WaterAdministration.objects.all()
@@ -445,6 +552,7 @@ class WaterAdministrationAPIDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Allows viewing of full detail and deleting a water administration.
     """
+
     permission_classes = rest_permission_classes()
     serializer_class = WaterAdministrationDetailSerializer
     queryset = WaterAdministration.objects.all()
@@ -466,27 +574,36 @@ class WaterRequirement(APIView):
 
     def get(self, request, format=None, nickname=None):
         assert nickname
-        start_date = request.query_params.get('start_date', None)
-        end_date = request.query_params.get('end_date', None)
+        start_date = request.query_params.get("start_date", None)
+        end_date = request.query_params.get("end_date", None)
         subject = Subject.objects.get(nickname=nickname)
-        records = subject.water_control.to_jsonable(start_date=start_date, end_date=end_date)
-        data = {'subject': nickname, 'implant_weight': subject.implant_weight, 'records': records}
+        records = subject.water_control.to_jsonable(
+            start_date=start_date, end_date=end_date
+        )
+        data = {
+            "subject": nickname,
+            "implant_weight": subject.implant_weight,
+            "records": records,
+        }
         return Response(data)
 
 
 class WaterRestrictionFilter(BaseFilterSet):
-    subject = django_filters.CharFilter(field_name='subject__nickname', lookup_expr='iexact')
+    subject = django_filters.CharFilter(
+        field_name="subject__nickname", lookup_expr="iexact"
+    )
 
     class Meta:
         model = WaterRestriction
-        exclude = ['json']
+        exclude = ["json"]
 
 
 class WaterRestrictionList(generics.ListAPIView):
     """
     Lists water restriction.
     """
-    queryset = WaterRestriction.objects.all().order_by('-end_time', '-start_time')
+
+    queryset = WaterRestriction.objects.all().order_by("-end_time", "-start_time")
     serializer_class = WaterRestrictionListSerializer
     permission_classes = rest_permission_classes()
     filter_class = WaterRestrictionFilter
@@ -496,6 +613,7 @@ class LabLocationList(generics.ListAPIView):
     """
     Lists Lab Location
     """
+
     queryset = LabLocation.objects.all()
     serializer_class = LabLocationSerializer
     permission_classes = rest_permission_classes()
@@ -505,16 +623,18 @@ class LabLocationAPIDetails(generics.RetrieveUpdateAPIView):
     """
     Allows viewing of full detail and deleting a water administration.
     """
+
     permission_classes = rest_permission_classes()
     serializer_class = LabLocationSerializer
     queryset = LabLocation.objects.all()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class SurgeriesList(generics.ListAPIView):
     """
     Lists Surgeries
     """
+
     queryset = Surgery.objects.all()
     serializer_class = SurgerySerializer
     permission_classes = rest_permission_classes()
