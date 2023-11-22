@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 
+from django.db import models
 
 import django_filters
 from rest_framework import generics
@@ -220,29 +221,31 @@ class SessionView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = Session.objects.all()
-        json_field = "json"
         request_params = self.request.query_params
 
-        json_filter = request_params.pop(json_field, None)
-        if json_filter:
-            # Expected format: "field__key,value,field__key,value"
-            filters = json_filter.split(",")
-            # WARNING TODO BUG : parsing as simply as that prevents list match from working, we would need to be a bit more clever than that....
-
-            # Must have an even number of elements in the list (key/value pairs)
-            if len(filters) % 2 != 0:
-                raise ParseError("Invalid json query format")
-
-            # Create Q objects for each key-value pair and add it to the queryset filter
-            for i in range(0, len(filters), 2):
-                # Assumes that the left side is the "key" and the right side is the "value"
-                queryset = queryset.filter(
-                    **{f"{json_field}__{filters[i]}": filters[i + 1]}
-                )
-
-        # Handle other filters (non-json fields)
         for key, value in request_params.items():
-            queryset = queryset.filter(**{key: value})
+            field = Session._meta.get_field(key)
+
+            # Handle the filter for the JSON field.
+            if isinstance(field, models.JSONField):
+                # WARNING TODO #823 BUG : parsing as simply as that prevents list match from working, we would need to be a bit more clever than that....
+                filters = value.split(",")
+
+                # Must have an even number of elements in the list (key/value pairs)
+                if len(filters) % 2 != 0:
+                    raise ParseError(
+                        f"Invalid json query format for field {key} with value {value}"
+                    )
+
+                # Create Q objects for each key-value pair and add it to the queryset filter
+                for i in range(0, len(filters), 2):
+                    # Assumes that the left side is the "key" and the right side is the "value"
+                    queryset = queryset.filter(
+                        **{f"{key}__{filters[i]}": filters[i + 1]}
+                    )
+
+            else:
+                queryset = queryset.filter(**{key: value})
 
         return queryset
 
