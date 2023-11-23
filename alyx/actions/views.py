@@ -232,6 +232,7 @@ class TrainingListView(ListView):
         context["today_url"] = reverse("training", args=[today])
         context["next_url"] = reverse("training", args=[next_week])
         context["wds"] = [monday + timedelta(days=n) for n in range(7)]
+        context["today"] = date.today()
         return context
 
     def get_queryset(self):
