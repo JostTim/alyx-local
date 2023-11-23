@@ -1,6 +1,8 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_urls static admin_list %}
 
+{% load tz %}
+{% now 'Y-m-d' as today %}
 
 {% block content %}
 
@@ -26,7 +28,7 @@
             <th>training days</th>
             <!-- day of week, monday, tuesday, etc. -->
             {% for wd in wds %}
-            <th>{{ wd | date:"D d M, Y" }}</th>
+            <th class="{% if wd|date:'Y-m-d' == today %}today{% endif %}">{{ wd | date:'D d M, Y' }}</th>
             {% endfor %}
         </tr>
     </thead>
