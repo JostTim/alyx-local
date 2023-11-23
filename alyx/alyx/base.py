@@ -607,7 +607,12 @@ def rich_json_filter(queryset, name, value):
 
         logger.warning(f"Values are {match['json_value']}")
 
-        json_keys, value = match["json_keys"], json.loads(match["json_value"])
+        json_keys = match["json_keys"]
+
+        try:
+            value = json.loads(match["json_value"])
+        except json.JSONDecodeError:
+            value = match["json_value"]
 
         logger.warning(f"Filtering query with {name}__{json_keys}={value}")
 
