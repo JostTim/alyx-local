@@ -83,6 +83,7 @@ class SubjectHistoryListView(ListView):
         return context
 
     def get_queryset(self):
+        logger.warning(f"Getting queryset of {self.kwargs['subject_id']}")
         subject = Subject.objects.get(pk=self.kwargs["subject_id"])
         collector = Collector(using="default")
         collector.collect([subject])
