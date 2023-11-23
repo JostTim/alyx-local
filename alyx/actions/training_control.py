@@ -69,9 +69,10 @@ class TrainingControl(object):
         return (session.n_correct_trials / session.n_trials) * 100
 
     def add_sessions(self, sessions):
+        sessions = list(sessions)
         if not len(sessions):
             return
-        self.sessions.append(sessions)
+        self.sessions.extend(sessions)
         self.sessions = sorted(self.sessions, key=attrgetter("start_time"))
 
     def to_jsonable(self):
@@ -126,8 +127,6 @@ def training_control(subject):
     sessions = subject.actions_sessions.all().exclude(
         n_trials__isnull=True, n_correct_trials__isnull=True
     )
-    logger.warning(f"Sessions : {list(sessions)}")
-    logger.warning(f"First start time : {list(sessions)[0].start_time}")
 
     tc.add_sessions(list(sessions))
 
