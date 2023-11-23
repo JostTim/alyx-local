@@ -32,13 +32,13 @@
     </thead>
     <tbody>
         {% for obj in object_list %}
-        <tr class="training-{{ obj.training_ok|yesno:" good,bad," }}">
+        <tr class="training-{{ obj.training_ok|yesno:'good,bad' }}">
             <td><a href="{{ obj.url }}">{{ obj.nickname }}</a></td>
             <td><a href="{{ obj.training_history_url }}"><b>Go to training plot</b></a></td>
             <td>{{ obj.username }}</td>
             <td>{{ obj.n_training_days }}</td>
             {% for trained in obj.training_days %}
-            <td><img src="/static/admin/img/icon-{{ trained|yesno:" yes,no," }}.svg"></td>
+            <td><img src="/static/admin/img/icon-{{ trained|yesno:'yes,no' }}.svg"></td>
             {% endfor %}
         </tr>
         {% endfor %}
