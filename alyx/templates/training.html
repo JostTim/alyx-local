@@ -28,7 +28,11 @@
             <th>training days</th>
             <!-- day of week, monday, tuesday, etc. -->
             {% for wd in wds %}
-            <th class="{% if wd|date:'Y-m-d' == today %}today{% endif %}">{{ wd | date:'D d M, Y' }}</th>
+            {% if wd == today %}
+            <th class="today">{{ wd | date:'D d/m/Y' }}</th>
+            {% else %}
+            <th>{{ wd | date:'D d/m/Y' }}</th>
+            {% endif %}
             {% endfor %}
         </tr>
     </thead>
