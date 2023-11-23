@@ -594,6 +594,8 @@ def rich_json_filter(queryset, name, value):
     """
     pattern = re.compile(r"(?P<json_keys>^[\w \+]+),(?P<value>.*$)")
 
+    logger.warning(f"About to filter {name} with values {value}")
+
     filters = value.split(";")
     for filter in filters:
         match = pattern.match(filter)
