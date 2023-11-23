@@ -50,7 +50,9 @@ from .serializers import (
     WaterRestrictionListSerializer,
 )
 
-import logging
+import structlog
+
+logger = structlog.get_logger("actions.views")
 
 
 class SubjectHistoryListView(ListView):
@@ -86,6 +88,7 @@ class SubjectHistoryListView(ListView):
         collector.collect([subject])
         out = []
         for model, instance in collector.instances_with_model():
+            logger.warning(f"trating instance {instance} of model {model}")
             if model._meta.app_label == "data":
                 continue
             if not isinstance(instance, BaseAction):
