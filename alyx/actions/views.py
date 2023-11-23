@@ -23,7 +23,6 @@ from alyx.base import (
     rich_json_filter,
     BaseFilterSet,
     rest_permission_classes,
-    BaseView,
 )
 from subjects.models import Subject
 from experiments.views import _filter_qs_with_brain_regions
