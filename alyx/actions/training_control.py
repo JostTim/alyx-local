@@ -108,7 +108,7 @@ class TrainingControl(object):
 
         f, ax = plt.subplots(1, 1, figsize=(8, 3))
 
-        dates = [self.date(session) for session in self.sessions]
+        dates = [self.session_date(session) for session in self.sessions]
         pefs = [self.success_rate(session) for session in self.sessions]
 
         ax.plot(dates, pefs, "-o", color="black", lw=2, label="sessions")
