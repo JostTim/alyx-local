@@ -602,6 +602,8 @@ def rich_json_filter(queryset, name, value):
 
         json_keys, value = match["json_keys"], json.loads(match["value"])
 
+        logger.warning(f"Filtering query with {name}__{json_keys}={value}")
+
         # Assumes that the left side is the "key" and the right side is the "value"
         queryset = queryset.filter(**{f"{name}__{json_keys}": value})
 
