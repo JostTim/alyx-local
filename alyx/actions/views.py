@@ -17,9 +17,14 @@ import django_filters
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import ParseError
 
-from alyx.base import base_json_filter, BaseFilterSet, rest_permission_classes
+from alyx.base import (
+    base_json_filter,
+    rich_json_filter,
+    BaseFilterSet,
+    rest_permission_classes,
+    BaseView,
+)
 from subjects.models import Subject
 from experiments.views import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
@@ -216,40 +221,6 @@ class ProcedureTypeList(generics.ListCreateAPIView):
     lookup_field = "name"
 
 
-class SessionView(generics.ListAPIView):
-    serializer_class = SessionListSerializer
-
-    def get_queryset(self):
-        queryset = Session.objects.all()
-        request_params = self.request.query_params
-
-        for key, value in request_params.items():
-            field = Session._meta.get_field(key)
-
-            # Handle the filter for the JSON field.
-            if isinstance(field, models.JSONField):
-                # WARNING TODO #823 BUG : parsing as simply as that prevents list match from working, we would need to be a bit more clever than that....
-                filters = value.split(",")
-
-                # Must have an even number of elements in the list (key/value pairs)
-                if len(filters) % 2 != 0:
-                    raise ParseError(
-                        f"Invalid json query format for field {key} with value {value}"
-                    )
-
-                # Create Q objects for each key-value pair and add it to the queryset filter
-                for i in range(0, len(filters), 2):
-                    # Assumes that the left side is the "key" and the right side is the "value"
-                    queryset = queryset.filter(
-                        **{f"{key}__{filters[i]}": filters[i + 1]}
-                    )
-
-            else:
-                queryset = queryset.filter(**{key: value})
-
-        return queryset
-
-
 class SessionFilter(BaseFilterSet):
     subject = django_filters.CharFilter(
         field_name="subject__nickname", lookup_expr=("iexact")
@@ -352,10 +323,12 @@ class SessionFilter(BaseFilterSet):
         ).distinct()
 
     def filter_json(self, queryset, name, value):
-        return base_json_filter("json", queryset, name, value)
+        return rich_json_filter(queryset, name, value)
+        # return base_json_filter("json", queryset, name, value)
 
     def filter_extended_qc(self, queryset, name, value):
-        return base_json_filter("extended_qc", queryset, name, value)
+        return rich_json_filter(queryset, name, value)
+        # return base_json_filter("extended_qc", queryset, name, value)
 
     def filter_users(self, queryset, name, value):
         users = value.split(",")
@@ -420,6 +393,13 @@ class SessionFilter(BaseFilterSet):
                 "filter_class": CharFilter,
             },
         }
+
+
+# class SessionView(BaseView):
+class SessionView(generics.ListAPIView):
+    serializer_class = SessionListSerializer
+    filter_class = SessionFilter
+    # model = Session
 
 
 class WeighingFilter(BaseFilterSet):
