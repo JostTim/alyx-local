@@ -39,7 +39,7 @@ def to_date(s):
 
 class TrainingControl(object):
     _columns = (
-        "date",
+        "session_date",
         "number",
         "n_trials",
         "n_correct_trials",
@@ -63,7 +63,7 @@ class TrainingControl(object):
         self.timezone = timezone
         self.water_control = water_control
 
-    def date(self, session):
+    def session_date(self, session):
         return session.start_time
 
     def number(self, session):

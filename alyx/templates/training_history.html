@@ -31,7 +31,7 @@
     <tbody>
         {% for obj in object_list %}
         <tr class="{{ obj.is_trained|yesno:'wr,nowr' }}">
-            <td>{{ obj.date | date:"Y-m-d H:i:s" }}</td>
+            <td>{{ obj.session_date | date:"Y-m-d H:i:s" }}</td>
             <td>{{ obj.number | stringformat:"s" }}</td>
             <td>{{ obj.n_trials | stringformat:"d" }}</td>
             <td>{{ obj.n_correct_trials | stringformat:"d" }}</td>
