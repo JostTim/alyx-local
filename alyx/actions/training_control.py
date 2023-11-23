@@ -97,7 +97,7 @@ class TrainingControl(object):
         dates = [self.date(session) for session in self.sessions]
         pefs = [self.success_rate(session) for session in self.sessions]
 
-        ax.plot(dates, pefs, ls="-o", color="black", lw=2, label="sessions")
+        ax.plot(dates, pefs, "-o", color="black", lw=2, label="sessions")
 
         ax.set_title(f"Performances for subject {self.nickname}")
 
