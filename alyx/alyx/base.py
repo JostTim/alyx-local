@@ -598,6 +598,7 @@ def rich_json_filter(queryset, name, value):
 
     filters = value.split(";")
     for filter in filters:
+        logger.warning(f"Will filter {filter}")
         match = pattern.match(filter)
         if match is None:
             logger.warning(f"{name} filter {filter} was not parseable.")
