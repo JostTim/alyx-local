@@ -207,7 +207,7 @@ def training_days(reqdate=None):
             "nickname": w.subject.nickname,
             "username": w.subject.responsible_user.username,
             "training_history_url": reverse(
-                "admin:training-history", args=[w.subject.pk]
+                "admin:training_history", args=[w.subject.pk]
             ),
             "url": reverse("admin:subjects_subject_change", args=[w.subject.pk]),
             "n_training_days": len(wds),
