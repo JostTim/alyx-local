@@ -396,10 +396,10 @@ class SessionFilter(BaseFilterSet):
 
 
 # class SessionView(BaseView):
-class SessionView(generics.ListAPIView):
-    serializer_class = SessionListSerializer
-    filter_class = SessionFilter
-    # model = Session
+# class SessionView(generics.ListAPIView):
+#     serializer_class = SessionListSerializer
+#     filter_class = SessionFilter
+#     # model = Session
 
 
 class WeighingFilter(BaseFilterSet):
