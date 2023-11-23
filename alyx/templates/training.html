@@ -5,7 +5,11 @@
 
 <style>
     .training-bad {
-        background-color: #fee;
+        background-color: rgb(247, 194, 194);
+    }
+
+    .date-today {
+        background-color: rgb(235, 235, 167);
     }
 </style>
 
@@ -26,9 +30,9 @@
             <!-- day of week, monday, tuesday, etc. -->
             {% for wd in wds %}
             {% if wd == today %}
-            <th class="today">{{ wd }}</th>
+            <th class="date-today">{{ wd }}</th>
             {% else %}
-            <th>{{ wd }}{{ today }}</th>
+            <th>{{ wd }}</th>
             {% endif %}
             {% endfor %}
         </tr>
