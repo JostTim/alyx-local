@@ -206,9 +206,7 @@ def training_days(reqdate=None):
         yield {
             "nickname": w.subject.nickname,
             "username": w.subject.responsible_user.username,
-            "training_history_url": reverse(
-                "admin-actions:training-history", args=[w.subject.pk]
-            ),
+            "training_history_url": reverse("training-history", args=[w.subject.pk]),
             "url": reverse("admin:subjects_subject_change", args=[w.subject.pk]),
             "n_training_days": len(wds),
             "training_ok": len(wds) >= 5,
