@@ -605,6 +605,8 @@ def rich_json_filter(queryset, name, value):
             logger.warning(f"{name} filter {filter} was not parseable.")
             raise ParseError(f"{name} filter {filter} was not parseable.")
 
+        logger.warning(f"Values are {match['json_value']}")
+
         json_keys, value = match["json_keys"], json.loads(match["json_value"])
 
         logger.warning(f"Filtering query with {name}__{json_keys}={value}")
