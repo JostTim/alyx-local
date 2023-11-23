@@ -84,10 +84,15 @@ class SubjectHistoryListView(ListView):
 
     def get_queryset(self):
         logger.warning(f"Getting queryset of {self.kwargs['subject_id']}")
+
         subject = Subject.objects.get(pk=self.kwargs["subject_id"])
+        logger.warning(f"Subject got {subject}")
         collector = Collector(using="default")
+        logger.warning(f"Collector defined queryset of {collector}")
         collector.collect([subject])
+        logger.warning(f"Collector ran")
         out = []
+
         for model, instance in collector.instances_with_model():
             logger.warning(f"trating instance {instance} of model {model}")
             if model._meta.app_label == "data":
