@@ -280,7 +280,8 @@ class SessionFilter(BaseFilterSet):
     # dataset_attribute : TODO
 
     def filter_subject(self, queryset, _, value):
-        return queryset.filter(subject__nickname__in=value.split(","))
+        objects = value.split(",")
+        return queryset.filter(subject__nickname__in=objects)
 
     def filter_object(self, queryset, name, value):
         objects = value.split(",")
