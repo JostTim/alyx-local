@@ -69,6 +69,8 @@ class TrainingControl(object):
         return (session.n_correct_trials / session.n_trials) * 100
 
     def add_sessions(self, sessions):
+        if len(sessions) == 0:
+            return
         self.sessions.append(sessions)
         self.sessions = sorted(self.sessions, key=attrgetter("start_time"))
 
