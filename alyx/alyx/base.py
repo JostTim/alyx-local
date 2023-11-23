@@ -497,41 +497,6 @@ class BaseTests(TestCase):
         return self.client.patch(*args, **kwargs, content_type="application/json")
 
 
-class BaseView(generics.ListAPIView):
-    # ! model needs to be overwritten with the actual model of the child view. Won't work otherwise
-    model = None
-
-    def get_queryset(self):
-        queryset = self.model.objects.all()
-        request_params = self.request.query_params
-
-        for key, value in request_params.items():
-            field = self.model._meta.get_field(key)
-
-            # Handle the filter for the JSON field.
-            if isinstance(field, models.JSONField):
-                # WARNING TODO #823 BUG : parsing as simply as that prevents list match from working, we would need to be a bit more clever than that....
-                filters = value.split(",")
-
-                # Must have an even number of elements in the list (key/value pairs)
-                if len(filters) % 2 != 0:
-                    raise ParseError(
-                        f"Invalid json query format for field {key} with value {value}"
-                    )
-
-                # Create Q objects for each key-value pair and add it to the queryset filter
-                for i in range(0, len(filters), 2):
-                    # Assumes that the left side is the "key" and the right side is the "value"
-                    queryset = queryset.filter(
-                        **{f"{key}__{filters[i]}": filters[i + 1]}
-                    )
-
-            else:
-                queryset = queryset.filter(**{key: value})
-
-        return queryset
-
-
 class BaseFilterSet(FilterSet):
     """
     Base class for Alyx filters. Adds a custom django filter for extensible queries using

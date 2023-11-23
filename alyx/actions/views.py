@@ -223,7 +223,7 @@ class ProcedureTypeList(generics.ListCreateAPIView):
 
 class SessionFilter(BaseFilterSet):
     subject = django_filters.CharFilter(
-        field_name="subject__nickname", lookup_expr=("iexact")
+        field_name="subject__nickname", method="filter_subject"
     )
     dataset_types = django_filters.CharFilter(
         field_name="dataset_types", method="filter_dataset_types"
@@ -278,6 +278,9 @@ class SessionFilter(BaseFilterSet):
     object = django_filters.CharFilter(field_name="object", method="filter_object")
 
     # dataset_attribute : TODO
+
+    def filter_subject(self, queryset, _, value):
+        return queryset.filter(subject__nickname__in=value.split(","))
 
     def filter_object(self, queryset, name, value):
         objects = value.split(",")
@@ -393,13 +396,6 @@ class SessionFilter(BaseFilterSet):
                 "filter_class": CharFilter,
             },
         }
-
-
-# class SessionView(BaseView):
-# class SessionView(generics.ListAPIView):
-#     serializer_class = SessionListSerializer
-#     filter_class = SessionFilter
-#     # model = Session
 
 
 class WeighingFilter(BaseFilterSet):
