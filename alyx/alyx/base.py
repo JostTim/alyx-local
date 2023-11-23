@@ -592,7 +592,7 @@ def rich_json_filter(queryset, name, value):
     # gte lookup: "?extended_qc=qc_pct__gte,0.5"
     # chained lookups: "?extended_qc=qc_pct__gte,0.5;qc_bool,True"
     """
-    pattern = re.compile(r"(?P<json_keys>^[\w \+]+),(?P<value>.*$)")
+    pattern = re.compile(r"(?P<json_keys>^[\w \+]+),(?P<json_value>.*$)")
 
     logger.warning(f"About to filter {name} with values {value}")
 
@@ -600,11 +600,12 @@ def rich_json_filter(queryset, name, value):
     for filter in filters:
         logger.warning(f"Will filter {filter}")
         match = pattern.match(filter)
+
         if match is None:
             logger.warning(f"{name} filter {filter} was not parseable.")
             raise ParseError(f"{name} filter {filter} was not parseable.")
 
-        json_keys, value = match["json_keys"], json.loads(match["value"])
+        json_keys, value = match["json_keys"], json.loads(match["json_value"])
 
         logger.warning(f"Filtering query with {name}__{json_keys}={value}")
 
