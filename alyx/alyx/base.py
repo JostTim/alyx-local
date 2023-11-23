@@ -598,6 +598,7 @@ def rich_json_filter(queryset, name, value):
     for filter in filters:
         match = pattern.match(filter)
         if match is None:
+            logger.warning(f"{name} filter {filter} was not parseable.")
             raise ParseError(f"{name} filter {filter} was not parseable.")
 
         json_keys, value = match["json_keys"], json.loads(match["value"])
