@@ -26,9 +26,9 @@
             <!-- day of week, monday, tuesday, etc. -->
             {% for wd in wds %}
             {% if wd == today %}
-            <th class="today">{{ wd | date:'D d/m/Y' }}</th>
+            <th class="today">{{ wd | date:'D d/m/Y' }}{{ today | date:'D d/m/Y' }}</th>
             {% else %}
-            <th>{{ wd | date:'D d/m/Y' }}</th>
+            <th>{{ wd | date:'D d/m/Y' }}{{ today | date:'D d/m/Y' }}</th>
             {% endif %}
             {% endfor %}
         </tr>

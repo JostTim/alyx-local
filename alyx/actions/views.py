@@ -226,7 +226,7 @@ class TrainingListView(ListView):
         previous_week = (monday - timedelta(days=7)).strftime("%Y-%m-%d")
         today = (date.today()).strftime("%Y-%m-%d")
         next_week = (monday + timedelta(days=7)).strftime("%Y-%m-%d")
-        context["title"] = "Training history for %s" % monday.strftime("%Y-%m-%d")
+        context["title"] = "Training view for %s" % monday.strftime("%Y-%m-%d")
         context["site_header"] = "Alyx"
         context["prev_url"] = reverse("training", args=[previous_week])
         context["today_url"] = reverse("training", args=[today])
