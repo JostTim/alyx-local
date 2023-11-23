@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+
+{% block content %}
+
+<div>
+    <img src="{{ plot_url }}" />
+</div>
+
+<style>
+    tr.nowr {
+        background: #ddd;
+    }
+
+    tr.wr {
+        background: #fff;
+    }
+</style>
+
+<table>
+    <thead>
+        <tr>
+            <th>date</th>
+            <th>total trials</th>
+            <th>successfull trials</th>
+            <th>success rate</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in object_list %}
+        <tr class="{{ obj.is_trained|yesno:'wr,nowr,' }}">
+            <td>{{ obj.date | date:"Y-m-d H:i:s" }}</td>
+            <td>{{ obj.number | stringformat:"s" }}</td>
+            <td>{{ obj.n_trials | stringformat:"d" }} g</td>
+            <td>{{ obj.n_correct_trials | stringformat:"d" }} g</td>
+            <td>{{ obj.success_rate | floatformat:2 }} g</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+{% block title %}
+{{ title|striptags }}
+{% endblock %}

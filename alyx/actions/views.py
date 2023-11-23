@@ -27,6 +27,7 @@ from alyx.base import (
 from subjects.models import Subject
 from experiments.views import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
+from .training_control import training_control
 from .models import (
     BaseAction,
     Session,
@@ -90,7 +91,7 @@ class SubjectHistoryListView(ListView):
         collector = Collector(using="default")
         logger.warning(f"Collector defined queryset of {collector}")
         collector.collect([subject])
-        logger.warning(f"Collector ran")
+        logger.warning("Collector ran")
         out = []
 
         for model, instance in collector.instances_with_model():
@@ -150,6 +151,29 @@ class WaterHistoryListView(ListView):
     def get_queryset(self):
         subject = Subject.objects.get(pk=self.kwargs["subject_id"])
         return water_control(subject).to_jsonable()[::-1]
+
+
+class TrainingHistoryListView(ListView):
+    template_name = "training_history.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TrainingHistoryListView, self).get_context_data(**kwargs)
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
+        context["title"] = mark_safe(
+            'Training history of <a href="%s">%s</a>'
+            % (
+                reverse("admin:subjects_subject_change", args=[subject.id]),
+                subject.nickname,
+            )
+        )
+        context["site_header"] = "Alyx"
+        url = reverse("training-perf-plot", kwargs={"subject_id": subject.id})
+        context["plot_url"] = url
+        return context
+
+    def get_queryset(self):
+        subject = Subject.objects.get(pk=self.kwargs["subject_id"])
+        return training_control(subject).to_jsonable()[::-1]
 
 
 def last_monday(reqdate=None):
@@ -219,6 +243,15 @@ def weighing_plot(request, subject_id=None):
     if subject_id in (None, "None"):
         return HttpResponse("")
     wc = water_control(Subject.objects.get(pk=subject_id))
+    return wc.plot()
+
+
+def training_perf_plot(request, subject_id=None):
+    if not request.user.is_authenticated:
+        return HttpResponse("")
+    if subject_id in (None, "None"):
+        return HttpResponse("")
+    wc = training_control(Subject.objects.get(pk=subject_id))
     return wc.plot()
 
 

@@ -11,9 +11,19 @@ urlpatterns = [
         name="weighing-plot",
     ),
     path(
+        "admin-actions/training-perf-plot/<uuid:subject_id>",
+        av.training_perf_plot,
+        name="training-perf-plot",
+    ),
+    path(
         "admin-actions/water-history/<uuid:subject_id>",
         av.WaterHistoryListView.as_view(),
         name="water-history",
+    ),
+    path(
+        "admin-actions/training-history/<uuid:subject_id>",
+        av.TrainingHistoryListView.as_view(),
+        name="training-history",
     ),
     path(
         "admin-actions/training/",
