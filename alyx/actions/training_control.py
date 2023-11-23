@@ -124,6 +124,7 @@ def training_control(subject):
     sessions = subject.actions_sessions.all().exclude(
         n_trials__isnull=True, n_correct_trials__isnull=True
     )
+    logger.warning(f"Sessions : {list(sessions)}")
 
     tc.add_sessions(list(sessions))
 
