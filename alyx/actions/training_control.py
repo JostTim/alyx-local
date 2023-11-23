@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 import io
 from operator import attrgetter
+from .water_control import water_control
 
 logger = structlog.get_logger(__name__)
 
@@ -37,13 +38,21 @@ def to_date(s):
 
 
 class TrainingControl(object):
-    _columns = ("date", "number", "n_trials", "n_correct_trials", "success_rate")
+    _columns = (
+        "date",
+        "number",
+        "n_trials",
+        "n_correct_trials",
+        "success_rate",
+        "is_trained",
+    )
 
     def __init__(
         self,
         nickname=None,
         subject_id=None,
         timezone=timezone.get_default_timezone(),
+        water_control=None,
     ):
         assert nickname, "Subject nickname not provided"
         self.nickname = nickname
@@ -52,18 +61,22 @@ class TrainingControl(object):
 
         self.sessions = []
         self.timezone = timezone
+        self.water_control = water_control
 
     def date(self, session):
         return session.start_time
 
     def number(self, session):
-        return session.number
+        return str(session.number).zfill(3)
 
     def n_trials(self, session):
         return session.n_trials
 
     def n_correct_trials(self, session):
         return session.n_correct_trials
+
+    def is_trained(self, session):
+        self.water_control.is_water_restricted(date=session.start_time)
 
     def success_rate(self, session):
         return (session.n_correct_trials / session.n_trials) * 100
@@ -118,10 +131,13 @@ def training_control(subject):
     assert subject is not None
 
     # Create the WaterControl instance.
+    wc = water_control(subject)
+
     tc = TrainingControl(
         nickname=subject.nickname,
         subject_id=subject.id,
         timezone=subject.timezone(),
+        water_control=wc,
     )
 
     sessions = subject.actions_sessions.all().exclude(

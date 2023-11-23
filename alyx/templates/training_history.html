@@ -30,12 +30,12 @@
     </thead>
     <tbody>
         {% for obj in object_list %}
-        <tr class="{{ obj.is_trained|yesno:'wr,nowr,' }}">
+        <tr class="{{ obj.is_trained|yesno:'wr,nowr' }}">
             <td>{{ obj.date | date:"Y-m-d H:i:s" }}</td>
             <td>{{ obj.number | stringformat:"s" }}</td>
-            <td>{{ obj.n_trials | stringformat:"d" }} g</td>
-            <td>{{ obj.n_correct_trials | stringformat:"d" }} g</td>
-            <td>{{ obj.success_rate | floatformat:2 }} g</td>
+            <td>{{ obj.n_trials | stringformat:"d" }}</td>
+            <td>{{ obj.n_correct_trials | stringformat:"d" }}</td>
+            <td>{{ obj.success_rate | floatformat:2 }} %</td>
         </tr>
         {% endfor %}
     </tbody>
