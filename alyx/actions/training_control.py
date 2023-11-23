@@ -76,7 +76,7 @@ class TrainingControl(object):
         return session.n_correct_trials
 
     def is_trained(self, session):
-        self.water_control.is_water_restricted(date=session.start_time)
+        return self.water_control.is_water_restricted(date=session.start_time)
 
     def success_rate(self, session):
         return (session.n_correct_trials / session.n_trials) * 100
