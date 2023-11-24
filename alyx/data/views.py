@@ -11,30 +11,37 @@ from alyx.base import BaseFilterSet, rest_permission_classes
 from subjects.models import Subject, Project
 from experiments.models import ProbeInsertion
 from misc.models import Lab
-from .models import (DataRepositoryType,
-                     DataRepository,
-                     DataFormat,
-                     DatasetType,
-                     Dataset,
-                     Download,
-                     FileRecord,
-                     new_download,
-                     Revision,
-                     Tag
-                     )
-from .serializers import (DataRepositoryTypeSerializer,
-                          DataRepositorySerializer,
-                          DataFormatSerializer,
-                          DatasetTypeSerializer,
-                          DatasetSerializer,
-                          DownloadSerializer,
-                          FileRecordSerializer,
-                          RevisionSerializer,
-                          TagSerializer
-                          )
-from .transfers import (_get_session, _get_repositories_for_labs,
-                        _create_dataset_file_records, bulk_sync, _check_dataset_protected,
-                        _get_name_collection_revision)
+from .models import (
+    DataRepositoryType,
+    DataRepository,
+    DataFormat,
+    DatasetType,
+    Dataset,
+    Download,
+    FileRecord,
+    new_download,
+    Revision,
+    Tag,
+)
+from .serializers import (
+    DataRepositoryTypeSerializer,
+    DataRepositorySerializer,
+    DataFormatSerializer,
+    DatasetTypeSerializer,
+    DatasetSerializer,
+    DownloadSerializer,
+    FileRecordSerializer,
+    RevisionSerializer,
+    TagSerializer,
+)
+from .transfers import (
+    _get_session,
+    _get_repositories_for_labs,
+    _create_dataset_file_records,
+    bulk_sync,
+    _check_dataset_protected,
+    _get_name_collection_revision,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -46,69 +53,74 @@ class DataRepositoryTypeList(generics.ListCreateAPIView):
     queryset = DataRepositoryType.objects.all()
     serializer_class = DataRepositoryTypeSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class DataRepositoryTypeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = DataRepositoryType.objects.all()
     serializer_class = DataRepositoryTypeSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 # DataRepository
 # ------------------------------------------------------------------------------------------------
 
+
 class DataRepositoryList(generics.ListCreateAPIView):
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
-    filter_fields = ('name', 'globus_endpoint_id')
-    lookup_field = 'name'
+    filter_fields = ("name", "globus_endpoint_id")
+    lookup_field = "name"
 
 
 class DataRepositoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
+
 
 # DataFormat
 # ------------------------------------------------------------------------------------------------
+
 
 class DataFormatList(generics.ListCreateAPIView):
     queryset = DataFormat.objects.all()
     serializer_class = DataFormatSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class DataFormatDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = DataFormat.objects.all()
     serializer_class = DataFormatSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 # DatasetType
 # ------------------------------------------------------------------------------------------------
 
+
 class DatasetTypeList(generics.ListCreateAPIView):
     queryset = DatasetType.objects.all()
     serializer_class = DatasetTypeSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class DatasetTypeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = DatasetType.objects.all()
     serializer_class = DatasetTypeSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 # Revision
 # -------------------------------------------------------------------------------------------------
+
 
 class RevisionList(generics.ListCreateAPIView):
     queryset = Revision.objects.all()
@@ -120,7 +132,7 @@ class RevisionDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Revision.objects.all()
     serializer_class = RevisionSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class TagList(generics.ListCreateAPIView):
@@ -134,33 +146,36 @@ class TagDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TagSerializer
     permission_classes = rest_permission_classes()
 
+
 # Dataset
 # ------------------------------------------------------------------------------------------------
 
 
 class DatasetFilter(BaseFilterSet):
-    subject = django_filters.CharFilter('session__subject__nickname')
-    lab = django_filters.CharFilter('session__lab__name')
-    created_date = django_filters.CharFilter('created_datetime__date')
-    date = django_filters.CharFilter('session__start_time__date')
-    created_by = django_filters.CharFilter('created_by__username')
-    dataset_type = django_filters.CharFilter('dataset_type__name')
-    experiment_number = django_filters.CharFilter('session__number')
-    created_date_gte = django_filters.DateTimeFilter('created_datetime__date',
-                                                     lookup_expr='gte')
-    created_date_lte = django_filters.DateTimeFilter('created_datetime__date',
-                                                     lookup_expr='lte')
-    exists = django_filters.BooleanFilter(method='filter_exists')
-    probe_insertion = django_filters.UUIDFilter(method='probe_insertion_filter')
-    public = django_filters.BooleanFilter(method='filter_public')
-    protected = django_filters.BooleanFilter(method='filter_protected')
-    tag = django_filters.CharFilter('tags__name')
-    revision = django_filters.CharFilter('revision__name')
-    data_repository = django_filters.CharFilter('data_repository__name')
+    subject = django_filters.CharFilter("session__subject__nickname")
+    lab = django_filters.CharFilter("session__lab__name")
+    created_date = django_filters.CharFilter("created_datetime__date")
+    date = django_filters.CharFilter("session__start_time__date")
+    created_by = django_filters.CharFilter("created_by__username")
+    dataset_type = django_filters.CharFilter("dataset_type__name")
+    experiment_number = django_filters.CharFilter("session__number")
+    created_date_gte = django_filters.DateTimeFilter(
+        "created_datetime__date", lookup_expr="gte"
+    )
+    created_date_lte = django_filters.DateTimeFilter(
+        "created_datetime__date", lookup_expr="lte"
+    )
+    exists = django_filters.BooleanFilter(method="filter_exists")
+    probe_insertion = django_filters.UUIDFilter(method="probe_insertion_filter")
+    public = django_filters.BooleanFilter(method="filter_public")
+    protected = django_filters.BooleanFilter(method="filter_protected")
+    tag = django_filters.CharFilter("tags__name")
+    revision = django_filters.CharFilter("revision__name")
+    data_repository = django_filters.CharFilter("data_repository__name")
 
     class Meta:
         model = Dataset
-        exclude = ['json']
+        exclude = ["json"]
 
     def filter_exists(self, dsets, name, value):
         """
@@ -168,7 +183,9 @@ class DatasetFilter(BaseFilterSet):
         Only if the database has any globus non-personal repositories (ie. servers)
         """
         if len(DataRepository.objects.filter(globus_is_personal=False)) > 0:
-            frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
+            frs = FileRecord.objects.filter(
+                pk__in=dsets.values_list("file_records", flat=True)
+            )
             pkd = frs.filter(exists=value).values_list("dataset", flat=True)
             dsets = dsets.filter(pk__in=pkd)
         return dsets
@@ -214,6 +231,7 @@ class DatasetList(generics.ListCreateAPIView):
 
     [===> dataset model reference](/admin/doc/models/data.dataset)
     """
+
     queryset = Dataset.objects.all()
     queryset = DatasetSerializer.setup_eager_loading(queryset)
     serializer_class = DatasetSerializer
@@ -230,11 +248,15 @@ class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
 # FileRecord
 # ------------------------------------------------------------------------------------------------
 class FileRecordFilter(BaseFilterSet):
-    lab = django_filters.CharFilter('dataset__session__lab__name')
+    lab = django_filters.CharFilter("dataset__session__lab__name")
+
+    data_repository = django_filters.CharFilter(
+        field_name="dataset__data_repository__name"
+    )
 
     class Meta:
         model = FileRecord
-        exclude = ['json']
+        exclude = ["json"]
 
 
 class FileRecordList(generics.ListCreateAPIView):
@@ -248,6 +270,7 @@ class FileRecordList(generics.ListCreateAPIView):
 
     [===> file record model reference](/admin/doc/models/data.filerecord)
     """
+
     queryset = FileRecord.objects.all()
     queryset = FileRecordSerializer.setup_eager_loading(queryset)
     serializer_class = FileRecordSerializer
@@ -264,6 +287,7 @@ class FileRecordDetail(generics.RetrieveUpdateDestroyAPIView):
 # Register file
 # ------------------------------------------------------------------------------------------------
 
+
 def _make_dataset_response(dataset):
     if not dataset:
         return None
@@ -271,54 +295,55 @@ def _make_dataset_response(dataset):
     # Return the file records.
     file_records = [
         {
-            'id': fr.pk,
-            'relative_path': fr.relative_path,
-            'exists': fr.exists,
+            "id": fr.pk,
+            "relative_path": fr.relative_path,
+            "exists": fr.exists,
         }
-        for fr in FileRecord.objects.filter(dataset=dataset)]
+        for fr in FileRecord.objects.filter(dataset=dataset)
+    ]
 
     out = {
-        'id': dataset.pk,
-        'name': dataset.name,
-        'file_size': dataset.file_size,
-        'subject': dataset.session.subject.nickname,
-        'created_by': dataset.created_by.username,
-        'created_datetime': dataset.created_datetime,
-        'dataset_type': getattr(dataset.dataset_type, 'name', ''),
-        'data_format': getattr(dataset.data_format, 'name', ''),
-        'session': getattr(dataset.session, 'pk', ''),
-        'session_number': dataset.session.number,
-        'session_users': ','.join(_.username for _ in dataset.session.users.all()),
-        'session_start_time': dataset.session.start_time,
-        'collection': dataset.collection,
-        'revision': getattr(dataset.revision, 'name', None),
-        'default': dataset.default_dataset,
+        "id": dataset.pk,
+        "name": dataset.name,
+        "file_size": dataset.file_size,
+        "subject": dataset.session.subject.nickname,
+        "created_by": dataset.created_by.username,
+        "created_datetime": dataset.created_datetime,
+        "dataset_type": getattr(dataset.dataset_type, "name", ""),
+        "data_format": getattr(dataset.data_format, "name", ""),
+        "session": getattr(dataset.session, "pk", ""),
+        "session_number": dataset.session.number,
+        "session_users": ",".join(_.username for _ in dataset.session.users.all()),
+        "session_start_time": dataset.session.start_time,
+        "collection": dataset.collection,
+        "revision": getattr(dataset.revision, "name", None),
+        "default": dataset.default_dataset,
     }
-    out['file_records'] = file_records
+    out["file_records"] = file_records
     return out
 
 
 def _parse_path(path):
-    pattern = (r'^(?P<nickname>[a-zA-Z0-9\-\_]+)/'
-               # '(?P<year>[0-9]{4})\-(?P<month>[0-9]{2})\-(?P<day>[0-9]{2})/'
-               r'(?P<date>[0-9\-]{10})/'
-               r'(?P<session_number>[0-9]+)'
-               r'(.*)$')
+    pattern = (
+        r"^(?P<nickname>[a-zA-Z0-9\-\_]+)/"
+        # '(?P<year>[0-9]{4})\-(?P<month>[0-9]{2})\-(?P<day>[0-9]{2})/'
+        r"(?P<date>[0-9\-]{10})/"
+        r"(?P<session_number>[0-9]+)"
+        r"(.*)$"
+    )
     m = re.match(pattern, path)
     if not m:
         raise ValueError(r"The path %s should be `nickname/YYYY-MM-DD/n/..." % path)
     # date_triplet = (m.group('year'), m.group('month'), m.group('day'))
-    date = m.group('date')
-    nickname = m.group('nickname')
-    session_number = int(m.group('session_number'))
+    date = m.group("date")
+    nickname = m.group("nickname")
+    session_number = int(m.group("session_number"))
     # An error is raised if the subject or data repository do not exist.
     subject = Subject.objects.get(nickname=nickname)
     return subject, date, session_number
 
 
-class RegisterFileViewSet(mixins.CreateModelMixin,
-                          viewsets.GenericViewSet):
-
+class RegisterFileViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = serializers.Serializer
 
     def create(self, request):
@@ -367,15 +392,15 @@ class RegisterFileViewSet(mixins.CreateModelMixin,
         If the dataset already exists, it will use the file hash to deduce if the file has been
         patched or not (ie. the filerecords will be created as not existing)
         """
-        user = request.data.get('created_by', None)
+        user = request.data.get("created_by", None)
         if user:
             user = get_user_model().objects.get(username=user)
         else:
             user = request.user
 
         # get the concerned repository using the name/hostname combination
-        name = request.data.get('name', None)
-        hostname = request.data.get('hostname', None)
+        name = request.data.get("name", None)
+        hostname = request.data.get("hostname", None)
         if name:
             repo = DataRepository.objects.get(name=name)
         elif hostname:
@@ -384,69 +409,72 @@ class RegisterFileViewSet(mixins.CreateModelMixin,
             repo = None
         exists_in = (repo,)
 
-        rel_dir_path = request.data.get('path', '')
+        rel_dir_path = request.data.get("path", "")
         if not rel_dir_path:
             raise ValueError("The path argument is required.")
 
         # Extract the data repository from the hostname, the subject, the directory path.
-        rel_dir_path = rel_dir_path.replace('\\', '/')
-        rel_dir_path = rel_dir_path.replace('//', '/')
+        rel_dir_path = rel_dir_path.replace("\\", "/")
+        rel_dir_path = rel_dir_path.replace("//", "/")
         subject, date, session_number = _parse_path(rel_dir_path)
 
-        filenames = request.data.get('filenames', ())
+        filenames = request.data.get("filenames", ())
         if isinstance(filenames, str):
-            filenames = filenames.split(',')
+            filenames = filenames.split(",")
 
         # versions if provided
-        versions = request.data.get('versions', [None] * len(filenames))
+        versions = request.data.get("versions", [None] * len(filenames))
         if isinstance(versions, str):
-            versions = versions.split(',')
+            versions = versions.split(",")
 
         # file hashes if provided
-        hashes = request.data.get('hashes', [None] * len(filenames))
+        hashes = request.data.get("hashes", [None] * len(filenames))
         if isinstance(hashes, str):
-            hashes = hashes.split(',')
+            hashes = hashes.split(",")
 
         # file sizes if provided
-        filesizes = request.data.get('filesizes', [None] * len(filenames))
+        filesizes = request.data.get("filesizes", [None] * len(filenames))
         if isinstance(filesizes, str):
-            filesizes = filesizes.split(',')
+            filesizes = filesizes.split(",")
 
         # flag to discard file records creation on local repositories, defaults to False
-        server_only = request.data.get('server_only', False)
+        server_only = request.data.get("server_only", False)
         if isinstance(server_only, str):
-            server_only = server_only == 'True'
+            server_only = server_only == "True"
 
-        default = request.data.get('default', True)
+        default = request.data.get("default", True)
         # Need to explicitly cast string to a bool
         if isinstance(default, str):
-            default = default == 'True'
+            default = default == "True"
 
-        check_protected = request.data.get('check_protected', False)
+        check_protected = request.data.get("check_protected", False)
         # Need to explicitly cast string to a bool
         if isinstance(check_protected, str):
-            check_protected = check_protected == 'True'
+            check_protected = check_protected == "True"
 
         # Multiple labs
-        labs = request.data.get('projects', '') + request.data.get('labs', '')
-        labs = labs.split(',')
+        labs = request.data.get("projects", "") + request.data.get("labs", "")
+        labs = labs.split(",")
         labs = [Lab.objects.get(name=lab) for lab in labs if lab]
-        repositories = _get_repositories_for_labs(labs or [subject.lab], server_only=server_only)
+        repositories = _get_repositories_for_labs(
+            labs or [subject.lab], server_only=server_only
+        )
         if repo and repo not in repositories:
             repositories += [repo]
         if server_only:
             exists_in = repositories
 
         # # If exists is specified to be false then we set the exists_in back to None
-        exists = request.data.get('exists', True)
+        exists = request.data.get("exists", True)
         # Need to explicitly cast string to a bool
         if isinstance(exists, str):
-            exists = exists == 'True'
+            exists = exists == "True"
         if not exists:
             exists_in = (None,)
 
         session = _get_session(
-            subject=subject, date=date, number=session_number, user=user)
+            subject=subject, date=date, number=session_number, user=user
+        )
         assert session
 
         # If the check protected flag is True, loop through the files to see if any are protected
@@ -454,42 +482,69 @@ class RegisterFileViewSet(mixins.CreateModelMixin,
             prot_response = []
             protected = []
             for file in filenames:
-
-                info, resp = _get_name_collection_revision(file, rel_dir_path, subject, date)
+                info, resp = _get_name_collection_revision(
+                    file, rel_dir_path, subject, date
+                )
 
                 if resp:
                     return resp
 
+                if info is None:
+                    raise ValueError(
+                        f"info is none in RegisterFileViewSet.create for file {file}. Aborting"
+                    )
+
                 prot, prot_info = _check_dataset_protected(
-                    session, info['collection'], info['filename'])
+                    session, info["collection"], info["filename"]
+                )
                 protected.append(prot)
                 prot_response.append({file: prot_info})
 
             if any(protected):
-                data = {'status_code': 403,
-                        'error': 'One or more datasets is protected',
-                        'details': prot_response}
+                data = {
+                    "status_code": 403,
+                    "error": "One or more datasets is protected",
+                    "details": prot_response,
+                }
                 return Response(data=data, status=403)
 
         response = []
-        for filename, hash, fsize, version in zip(filenames, hashes, filesizes, versions):
+        for filename, hash, fsize, version in zip(
+            filenames, hashes, filesizes, versions
+        ):
             if not filename:
                 continue
-            info, resp = _get_name_collection_revision(filename, rel_dir_path, subject, date)
+            info, resp = _get_name_collection_revision(
+                filename, rel_dir_path, subject, date
+            )
 
             if resp:
                 return resp
 
-            if info['revision'] is not None:
-                revision, _ = Revision.objects.get_or_create(name=info['revision'])
+            if info is None:
+                raise ValueError(
+                    f"info is none in RegisterFileViewSet.create for file {filename}. Aborting"
+                )
+
+            if info["revision"] is not None:
+                revision, _ = Revision.objects.get_or_create(name=info["revision"])
             else:
                 revision = None
 
             dataset, resp = _create_dataset_file_records(
-                collection=info['collection'], rel_dir_path=info['rel_dir_path'],
-                filename=info['filename'], session=session, user=user, repositories=repositories,
-                exists_in=exists_in, hash=hash, file_size=fsize, version=version,
-                revision=revision, default=default)
+                collection=info["collection"],
+                rel_dir_path=info["rel_dir_path"],
+                filename=info["filename"],
+                session=session,
+                user=user,
+                repositories=repositories,
+                exists_in=exists_in,
+                hash=hash,
+                file_size=fsize,
+                version=version,
+                revision=revision,
+                default=default,
+            )
             if resp:
                 return resp
             out = _make_dataset_response(dataset)
@@ -499,7 +554,6 @@ class RegisterFileViewSet(mixins.CreateModelMixin,
 
 
 class SyncViewSet(viewsets.GenericViewSet):
-
     serializer_class = serializers.Serializer
 
     def sync(self, request):
@@ -530,16 +584,18 @@ class DownloadViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user = request.user
 
         # this should work for bulk downloads, but they will all be assigned the same projects set
-        datasets = request.data.get('datasets', None)
+        datasets = request.data.get("datasets", None)
         if isinstance(datasets, str):
-            datasets = datasets.split(',')
+            datasets = datasets.split(",")
         datasets = [Dataset.objects.get(pk=ds) for ds in datasets]
 
         # Multiple projects, or the subject's projects
-        projects = request.data.get('projects', ())
+        projects = request.data.get("projects", ())
         if isinstance(projects, str):
-            projects = projects.split(',')
-        projects = [Project.objects.get(name=project) for project in projects if project]
+            projects = projects.split(",")
+        projects = [
+            Project.objects.get(name=project) for project in projects if project
+        ]
 
         # loop over datasets
         dpk = []
@@ -549,28 +605,31 @@ class DownloadViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             dpk.append(str(download.pk))
             dcount.append(download.count)
 
-        return Response({'download': dpk, 'count': dcount}, status=201)
+        return Response({"download": dpk, "count": dcount}, status=201)
 
 
 class DownloadDetail(generics.RetrieveUpdateAPIView):
     """
     Example: https://alyx.internationalbrainlab.org/downloads/151f5f77-c9bd-42e6-b31e-5a0e5b080afe
     """
+
     queryset = Download.objects.all()
     serializer_class = DownloadSerializer
     permission_classes = rest_permission_classes()
 
 
 class DownloadFilter(BaseFilterSet):
-    json = django_filters.CharFilter(field_name='json', lookup_expr=('icontains'))
-    dataset = django_filters.CharFilter('dataset__name')
-    user = django_filters.CharFilter('user__username')
-    dataset_type = django_filters.CharFilter(field_name='dataset__dataset_type__name',
-                                             lookup_expr=('icontains'))
+    json = django_filters.CharFilter(field_name="json", lookup_expr=("icontains"))
+    dataset = django_filters.CharFilter("dataset__name")
+    user = django_filters.CharFilter("user__username")
+    dataset_type = django_filters.CharFilter(
+        field_name="dataset__dataset_type__name", lookup_expr=("icontains")
+    )
 
     class Meta:
         model = Download
-        fields = ('count', )
+        fields = ("count",)
+
 
 class DownloadList(generics.ListAPIView):
     """
@@ -582,6 +641,7 @@ class DownloadList(generics.ListAPIView):
     -   **dataset_type**: icontains on dataset type`/downloads?dataset_type=camera`
 
     """
+
     queryset = Download.objects.all()
     serializer_class = DownloadSerializer
     permission_classes = rest_permission_classes()
