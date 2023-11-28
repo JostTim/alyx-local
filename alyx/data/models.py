@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from django.utils.functional import cached_property
+
 from alyx.settings import TIME_ZONE, AUTH_USER_MODEL
 from actions.models import Session
 from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField
@@ -706,6 +708,7 @@ class FileRecord(BaseModel):
     # EXAMPLE to illustrate all conditions below :
     # The file record is named //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
 
+    @cached_property
     def get_session_path(self, as_dict=False):
         # returns wm29/2023-05-25/002
         session_path = self.dataset.session.alias
