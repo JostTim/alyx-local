@@ -457,9 +457,9 @@ class Session(BaseAction):
                 whisker = whisker.title()
                 side = side.title()
                 if side == "Right":
-                    side = "0"
-                elif side == "Left":
                     side = "1"
+                elif side == "Left":
+                    side = "0"
                 else:
                     side = "U"  # U means there is an issue
 
