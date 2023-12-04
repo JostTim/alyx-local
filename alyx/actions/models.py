@@ -444,21 +444,18 @@ class Session(BaseAction):
             json["whisker_stims"]["Stimulus right"]
             return
         except Exception:
-            pattern = re.compile(r"(\w+).*((?:left)|(?:right))", re.IGNORECASE)
+            pattern = re.compile(
+                r"(?P<dash>- *)(?P<whisker>\w+)[ :\-(]+(?P<side>(?:left)|(?:right))",
+                re.IGNORECASE,
+            )
 
             temp = {}
             matches = pattern.findall(self.narrative)
-            if len(matches) < 2:
+            if len(matches) < 1:
                 return
-            for results in matches:
-                results = [result.title() for result in results]
-                try:
-                    index = results.index("Left")
-                    side = "0"
-                except ValueError:
-                    index = results.index("Right")
-                    side = "1"
-                whisker = results[~index]
+            for dash, whisker, side in matches:
+                whisker = whisker.title()
+                side = side.title()
                 temp.update({side: whisker})
 
             if "whisker_stims" not in json.keys():
