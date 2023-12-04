@@ -456,6 +456,13 @@ class Session(BaseAction):
             for dash, whisker, side in matches:
                 whisker = whisker.title()
                 side = side.title()
+                if side == "Right":
+                    side = "0"
+                elif side == "Left":
+                    side = "1"
+                else:
+                    side = "U"  # U means there is an issue
+
                 temp.update({side: whisker})
 
             if "whisker_stims" not in json.keys():
