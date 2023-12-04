@@ -708,7 +708,7 @@ class FileRecord(BaseModel):
     # EXAMPLE to illustrate all conditions below :
     # The file record is named //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
 
-    @cached_property
+    # @cached_property cached property cannot work with methods needing arguments
     def get_session_path(self, as_dict=False):
         # returns wm29/2023-05-25/002
         session_path = self.dataset.session.alias
