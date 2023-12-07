@@ -67,7 +67,16 @@ class DataRepositoryTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 # ------------------------------------------------------------------------------------------------
 
 
+class DataRepositoryFilter(BaseFilterSet):
+    data_path = django_filters.CharFilter(field_name="data_path")
+    globus_path = django_filters.CharFilter(field_name="globus_path")
+    hostname = django_filters.CharFilter(field_name="hostname")
+    name = django_filters.NumberFilter(field_name="name")
+    id = django_filters.NumberFilter(field_name="id")
+
+
 class DataRepositoryList(generics.ListCreateAPIView):
+    filter_class = DataRepositoryFilter
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
