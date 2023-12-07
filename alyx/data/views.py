@@ -71,8 +71,8 @@ class DataRepositoryFilter(BaseFilterSet):
     data_path = django_filters.CharFilter(field_name="data_path")
     globus_path = django_filters.CharFilter(field_name="globus_path")
     hostname = django_filters.CharFilter(field_name="hostname")
-    name = django_filters.NumberFilter(field_name="name")
-    id = django_filters.NumberFilter(field_name="id")
+    name = django_filters.CharFilter(field_name="name")
+    id = django_filters.CharFilter(field_name="id")
 
 
 class DataRepositoryList(generics.ListCreateAPIView):
