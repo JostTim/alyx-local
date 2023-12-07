@@ -68,7 +68,7 @@ class DataRepositoryTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class DataRepositoryFilter(BaseFilterSet):
-    data_path = django_filters.CharFilter(field_name="filter_data_path")
+    data_path = django_filters.CharFilter(method="filter_data_path")
     globus_path = django_filters.CharFilter(field_name="globus_path")
     hostname = django_filters.CharFilter(field_name="hostname")
     name = django_filters.CharFilter(field_name="name")
