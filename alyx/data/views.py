@@ -78,7 +78,7 @@ class DataRepositoryFilter(BaseFilterSet):
         value = os.path.normpath(value)
         values = [split for split in value.split(os.sep) if split != ""]
         hostname = values[0]
-        path = os.sep.join(values[1:])
+        path = os.sep + os.sep.join(values[1:])
         return queryset.filter(hostname=hostname).filter(globus_path=path)
 
 
