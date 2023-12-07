@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins, serializers
 from rest_framework.response import Response
 import django_filters
-
+import os
 from alyx.base import BaseFilterSet, rest_permission_classes
 from subjects.models import Subject, Project
 from experiments.models import ProbeInsertion
@@ -68,11 +68,18 @@ class DataRepositoryTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class DataRepositoryFilter(BaseFilterSet):
-    data_path = django_filters.CharFilter(field_name="data_path")
+    data_path = django_filters.CharFilter(field_name="filter_data_path")
     globus_path = django_filters.CharFilter(field_name="globus_path")
     hostname = django_filters.CharFilter(field_name="hostname")
     name = django_filters.CharFilter(field_name="name")
     id = django_filters.CharFilter(field_name="id")
+
+    def filter_data_path(self, queryset, name, value):
+        value = os.path.normpath(value)
+        values = [split for split in value.split(os.sep) if split != ""]
+        hostname = values[0]
+        path = os.sep.join(values[1:])
+        return queryset.filter(hostname=hostname).filter(globus_path=path)
 
 
 class DataRepositoryList(generics.ListCreateAPIView):
