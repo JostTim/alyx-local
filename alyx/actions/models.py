@@ -40,9 +40,7 @@ class ProcedureType(BaseModel):
     A procedure to be performed on a subject.
     """
 
-    description = models.TextField(
-        blank=True, help_text="Detailed description " "of the procedure"
-    )
+    description = models.TextField(blank=True, help_text="Detailed description " "of the procedure")
 
     def __str__(self):
         return self.name
@@ -67,9 +65,7 @@ class Weighing(BaseModel):
         help_text="The subject which was weighed",
     )
     date_time = models.DateTimeField(null=True, blank=True, default=timezone.now)
-    weight = models.FloatField(
-        validators=[MinValueValidator(limit_value=0)], help_text="Weight in grams"
-    )
+    weight = models.FloatField(validators=[MinValueValidator(limit_value=0)], help_text="Weight in grams")
 
     def expected(self):
         """Expected weighing."""
@@ -125,18 +121,12 @@ class WaterAdministration(BaseModel):
         blank=True,
         help_text="Water administered, in milliliters",
     )
-    water_type = models.ForeignKey(
-        WaterType, null=True, blank=True, on_delete=models.SET_NULL
-    )
+    water_type = models.ForeignKey(WaterType, null=True, blank=True, on_delete=models.SET_NULL)
     adlib = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.water_type:
-            wr = (
-                WaterRestriction.objects.filter(subject=self.subject)
-                .order_by("start_time")
-                .last()
-            )
+            wr = WaterRestriction.objects.filter(subject=self.subject).order_by("start_time").last()
             if wr:
                 self.water_type = wr.water_type
             else:
@@ -202,9 +192,7 @@ class BaseAction(BaseModel):
         help_text="The physical location at which the action was " "performed.",
     )
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
-    procedures = models.ManyToManyField(
-        "ProcedureType", blank=True, help_text="The procedure(s) performed."
-    )
+    procedures = models.ManyToManyField("ProcedureType", blank=True, help_text="The procedure(s) performed.")
     # narrative was TextField before
     # narrative = models.TextField(blank = True)
     narrative = SideBySideMarkdownxField(
@@ -234,12 +222,8 @@ class VirusInjection(BaseAction):
         ("P", "Pressure"),
     )
     virus_batch = models.CharField(max_length=255, null=True, blank=True)
-    injection_volume = models.FloatField(
-        null=True, blank=True, help_text="Volume in nanoliters"
-    )
-    rate_of_injection = models.FloatField(
-        null=True, blank=True, help_text="TODO: Nanoliters per second / per minute?"
-    )
+    injection_volume = models.FloatField(null=True, blank=True, help_text="Volume in nanoliters")
+    rate_of_injection = models.FloatField(null=True, blank=True, help_text="TODO: Nanoliters per second / per minute?")
     injection_type = models.CharField(
         max_length=1,
         choices=INJECTION_TYPES,
@@ -335,9 +319,7 @@ class Session(BaseAction):
         verbose_name="Session Project",
         related_name="oldproject",
     )
-    projects = models.ManyToManyField(
-        "subjects.Project", blank=True, verbose_name="Session Projects"
-    )
+    projects = models.ManyToManyField("subjects.Project", blank=True, verbose_name="Session Projects")
     type = models.CharField(
         max_length=255,
         null=True,
@@ -388,9 +370,7 @@ class Session(BaseAction):
         help_text="Structured data about session QC," "formatted in a user-defined way",
     )
 
-    auto_datetime = models.DateTimeField(
-        auto_now=True, blank=True, null=True, verbose_name="last updated"
-    )
+    auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name="last updated")
 
     def save(self, *args, **kwargs):
         # Default project is the subject's project.
@@ -417,16 +397,16 @@ class Session(BaseAction):
         existing_day_sessions = query_set.count()
         # TODO : if number is null, autoincrement when setting
         if existing_day_sessions:
-            raise ValidationError(
-                "Two session with same subject, date and number cannot exist"
-            )
-        # TODO : must add this validation also in the admin to avoid the user having to retype everything twice and know why it failed
+            raise ValidationError("Two session with same subject, date and number cannot exist")
+        # TODO : must add this validation also in the admin to avoid
+        # the user having to retype everything twice and know why it failed
 
         self.update_json_whiskers_from_narrative()
 
         super(Session, self).save(*args, **kwargs)  # apply the save to the database
 
-        # After change is applied, check if the values of 'subject', 'date' or 'number' have changed, and reflect on datasets if it's the case
+        # After change is applied, check if the values of 'subject', 'date' or 'number' have changed,
+        # and reflect on datasets if it's the case
         if original and (
             self.start_time.date() != original.start_time.date()
             or self.number != original.number
@@ -505,9 +485,7 @@ class Session(BaseAction):
     def notes(self):
         return Note.objects.filter(object_id=self.pk)
 
-    default_data_repository = models.ForeignKey(
-        "data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL
-    )
+    default_data_repository = models.ForeignKey("data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL)
 
     @property
     def path(self):
@@ -616,9 +594,7 @@ def delay_since_last_notification(notification_type, title, subject):
     """Return the delay since the last notification corresponding to the given
     type, title, subject, in seconds, wheter it was actually sent or not."""
     last_notif = (
-        Notification.objects.filter(
-            notification_type=notification_type, title=title, subject=subject
-        )
+        Notification.objects.filter(notification_type=notification_type, title=title, subject=subject)
         .exclude(status="no-send")
         .order_by("send_at")
         .last()
@@ -665,20 +641,15 @@ def get_recipients(notification_type, subject=None, users=None):
     return users + [
         member
         for member in members
-        if check_scope(member, subject, user_rules.get(member, None))
-        and member not in users
+        if check_scope(member, subject, user_rules.get(member, None)) and member not in users
     ]
 
 
-def create_notification(
-    notification_type, message, subject=None, users=None, force=None, details=""
-):
+def create_notification(notification_type, message, subject=None, users=None, force=None, details=""):
     delay = delay_since_last_notification(notification_type, message, subject)
     max_delay = NOTIFICATION_MIN_DELAYS.get(notification_type, 0)
     if not force and delay < max_delay:
-        logger.warning(
-            "This notification was sent %d s ago (< %d s), skipping.", delay, max_delay
-        )
+        logger.warning("This notification was sent %d s ago (< %d s), skipping.", delay, max_delay)
         return
     notif = Notification.objects.create(
         notification_type=notification_type,
@@ -702,9 +673,7 @@ def create_notification(
 
 def send_pending_emails():
     """Send all pending notifications."""
-    notifications = Notification.objects.filter(
-        status="to-send", send_at__lte=timezone.now()
-    )
+    notifications = Notification.objects.filter(status="to-send", send_at__lte=timezone.now())
     for notification in notifications:
         notification.send_if_needed()
 
@@ -721,9 +690,7 @@ class Notification(BaseModel):
     notification_type = models.CharField(max_length=32, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=255)
     message = models.TextField(blank=True)
-    subject = models.ForeignKey(
-        "subjects.Subject", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    subject = models.ForeignKey("subjects.Subject", null=True, blank=True, on_delete=models.SET_NULL)
     users = models.ManyToManyField(LabMember)
     status = models.CharField(max_length=16, default="to-send", choices=STATUS_TYPES)
 
@@ -808,9 +775,7 @@ class Cull(BaseModel):
         help_text="The culled subject",
     )
     date = models.DateField(null=False, blank=False)
-    description = models.TextField(
-        blank=True, max_length=255, help_text="Narrative/Details"
-    )
+    description = models.TextField(blank=True, max_length=255, help_text="Narrative/Details")
 
     cull_reason = models.ForeignKey(
         CullReason,
