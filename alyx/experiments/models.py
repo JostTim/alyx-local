@@ -16,27 +16,16 @@ from actions.models import ChronicRecording
 
 logger = structlog.get_logger(__name__)
 
-X_HELP_TEXT = (
-    "brain surface medio-lateral coordinate (um) of"
-    "the insertion, right +, relative to Bregma"
-)
-Y_HELP_TEXT = (
-    "brain surface antero-posterior coordinate (um) of the "
-    "insertion, front +, relative to Bregma"
-)
-Z_HELP_TEXT = (
-    "brain surface dorso-ventral coordinate (um) of the insertion"
-    ", up +, relative to Bregma"
-)
+X_HELP_TEXT = "brain surface medio-lateral coordinate (um) ofthe insertion, right +, relative to Bregma"
+Y_HELP_TEXT = "brain surface antero-posterior coordinate (um) of the insertion, front +, relative to Bregma"
+Z_HELP_TEXT = "brain surface dorso-ventral coordinate (um) of the insertion, up +, relative to Bregma"
 
 
 class BrainRegion(MPTTModel):
     acronym = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255, unique=True)
     id = models.IntegerField(primary_key=True)
-    parent = TreeForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
-    )
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
     ontology = models.CharField(max_length=64, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
@@ -103,8 +92,7 @@ class ProbeModel(BaseModel):
         max_length=255,
         null=True,
         blank=True,
-        help_text="optional informal description e.g. "
-        "'Michigan 4x4 tetrode'; 'Neuropixels phase 2 option 1'",
+        help_text="optional informal description e.g. 'Michigan 4x4 tetrode'; 'Neuropixels phase 2 option 1'",
     )
 
     def __str__(self):
@@ -116,9 +104,7 @@ class ChronicInsertion(ChronicRecording):
     Chronic insertions
     """
 
-    serial = models.CharField(
-        max_length=255, blank=True, help_text="Probe serial number"
-    )
+    serial = models.CharField(max_length=255, blank=True, help_text="Probe serial number")
     model = models.ForeignKey(
         ProbeModel,
         blank=True,
@@ -151,15 +137,9 @@ class ProbeInsertion(BaseModel):
         on_delete=models.SET_NULL,
         related_name="probe_insertion",
     )
-    serial = models.CharField(
-        max_length=255, blank=True, help_text="Probe serial number"
-    )
-    auto_datetime = models.DateTimeField(
-        auto_now=True, blank=True, null=True, verbose_name="last updated"
-    )
-    datasets = models.ManyToManyField(
-        "data.Dataset", blank=True, related_name="probe_insertion"
-    )
+    serial = models.CharField(max_length=255, blank=True, help_text="Probe serial number")
+    auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name="last updated")
+    datasets = models.ManyToManyField("data.Dataset", blank=True, related_name="probe_insertion")
     chronic_recording = models.ForeignKey(
         "actions.ChronicRecording",
         blank=True,
@@ -193,9 +173,7 @@ def update_m2m_relationships_on_save(sender, instance, **kwargs):
     from data.models import Dataset
 
     try:
-        dsets = Dataset.objects.filter(
-            session=instance.session, collection__icontains=instance.name
-        )
+        dsets = Dataset.objects.filter(session=instance.session, collection__icontains=instance.name)
         instance.datasets.set(dsets, clear=True)
     except Exception:
         logger.warning("Skip update m2m relationship on saving ProbeInsertion")
@@ -247,13 +225,9 @@ class TrajectoryEstimate(models.Model):
         help_text="Azimuth from right (degrees), anti-clockwise, [0-360]",
         validators=[MinValueValidator(-180), MaxValueValidator(360)],
     )
-    roll = models.FloatField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(360)]
-    )
+    roll = models.FloatField(null=True, validators=[MinValueValidator(0), MaxValueValidator(360)])
     _phelp = " / ".join([str(s[0]) + ": " + s[1] for s in INSERTION_DATA_SOURCES])
-    provenance = models.IntegerField(
-        default=10, choices=INSERTION_DATA_SOURCES, help_text=_phelp
-    )
+    provenance = models.IntegerField(default=10, choices=INSERTION_DATA_SOURCES, help_text=_phelp)
     coordinate_system = models.ForeignKey(
         CoordinateSystem,
         null=True,
@@ -300,22 +274,12 @@ class Channel(BaseModel):
     axial = models.FloatField(
         blank=True,
         null=True,
-        help_text=(
-            "Distance in micrometers along the probe from the tip." " 0 means the tip."
-        ),
+        help_text="Distance in micrometers along the probe from the tip. 0 means the tip.",
     )
-    lateral = models.FloatField(
-        blank=True, null=True, help_text=("Distance in micrometers" " across the probe")
-    )
-    x = models.FloatField(
-        blank=True, null=True, help_text=X_HELP_TEXT, verbose_name="x-ml (um)"
-    )
-    y = models.FloatField(
-        blank=True, null=True, help_text=Y_HELP_TEXT, verbose_name="y-ap (um)"
-    )
-    z = models.FloatField(
-        blank=True, null=True, help_text=Z_HELP_TEXT, verbose_name="z-dv (um)"
-    )
+    lateral = models.FloatField(blank=True, null=True, help_text="Distance in micrometers across the probe")
+    x = models.FloatField(blank=True, null=True, help_text=X_HELP_TEXT, verbose_name="x-ml (um)")
+    y = models.FloatField(blank=True, null=True, help_text=Y_HELP_TEXT, verbose_name="y-ap (um)")
+    z = models.FloatField(blank=True, null=True, help_text=Z_HELP_TEXT, verbose_name="z-dv (um)")
     brain_region = models.ForeignKey(
         BrainRegion,
         default=0,
@@ -348,9 +312,7 @@ class Channel(BaseModel):
 class ImagingType(BaseModel):
     """Imaging field of view model"""
 
-    name = models.CharField(
-        max_length=255, blank=False, null=False, unique=True, help_text="Long name"
-    )
+    name = models.CharField(max_length=255, blank=False, null=False, unique=True, help_text="Long name")
     objects = BaseManager()
 
     def __str__(self):
@@ -388,9 +350,10 @@ class FOV(BaseModel):
         on_delete=models.CASCADE,
         related_name="field_of_view",
     )
-    datasets = models.ManyToManyField(
-        "data.Dataset", blank=True, related_name="field_of_view"
-    )
+    # IMPORTANT : uncomment this once we merge pull requet from IBL implementing FOVs, then do migrations
+    # datasets = models.ManyToManyField(
+    #    "data.Dataset", blank=True, related_name="field_of_view"
+    # )
     stack = models.ForeignKey(
         ImagingStack,
         blank=True,
@@ -416,30 +379,24 @@ class FOV(BaseModel):
     def save(self, *args, **kwargs):
         """Ensure FOVs belonging to stack share the same session"""
         if self.stack and self.stack.slices.count() > 0:
-            if (
-                self.session.id
-                != FOV.objects.filter(stack=self.stack).first().session.id
-            ):
-                raise ValidationError(
-                    "Stack fields of view must belong to the same session"
-                )
+            if self.session.id != FOV.objects.filter(stack=self.stack).first().session.id:
+                raise ValidationError("Stack fields of view must belong to the same session")
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.pk} {self.imaging_type} {self.name}"
 
 
-@receiver(post_save, sender=FOV)
-def update_fov_m2m_relationships_on_save(sender, instance, **kwargs):
-    from data.models import Dataset
+# IMPORTANT : uncomment this too
+# @receiver(post_save, sender=FOV)
+# def update_fov_m2m_relationships_on_save(sender, instance, **kwargs):
+#     from data.models import Dataset
 
-    try:
-        dsets = Dataset.objects.filter(
-            session=instance.session, collection__icontains=instance.name
-        )
-        instance.datasets.set(dsets, clear=True)
-    except Exception:
-        logger.warning("Skip update m2m relationship on saving FOV")
+#     try:
+#         dsets = Dataset.objects.filter(session=instance.session, collection__icontains=instance.name)
+#         instance.datasets.set(dsets, clear=True)
+#     except Exception:
+#         logger.warning("Skip update m2m relationship on saving FOV")
 
 
 class FOVLocation(BaseModel):
@@ -462,17 +419,13 @@ class FOVLocation(BaseModel):
     class Provenance(models.TextChoices):
         """How the location and brain regions were determined"""
 
-        ESTIMATE = "E", _(
-            "Estimate"
-        )  # e.g. centre of craniotomy measured during surgery
+        ESTIMATE = "E", _("Estimate")  # e.g. centre of craniotomy measured during surgery
         FUNCTIONAL = "F", _("Functional")  # e.g. retinotopy
         LANDMARK = "L", _("Landmark")  # e.g. vasculature
         HISTOLOGY = "H", _("Histology")
 
     objects = BaseManager()
-    field_of_view = models.ForeignKey(
-        FOV, null=False, on_delete=models.CASCADE, related_name="location"
-    )
+    field_of_view = models.ForeignKey(FOV, null=False, on_delete=models.CASCADE, related_name="location")
     _phelp = " / ".join([f"{s[0]}: {s[1]}" for s in Provenance.choices])
     provenance = models.CharField(
         max_length=1,
@@ -538,9 +491,9 @@ class FOVLocation(BaseModel):
 
     def save(self, *args, **kwargs):
         """Ensure only one provenance can be set as default"""
-        locations = FOVLocation.objects.filter(
-            field_of_view=self.field_of_view, default_provenance=True
-        ).exclude(id=self.id)
+        locations = FOVLocation.objects.filter(field_of_view=self.field_of_view, default_provenance=True).exclude(
+            id=self.id
+        )
         if self.default_provenance and locations.count() > 0:
             locations.update(default_provenance=False)
         super().save(*args, **kwargs)

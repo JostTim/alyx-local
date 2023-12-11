@@ -150,23 +150,17 @@ class BaseActionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(BaseActionForm, self).__init__(*args, **kwargs)
         if "users" in self.fields:
-            self.fields["users"].queryset = (
-                get_user_model().objects.all().order_by("username")
-            )
+            self.fields["users"].queryset = get_user_model().objects.all().order_by("username")
         if "user" in self.fields:
-            self.fields["user"].queryset = (
-                get_user_model().objects.all().order_by("username")
-            )
+            self.fields["user"].queryset = get_user_model().objects.all().order_by("username")
         # restricts the subject choices only to managed subjects
-        if "subject" in self.fields and not (
-            self.current_user.is_stock_manager or self.current_user.is_superuser
-        ):
+        if "subject" in self.fields and not (self.current_user.is_stock_manager or self.current_user.is_superuser):
             inst = self.instance
             ids = [
                 s.id
-                for s in Subject.objects.filter(
-                    responsible_user=self.current_user, cull__isnull=True
-                ).order_by("nickname")
+                for s in Subject.objects.filter(responsible_user=self.current_user, cull__isnull=True).order_by(
+                    "nickname"
+                )
             ]
             if getattr(inst, "subject", None):
                 ids = _bring_to_front(ids, inst.subject.pk)
@@ -175,13 +169,9 @@ class BaseActionForm(forms.ModelForm):
             # These ids first in the list of subjects.
             if ids:
                 preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                self.fields["subject"].queryset = Subject.objects.filter(
-                    pk__in=ids
-                ).order_by(preserved, "nickname")
+                self.fields["subject"].queryset = Subject.objects.filter(pk__in=ids).order_by(preserved, "nickname")
             else:
-                self.fields["subject"].queryset = Subject.objects.filter(
-                    cull__isnull=True
-                ).order_by("nickname")
+                self.fields["subject"].queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
@@ -206,9 +196,7 @@ class BaseActionAdmin(BaseAdmin):
 
     def subject_l(self, obj):
         url = get_admin_url(obj.subject)
-        return format_html(
-            '<a href="{url}">{subject}</a>', subject=obj.subject or "-", url=url
-        )
+        return format_html('<a href="{url}">{subject}</a>', subject=obj.subject or "-", url=url)
 
     subject_l.short_description = "subject"
     subject_l.admin_order_field = "subject__nickname"
@@ -235,17 +223,13 @@ class BaseActionAdmin(BaseAdmin):
                 subject = Subject.objects.filter(id=subject_id).first()
                 if subject:
                     kwargs["initial"] = subject
-        return super(BaseActionAdmin, self).formfield_for_foreignkey(
-            db_field, request, **kwargs
-        )
+        return super(BaseActionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         # Logged-in user by default.
         if db_field.name == "users":
             kwargs["initial"] = [request.user]
-        return super(BaseActionAdmin, self).formfield_for_manytomany(
-            db_field, request, **kwargs
-        )
+        return super(BaseActionAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
         subject = getattr(obj, "subject", None)
@@ -298,9 +282,7 @@ class WaterAdministrationForm(forms.ModelForm):
         #     )
         # else:
         #     self.fields["subject"].queryset = Subject.objects.order_by("nickname")
-        self.fields["user"].queryset = (
-            get_user_model().objects.all().order_by("username")
-        )
+        self.fields["user"].queryset = get_user_model().objects.all().order_by("username")
 
         if subject:
             subject = get_object_or_404(Subject, nickname=subject)
@@ -312,9 +294,7 @@ class WaterAdministrationForm(forms.ModelForm):
         if water_administered:
             self.fields["water_administered"].initial = water_administered
 
-        self.fields["water_administered"].widget.attrs.update(
-            {"autofocus": "autofocus"}
-        )
+        self.fields["water_administered"].widget.attrs.update({"autofocus": "autofocus"})
 
 
 class WaterAdministrationAdmin(BaseActionAdmin):
@@ -358,9 +338,7 @@ class WaterAdministrationAdmin(BaseActionAdmin):
 
     def session_l(self, obj):
         url = get_admin_url(obj.session)
-        return format_html(
-            '<a href="{url}">{session}</a>', session=obj.session or "-", url=url
-        )
+        return format_html('<a href="{url}">{session}</a>', session=obj.session or "-", url=url)
 
     session_l.short_description = "Session"
     session_l.allow_tags = True
@@ -385,16 +363,12 @@ class WaterRestrictionForm(forms.ModelForm):
 class WaterRestrictionAdmin(BaseActionAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "subject":
-            kwargs["queryset"] = Subject.objects.filter(cull__isnull=True).order_by(
-                "nickname"
-            )
+            kwargs["queryset"] = Subject.objects.filter(cull__isnull=True).order_by("nickname")
             subject_id = self._get_last_subject(request)
             if subject_id:
                 subject = Subject.objects.get(id=subject_id)
                 kwargs["initial"] = subject
-        return super(BaseActionAdmin, self).formfield_for_foreignkey(
-            db_field, request, **kwargs
-        )
+        return super(BaseActionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(WaterRestrictionAdmin, self).get_form(request, obj, **kwargs)
@@ -444,9 +418,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
 
     def subject_w(self, obj):
         url = reverse("water-history", kwargs={"subject_id": obj.subject.id})
-        return format_html(
-            '<a href="{url}">{name}</a>', url=url, name=obj.subject.nickname
-        )
+        return format_html('<a href="{url}">{name}</a>', url=url, name=obj.subject.nickname)
 
     subject_w.short_description = "subject"
     subject_w.admin_order_field = "subject"
@@ -548,9 +520,7 @@ class WaterRestrictionAdmin(BaseActionAdmin):
         if override:
             return True
         else:
-            return super(WaterRestrictionAdmin, self).has_change_permission(
-                request, obj=obj
-            )
+            return super(WaterRestrictionAdmin, self).has_change_permission(request, obj=obj)
 
     def expected_water(self, obj):
         if not obj.subject:
@@ -653,11 +623,7 @@ class SurgeryAdmin(BaseActionAdmin):
     procedures_l.short_description = "procedures"
 
     def get_queryset(self, request):
-        return (
-            super(SurgeryAdmin, self)
-            .get_queryset(request)
-            .prefetch_related("users", "procedures")
-        )
+        return super(SurgeryAdmin, self).get_queryset(request).prefetch_related("users", "procedures")
 
 
 class DatasetInline(BaseInlineAdmin):
@@ -696,9 +662,9 @@ class WaterAdminInline(BaseInlineAdmin):
 
 
 def _pass_narrative_templates(context):
-    context["narrative_templates"] = base64.b64encode(
-        json.dumps(settings.NARRATIVE_TEMPLATES).encode("utf-8")
-    ).decode("utf-8")
+    context["narrative_templates"] = base64.b64encode(json.dumps(settings.NARRATIVE_TEMPLATES).encode("utf-8")).decode(
+        "utf-8"
+    )
     return context
 
 
@@ -731,9 +697,7 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
         related_model = field.related_model
         human_readable_name = related_model.human_field_string()
 
-        related_ids = model_admin.model.objects.values_list(
-            f"{field.name}__id", flat=True
-        )
+        related_ids = model_admin.model.objects.values_list(f"{field.name}__id", flat=True)
         choices = (
             related_model.objects.filter(id__in=related_ids)
             .order_by(human_readable_name)
@@ -756,7 +720,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         "user_list",
         "project_",
     ]  # removed 'task_protocol' as we do not currentely use it too much
-    # task_protocol also needs rework to attached to a defined protocol, and not be just a user defined string that doesn't mean much to anyone else.
+    # task_protocol also needs rework to attached to a defined protocol,
+    # and not be just a user defined string that doesn't mean much to anyone else.
 
     list_display_links = ["alias_with_tooltip"]
     fields = None
@@ -767,9 +732,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
             {
                 "fields": BaseActionAdmin.fields[2:-1]
                 + ["projects"]
-                + [
-                    BaseActionAdmin.fields[-1]
-                ]  # removed 'repo_url' as we are not web based but samba based
+                + [BaseActionAdmin.fields[-1]]  # removed 'repo_url' as we are not web based but samba based
             },
         ),
         (
@@ -837,9 +800,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         context = extra_context or {}
         context["uuid"] = object_id
         context = _pass_narrative_templates(context)
-        return super(SessionAdmin, self).change_view(
-            request, object_id, extra_context=context, **kwargs
-        )
+        return super(SessionAdmin, self).change_view(request, object_id, extra_context=context, **kwargs)
 
     def add_view(self, request, extra_context=None):
         context = extra_context or {}
@@ -870,9 +831,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
 
     def dataset_count(self, ses):
         cs = (
-            FileRecord.objects.filter(
-                dataset__in=ses.data_dataset_session_related.all(), exists=True
-            )
+            FileRecord.objects.filter(dataset__in=ses.data_dataset_session_related.all(), exists=True)
             .values_list("relative_path")
             .distinct()
             .count()
@@ -887,12 +846,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         )
         if cr == 0:
             return "-"
-        col = (
-            "008000" if cr == cs else "808080"
-        )  # green if all files uploaded on server
-        return format_html(
-            '<b><a style="color: #{};">{}</a></b>', col, "{:2.0f}".format(cr)
-        )
+        col = "008000" if cr == cs else "808080"  # green if all files uploaded on server
+        return format_html('<b><a style="color: #{};">{}</a></b>', col, "{:2.0f}".format(cr))
 
     dataset_count.short_description = "# datasets"
     dataset_count.admin_order_field = "_dataset_count"
@@ -984,9 +939,7 @@ class NotificationRuleAdmin(BaseAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":
             kwargs["initial"] = request.user.id
-        return super(NotificationRuleAdmin, self).formfield_for_foreignkey(
-            db_field, request, **kwargs
-        )
+        return super(NotificationRuleAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class CullAdmin(BaseAdmin):
@@ -1004,9 +957,7 @@ class CullAdmin(BaseAdmin):
 
     def subject_l(self, obj):
         url = get_admin_url(obj.subject)
-        return format_html(
-            '<a href="{url}">{subject}</a>', subject=obj.subject or "-", url=url
-        )
+        return format_html('<a href="{url}">{subject}</a>', subject=obj.subject or "-", url=url)
 
     subject_l.short_description = "subject"
 
