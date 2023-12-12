@@ -707,6 +707,9 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
 
 
 class DatasetTypeDropdownFilter(RelatedDropdownFilter):
+    title = "file type"
+    parameter_name = "data_dataset_session_related__dataset_type"
+
     def field_choices(self, field, request, model_admin):
         related_ids = model_admin.model.objects.values_list(
             "data_dataset_session_related__dataset_type__id", flat=True
@@ -766,7 +769,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
-        ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
+        DatasetTypeDropdownFilter,
         QCFilter,
     ]
     search_fields = (
@@ -859,7 +862,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         col = "008000" if cr == cs else "808080"  # green if all files uploaded on server
         return format_html('<b><a style="color: #{};">{}</a></b>', col, "{:2.0f}".format(cr))
 
-    dataset_count.short_description = "# datasets"
+    dataset_count.short_description = "attached files"
     dataset_count.admin_order_field = "_dataset_count"
 
     def weighing(self, obj):
