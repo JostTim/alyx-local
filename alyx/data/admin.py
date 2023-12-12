@@ -164,7 +164,7 @@ class FileRecordInline(BaseInlineAdmin):
         # return natsorted(queryset, key=lambda obj: obj.extra)
 
 
-class IsOnlineListFilter(SimpleListFilter):
+class IsEmptyListFilter(SimpleListFilter):
     title = "Is Empty"
     parameter_name = "_is_empty"
 
@@ -239,7 +239,8 @@ class DatasetAdmin(BaseExperimentalDataAdmin):
         ("created_by", RelatedDropdownFilter),
         ("created_datetime", DateRangeFilter),
         ("dataset_type", RelatedDropdownFilter),
-        IsOnlineListFilter,
+        ("data_repository", RelatedDropdownFilter),
+        IsEmptyListFilter,
     ]
     search_fields = (
         "session__id",
@@ -449,9 +450,7 @@ class TagAdmin(BaseAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(dataset_count=Count("datasets"))
-        queryset = queryset.annotate(
-            session_count=Count("datasets__session", distinct=True)
-        )
+        queryset = queryset.annotate(session_count=Count("datasets__session", distinct=True))
         return queryset
 
 
