@@ -101,17 +101,14 @@ class SubjectHistoryListView(ListView):
             if not isinstance(instance, BaseAction):
                 continue
             url = reverse(
-                "admin:%s_%s_change"
-                % (instance._meta.app_label, instance._meta.model_name),
+                "admin:%s_%s_change" % (instance._meta.app_label, instance._meta.model_name),
                 args=[instance.id],
             )
             item = {}
             clsname = instance.__class__.__name__
             item["url"] = url
             item["name"] = model.__name__
-            item["type"] = getattr(
-                instance, self.CLASS_TYPE_FIELD.get(clsname, ""), None
-            )
+            item["type"] = getattr(instance, self.CLASS_TYPE_FIELD.get(clsname, ""), None)
             item["date_time"] = instance.start_time
             i = 0
             for n in self.CLASS_FIELDS.get(clsname, ()):
@@ -191,17 +188,8 @@ def training_days(reqdate=None):
     ).order_by("subject__responsible_user__username", "subject__nickname")
     next_monday = monday + timedelta(days=7)
     for w in wr:
-        sessions = Session.objects.filter(
-            subject=w.subject, start_time__gte=monday, start_time__lt=next_monday
-        )
-        dates = sorted(
-            set(
-                [
-                    _[0]
-                    for _ in sessions.order_by("start_time").values_list("start_time")
-                ]
-            )
-        )
+        sessions = Session.objects.filter(subject=w.subject, start_time__gte=monday, start_time__lt=next_monday)
+        dates = sorted(set([_[0] for _ in sessions.order_by("start_time").values_list("start_time")]))
         wds = set(date.weekday() for date in dates)
         yield {
             "nickname": w.subject.nickname,
@@ -231,9 +219,7 @@ class TrainingListView(ListView):
         context["prev_url"] = reverse("training", args=[previous_week])
         context["today_url"] = reverse("training", args=[today])
         context["next_url"] = reverse("training", args=[next_week])
-        context["wds"] = [
-            (monday + timedelta(days=n)).strftime(r"%a %d/%m/%Y") for n in range(7)
-        ]
+        context["wds"] = [(monday + timedelta(days=n)).strftime(r"%a %d/%m/%Y") for n in range(7)]
         context["today"] = date.today().strftime(r"%a %d/%m/%Y")
         return context
 
@@ -267,60 +253,36 @@ class ProcedureTypeList(generics.ListCreateAPIView):
 
 
 class SessionFilter(BaseFilterSet):
-    subject = django_filters.CharFilter(
-        field_name="subject__nickname", method="filter_subject"
-    )
-    dataset_types = django_filters.CharFilter(
-        field_name="dataset_types", method="filter_dataset_types"
-    )
-    performance_gte = django_filters.NumberFilter(
-        field_name="performance", method=("filter_performance_gte")
-    )
-    performance_lte = django_filters.NumberFilter(
-        field_name="performance", method=("filter_performance_lte")
-    )
-    users = django_filters.CharFilter(
-        field_name="users__username", method=("filter_users")
-    )
-    date_range = django_filters.CharFilter(
-        field_name="date_range", method=("filter_date_range")
-    )
-    type = django_filters.CharFilter(field_name="type", lookup_expr=("iexact"))
-    lab = django_filters.CharFilter(field_name="lab__name", lookup_expr=("iexact"))
-    task_protocol = django_filters.CharFilter(
-        field_name="task_protocol", lookup_expr=("icontains")
-    )
+    subject = django_filters.CharFilter(field_name="subject__nickname", method="filter_subject")
+    dataset_types = django_filters.CharFilter(field_name="dataset_types", method="filter_dataset_types")
+    performance_gte = django_filters.NumberFilter(field_name="performance", method="filter_performance_gte")
+    performance_lte = django_filters.NumberFilter(field_name="performance", method="filter_performance_lte")
+    users = django_filters.CharFilter(field_name="users__username", method="filter_users")
+    date_range = django_filters.CharFilter(field_name="date_range", method="filter_date_range")
+    type = django_filters.CharFilter(field_name="type", lookup_expr="iexact")
+    lab = django_filters.CharFilter(field_name="lab__name", lookup_expr="iexact")
+    task_protocol = django_filters.CharFilter(field_name="task_protocol", lookup_expr="icontains")
     qc = django_filters.CharFilter(method="enum_field_filter")
-    json = django_filters.CharFilter(field_name="json", method=("filter_json"))
-    location = django_filters.CharFilter(
-        field_name="location__name", lookup_expr=("icontains")
-    )
-    extended_qc = django_filters.CharFilter(
-        field_name="extended_qc", method=("filter_extended_qc")
-    )
-    projects = django_filters.CharFilter(
-        field_name="projects__name", lookup_expr=("icontains")
-    )
+    json = django_filters.CharFilter(field_name="json", method="filter_json")
+    location = django_filters.CharFilter(field_name="location__name", lookup_expr="icontains")
+    extended_qc = django_filters.CharFilter(field_name="extended_qc", method="filter_extended_qc")
+    projects = django_filters.CharFilter(field_name="projects__name", lookup_expr="icontains")
     # below is an alias to keep compatibility after moving project FK field to projects M2M
-    project = django_filters.CharFilter(
-        field_name="projects__name", lookup_expr=("icontains")
-    )
-    procedures = django_filters.CharFilter(
-        field_name="procedures", method="filter_procedures"
-    )
+    project = django_filters.CharFilter(field_name="projects__name", lookup_expr="icontains")
+    procedures = django_filters.CharFilter(field_name="procedures", method="filter_procedures")
     # brain region filters
     atlas_name = django_filters.CharFilter(field_name="name__icontains", method="atlas")
-    atlas_acronym = django_filters.CharFilter(
-        field_name="acronym__iexact", method="atlas"
-    )
+    atlas_acronym = django_filters.CharFilter(field_name="acronym__iexact", method="atlas")
     atlas_id = django_filters.NumberFilter(field_name="pk", method="atlas")
-    histology = django_filters.BooleanFilter(
-        field_name="histology", method="has_histology"
-    )
+    histology = django_filters.BooleanFilter(field_name="histology", method="has_histology")
     tag = django_filters.CharFilter(field_name="tag", method="filter_tag")
 
     # dataset_object
-    object = django_filters.CharFilter(field_name="object", method="filter_object")
+    object = django_filters.CharFilter(method="filter_object")
+
+    attribute = django_filters.CharFilter(method="filter_attribute")
+
+    data_repository = django_filters.CharFilter(method="filter_data_repository")
 
     # dataset_attribute : TODO
 
@@ -330,15 +292,25 @@ class SessionFilter(BaseFilterSet):
 
     def filter_object(self, queryset, name, value):
         objects = value.split(",")
-        queryset = queryset.filter(
-            data_dataset_session_related__dataset_type__object__in=objects
-        )
+        queryset = queryset.filter(data_dataset_session_related__dataset_type__object__in=objects)
         queryset = queryset.annotate(
-            dset_objects_count=Count(
-                "data_dataset_session_related__dataset_type", distinct=True
-            )
+            dset_objects_count=Count("data_dataset_session_related__dataset_type", distinct=True)
         )
         queryset = queryset.filter(dset_objects_count__gte=len(objects))
+        return queryset
+
+    def filter_attribute(self, queryset, name, value):
+        attributes = value.split(",")
+        queryset = queryset.filter(data_dataset_session_related__dataset_type__attribute__in=attributes)
+        queryset = queryset.annotate(
+            dset_objects_count=Count("data_dataset_session_related__dataset_type", distinct=True)
+        )
+        queryset = queryset.filter(dset_objects_count__gte=len(attributes))
+        return queryset
+
+    def filter_data_repository(self, queryset, name, value):
+        data_repository = value
+        queryset = queryset.filter(data_dataset_session_related__data_repository__name=data_repository)
         return queryset
 
     def filter_tag(self, queryset, name, value):
@@ -349,9 +321,7 @@ class SessionFilter(BaseFilterSet):
         :param value:
         :return:
         """
-        queryset = queryset.filter(
-            data_dataset_session_related__tags__name__icontains=value
-        ).distinct()
+        queryset = queryset.filter(data_dataset_session_related__tags__name__icontains=value).distinct()
         return queryset
 
     def atlas(self, queryset, name, value):
@@ -367,9 +337,7 @@ class SessionFilter(BaseFilterSet):
             fcn_query = queryset.filter
         else:
             fcn_query = queryset.exclude
-        return fcn_query(
-            subject__actions_sessions__procedures__name="Histology"
-        ).distinct()
+        return fcn_query(subject__actions_sessions__procedures__name="Histology").distinct()
 
     def filter_json(self, queryset, name, value):
         return rich_json_filter(queryset, name, value)
@@ -396,14 +364,8 @@ class SessionFilter(BaseFilterSet):
 
     def filter_dataset_types(self, queryset, name, value):
         dtypes = value.split(",")
-        queryset = queryset.filter(
-            data_dataset_session_related__dataset_type__name__in=dtypes
-        )
-        queryset = queryset.annotate(
-            dtypes_count=Count(
-                "data_dataset_session_related__dataset_type", distinct=True
-            )
-        )
+        queryset = queryset.filter(data_dataset_session_related__dataset_type__name__in=dtypes)
+        queryset = queryset.annotate(dtypes_count=Count("data_dataset_session_related__dataset_type", distinct=True))
         queryset = queryset.filter(dtypes_count__gte=len(dtypes))
         return queryset
 
@@ -412,25 +374,19 @@ class SessionFilter(BaseFilterSet):
         procedures_names = value.split(",")
         # logger.debug("procedures names = " + str(procedures_names))
         queryset = queryset.filter(procedures__name__in=procedures_names)
-        queryset = queryset.annotate(
-            procedures_names_count=Count("procedures__name", distinct=True)
-        )
+        queryset = queryset.annotate(procedures_names_count=Count("procedures__name", distinct=True))
         queryset = queryset.filter(procedures_names_count__gte=len(procedures_names))
         return queryset
 
     def filter_performance_gte(self, queryset, name, perf):
         queryset = queryset.exclude(n_trials__isnull=True)
-        pf = ExpressionWrapper(
-            100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField()
-        )
+        pf = ExpressionWrapper(100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField())
         queryset = queryset.annotate(performance=pf)
         return queryset.filter(performance__gte=float(perf))
 
     def filter_performance_lte(self, queryset, name, perf):
         queryset = queryset.exclude(n_trials__isnull=True)
-        pf = ExpressionWrapper(
-            100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField()
-        )
+        pf = ExpressionWrapper(100 * F("n_correct_trials") / F("n_trials"), output_field=FloatField())
         queryset = queryset.annotate(performance=pf)
         return queryset.filter(performance__lte=float(perf))
 
@@ -445,9 +401,7 @@ class SessionFilter(BaseFilterSet):
 
 
 class WeighingFilter(BaseFilterSet):
-    nickname = django_filters.CharFilter(
-        field_name="subject__nickname", lookup_expr="iexact"
-    )
+    nickname = django_filters.CharFilter(field_name="subject__nickname", lookup_expr="iexact")
 
     class Meta:
         model = Weighing
@@ -455,9 +409,7 @@ class WeighingFilter(BaseFilterSet):
 
 
 class WaterAdministrationFilter(BaseFilterSet):
-    nickname = django_filters.CharFilter(
-        field_name="subject__nickname", lookup_expr="iexact"
-    )
+    nickname = django_filters.CharFilter(field_name="subject__nickname", lookup_expr="iexact")
 
     class Meta:
         model = WaterAdministration
@@ -602,9 +554,7 @@ class WaterRequirement(APIView):
         start_date = request.query_params.get("start_date", None)
         end_date = request.query_params.get("end_date", None)
         subject = Subject.objects.get(nickname=nickname)
-        records = subject.water_control.to_jsonable(
-            start_date=start_date, end_date=end_date
-        )
+        records = subject.water_control.to_jsonable(start_date=start_date, end_date=end_date)
         data = {
             "subject": nickname,
             "implant_weight": subject.implant_weight,
@@ -614,9 +564,7 @@ class WaterRequirement(APIView):
 
 
 class WaterRestrictionFilter(BaseFilterSet):
-    subject = django_filters.CharFilter(
-        field_name="subject__nickname", lookup_expr="iexact"
-    )
+    subject = django_filters.CharFilter(field_name="subject__nickname", lookup_expr="iexact")
 
     class Meta:
         model = WaterRestriction

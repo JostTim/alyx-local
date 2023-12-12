@@ -61,9 +61,7 @@ class DataRepository(BaseModel):
         help_text="Nickname of the repository, to identify it",
     )
 
-    repository_type = models.ForeignKey(
-        DataRepositoryType, null=True, blank=True, on_delete=models.CASCADE
-    )
+    repository_type = models.ForeignKey(DataRepositoryType, null=True, blank=True, on_delete=models.CASCADE)
 
     hostname = models.CharField(
         max_length=200,
@@ -81,14 +79,15 @@ class DataRepository(BaseModel):
     data_url = models.URLField(
         blank=True,
         null=True,
-        help_text="URL of the data repository, if it is accessible via HTTP (WebDav). You can leave it unspecified as it is currentely not used.",
+        help_text=(
+            "URL of the data repository, if it is accessible via HTTP (WebDav). You can leave it unspecified as it is"
+            " currentely not used."
+        ),
     )
 
     @property
     def data_path(self):
-        hostname = self.hostname.strip("/").strip(
-            "\\"
-        )  # removing back or forward slashes on both sides
+        hostname = self.hostname.strip("/").strip("\\")  # removing back or forward slashes on both sides
         root = os.path.join("//" + hostname, self.globus_path.strip("/").strip("\\"))
         return root
 
@@ -96,8 +95,7 @@ class DataRepository(BaseModel):
         max_length=64,
         blank=True,
         default=TIME_ZONE,
-        help_text="Timezone of the server "
-        "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
+        help_text="Timezone of the server (see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
     )
 
     globus_path = models.CharField(
@@ -106,16 +104,16 @@ class DataRepository(BaseModel):
         help_text="relative root path to the repository on the server, without the hostname. e.g. /lab/data/Adaptation",
     )
 
-    globus_endpoint_id = models.UUIDField(
-        blank=True, null=True, help_text="UUID of the globus endpoint"
-    )
+    globus_endpoint_id = models.UUIDField(blank=True, null=True, help_text="UUID of the globus endpoint")
 
     globus_is_personal = models.BooleanField(
         null=False,
         blank=True,
         default=False,
-        help_text="whether the Globus endpoint is personal or not. "
-        "By default, Globus cannot transfer a file between two personal endpoints. The default value is False",
+        help_text=(
+            "whether the Globus endpoint is personal or not. "
+            "By default, Globus cannot transfer a file between two personal endpoints. The default value is False"
+        ),
     )
 
     def __str__(self):
@@ -140,15 +138,12 @@ class DataFormat(BaseModel):
 
     objects = NameManager()
 
-    name = models.CharField(
-        max_length=255, unique=True, help_text="short identifying name, e.g. 'npy'"
-    )
+    name = models.CharField(max_length=255, unique=True, help_text="short identifying name, e.g. 'npy'")
 
     description = models.CharField(
         max_length=255,
         blank=True,
-        help_text="Human-readable description of the file format e.g. 'npy-formatted square "
-        "numerical array'.",
+        help_text="Human-readable description of the file format e.g. 'npy-formatted square numerical array'.",
     )
 
     file_extension = models.CharField(
@@ -166,13 +161,9 @@ class DataFormat(BaseModel):
         help_text="file extension, starting with a dot.",
     )
 
-    matlab_loader_function = models.CharField(
-        max_length=255, blank=True, help_text="Name of MATLAB loader function'."
-    )
+    matlab_loader_function = models.CharField(max_length=255, blank=True, help_text="Name of MATLAB loader function'.")
 
-    python_loader_function = models.CharField(
-        max_length=255, blank=True, help_text="Name of Python loader function'."
-    )
+    python_loader_function = models.CharField(max_length=255, blank=True, help_text="Name of Python loader function'.")
 
     class Meta:
         verbose_name_plural = "data formats"
@@ -220,7 +211,10 @@ class DatasetType(BaseModel):
                 code="invalid_object",
             )
         ],
-        help_text="object (first part of the name) as per alf convention described here : https://int-brain-lab.github.io/ONE/alf_intro.html#dataset-name",
+        help_text=(
+            "object (first part of the name) as per alf convention described here :"
+            " https://int-brain-lab.github.io/ONE/alf_intro.html#dataset-name"
+        ),
     )
 
     attribute = models.CharField(
@@ -251,10 +245,12 @@ class DatasetType(BaseModel):
     description = models.TextField(
         max_length=1023,
         blank=True,
-        help_text="Human-readable description of data type. Should say what is in the file, and "
-        "how to read it. For DataCollections, it should list what Datasets are expected in the "
-        "the collection. E.g. 'Files related to spike events, including spikes.times.npy, "
-        "spikes.clusters.npy, spikes.amps.npy, spikes.depths.npy",
+        help_text=(
+            "Human-readable description of data type. Should say what is in the file, and "
+            "how to read it. For DataCollections, it should list what Datasets are expected in the "
+            "the collection. E.g. 'Files related to spike events, including spikes.times.npy, "
+            "spikes.clusters.npy, spikes.amps.npy, spikes.depths.npy"
+        ),
     )
 
     filename_pattern = CharNullField(
@@ -262,10 +258,12 @@ class DatasetType(BaseModel):
         unique=True,
         null=True,
         blank=True,
-        help_text="File name pattern (with wildcards) for this file in ALF naming convention. "
-        "E.g. 'spikes.times.*' or '*.timestamps.*', or 'spikes.*.*' for a DataCollection, which "
-        "would include all files starting with the word 'spikes'. NB: Case-insensitive matching."
-        "If null, the name field must match the object.attribute part of the filename.",
+        help_text=(
+            "File name pattern (with wildcards) for this file in ALF naming convention. "
+            "E.g. 'spikes.times.*' or '*.timestamps.*', or 'spikes.*.*' for a DataCollection, which "
+            "would include all files starting with the word 'spikes'. NB: Case-insensitive matching."
+            "If null, the name field must match the object.attribute part of the filename."
+        ),
     )
 
     file_location_template = models.JSONField(
@@ -278,16 +276,18 @@ class DatasetType(BaseModel):
         blank=True,
         null=True,
         max_length=512,
-        help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ",
+        help_text=(
+            "Description of what the extra refer to for all the files in this dataset. Should be null or one"
+            " description "
+        ),
     )
 
     class Meta:
         ordering = ("name",)
         constraints = [
-            models.UniqueConstraint(
-                fields=["object", "attribute"], name="unique_dataset_type"
-            )
-        ]  # this is redundant with the fact that name is unique=True but as name is set in save(), we still prefer to have this
+            models.UniqueConstraint(fields=["object", "attribute"], name="unique_dataset_type")
+        ]  # this is redundant with the fact that name is unique=True but as name is set in save(),
+        # we still prefer to have this
 
     def __str__(self):
         return "<DatasetType %s>" % self.name
@@ -334,9 +334,7 @@ class BaseExperimentalData(BaseModel):
         blank=True, null=True, default=timezone.now, help_text="The creation datetime."
     )
 
-    generating_software = models.CharField(
-        max_length=255, blank=True, help_text="e.g. 'ChoiceWorld 0.8.3'"
-    )
+    generating_software = models.CharField(max_length=255, blank=True, help_text="e.g. 'ChoiceWorld 0.8.3'")
 
     provenance_directory = models.ForeignKey(
         "data.Dataset",
@@ -361,9 +359,7 @@ def default_data_format():
 
 class Tag(BaseModel):
     objects = NameManager()
-    name = models.CharField(
-        max_length=255, blank=True, help_text="Long name", unique=True
-    )
+    name = models.CharField(max_length=255, blank=True, help_text="Long name", unique=True)
     description = models.CharField(max_length=1023, blank=True)
     protected = models.BooleanField(default=False)
     public = models.BooleanField(default=False)
@@ -371,10 +367,7 @@ class Tag(BaseModel):
         blank=True,
         null=True,
         max_length=64,
-        help_text=(
-            "Hash of the data buffer, SHA-1 is 40 hex chars, while md5"
-            "is 32 hex chars"
-        ),
+        help_text="Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars",
     )
 
     class Meta:
@@ -390,13 +383,9 @@ class Revision(BaseModel):
     """
 
     objects = NameManager()
-    name = models.CharField(
-        max_length=255, blank=True, help_text="Long name", unique=True
-    )
+    name = models.CharField(max_length=255, blank=True, help_text="Long name", unique=True)
     description = models.CharField(max_length=1023, blank=True)
-    created_datetime = models.DateTimeField(
-        blank=True, null=True, default=timezone.now, help_text="created date"
-    )
+    created_datetime = models.DateTimeField(blank=True, null=True, default=timezone.now, help_text="created date")
 
     class Meta:
         ordering = ("name",)
@@ -432,26 +421,23 @@ class Dataset(BaseExperimentalData):
     file_size = models.BigIntegerField(blank=True, null=True, help_text="Size in bytes")
     # this shall be removed and moved to filerecord
 
-    md5 = models.UUIDField(
-        blank=True, null=True, help_text="MD5 hash of the data buffer"
-    )
+    md5 = models.UUIDField(blank=True, null=True, help_text="MD5 hash of the data buffer")
     # this shall be removed and moved to filerecord
 
     hash = models.CharField(
         blank=True,
         null=True,
         max_length=64,
-        help_text=(
-            "Hash of the data buffer, SHA-1 is 40 hex chars, while md5"
-            "is 32 hex chars"
-        ),
+        help_text="Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars",
     )
     # this shall be removed and moved to filerecord
 
     # here we usually refer to version as an algorithm version such as ibllib-1.4.2, scanimage X.watever...
     # This fild should not be too important, as the dataset-type content description should not be not too wide
-    # (if new version => new content in the file, just create a new dataset type instead of packing tons of possibilities inside one dataset-type)
-    # and if changes in storage manner depending on version is made in a way that the most recent readers are retrocompatible.
+    # (if new version => new content in the file, just create a new dataset type instead of packing tons of
+    # possibilities inside one dataset-type)
+    # and if changes in storage manner depending on version is made in a way that the most recent readers are
+    # retrocompatible.
     version = models.CharField(
         blank=True,
         null=True,
@@ -472,7 +458,10 @@ class Dataset(BaseExperimentalData):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        help_text="The data repository of all the files of this dataset. If left blank, it will use the default data repository of the session",
+        help_text=(
+            "The data repository of all the files of this dataset. If left blank, it will use the default data"
+            " repository of the session"
+        ),
     )
 
     dataset_type = models.ForeignKey(
@@ -491,25 +480,24 @@ class Dataset(BaseExperimentalData):
         default=default_data_format,
     )
 
-    revision = models.ForeignKey(
-        Revision, blank=True, null=True, on_delete=models.SET_NULL
-    )
+    revision = models.ForeignKey(Revision, blank=True, null=True, on_delete=models.SET_NULL)
 
     tags = models.ManyToManyField("data.Tag", blank=True, related_name="datasets")
 
-    auto_datetime = models.DateTimeField(
-        auto_now=True, blank=True, null=True, verbose_name="last updated"
-    )
+    auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name="last updated")
 
     default_dataset = models.BooleanField(
-        default=True, help_text="Whether this dataset is the default " "latest revision"
+        default=True, help_text="Whether this dataset is the default latest revision"
     )  # THIS SHOULD BE NAMED DEFAULT REVISIONS, NOT DEFAULT DATASET
 
     extras_description = models.CharField(
         blank=True,
         null=True,
         max_length=512,
-        help_text="Description of what the extra refer to for all the files in this dataset. Should be null or one description ",
+        help_text=(
+            "Description of what the extra refer to for all the files in this dataset. Should be null or one"
+            " description "
+        ),
     )
 
     @property
@@ -521,7 +509,8 @@ class Dataset(BaseExperimentalData):
             )  # If we want this to be somewhat usefull, it should be a field that is checked regularly
             # (each week let's say. If the amount of file is not crazy, maybe each day during night ?)
             # by a worker and files "existance" should be updated at that time.
-            # This may be usefull to probe for user error (like a massive deletion) and be able to react fast before the NAS backups are trashed.
+            # This may be usefull to probe for user error (like a massive deletion) and be able to react fast before
+            # the NAS backups are trashed.
         else:
             return False
 
@@ -599,11 +588,12 @@ class Dataset(BaseExperimentalData):
 
         def sanitize_folders(folder_field):
             if folder_field is None:
-                return ""  # as it is a char field, we prefer saving an empty char rather than null when using no collection
+                return (  # as it is a char field, we prefer saving an empty char rather than null
+                    # when using no collection
+                    ""
+                )
             folder_field = folder_field.strip(".").strip("\\").strip("/")
-            return (
-                folder_field if folder_field == "" else os.path.normpath(folder_field)
-            )
+            return folder_field if folder_field == "" else os.path.normpath(folder_field)
 
         self.collection = sanitize_folders(self.collection)
 
@@ -626,12 +616,7 @@ class Dataset(BaseExperimentalData):
                 "Two datasets for the same session with the same dataset type and collection cannot exist"
             )
 
-        self.name = (
-            self.dataset_type.object
-            + "."
-            + self.dataset_type.attribute
-            + self.data_format.file_extension
-        )
+        self.name = self.dataset_type.object + "." + self.dataset_type.attribute + self.data_format.file_extension
 
         super(Dataset, self).save(*args, **kwargs)
 
@@ -672,9 +657,7 @@ class FileRecord(BaseModel):
 
     objects = FileRecordManager()
 
-    dataset = models.ForeignKey(
-        Dataset, related_name="file_records", on_delete=models.CASCADE
-    )
+    dataset = models.ForeignKey(Dataset, related_name="file_records", on_delete=models.CASCADE)
 
     extra = models.CharField(
         blank=True,
@@ -682,7 +665,10 @@ class FileRecord(BaseModel):
         max_length=255,
         db_column="extras",  # adding this to migrate from "extra" to extra without having to copy/delete the column
         # https://stackoverflow.com/questions/3498140/migrating-django-model-field-name-change-without-losing-data
-        help_text="extra of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to '' internally",
+        help_text=(
+            "extra of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to"
+            " '' internally"
+        ),
     )
 
     exists = models.BooleanField(
@@ -690,23 +676,19 @@ class FileRecord(BaseModel):
         help_text="Whether the file exists in the data repository",
     )
 
-    relative_path = models.CharField(
-        blank=True, default="", max_length=1000, help_text="path name within repository"
-    )
+    relative_path = models.CharField(blank=True, default="", max_length=1000, help_text="path name within repository")
 
     hash = models.CharField(
         blank=True,
         null=True,
         max_length=64,
-        help_text=(
-            "Hash of the data buffer, SHA-1 is 40 hex chars, while md5"
-            "is 32 hex chars"
-        ),
+        help_text="Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars",
     )
 
     # METHODS RECALCULATING FROM SOURCES INSTEAD OF USING SAVED VERSIONS. USE FOR SAVING / UPDATING / SERIALIZING
     # EXAMPLE to illustrate all conditions below :
-    # The file record is named //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
+    # The file record is named
+    # //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
 
     # @cached_property cached property cannot work with methods needing arguments
     def get_session_path(self, as_dict=False):
@@ -726,7 +708,8 @@ class FileRecord(BaseModel):
 
     def get_relative_path(
         self,
-    ):  # THIS IN THE ONLY FIELD THAT IS SAVED IN THE MODEL TABLE,FOR CHECKING THAT NO FILES HAVING THE SAME NAME EXISTS FOR A GIVEN SESSION
+    ):  # THIS IN THE ONLY FIELD THAT IS SAVED IN THE MODEL TABLE,FOR CHECKING THAT NO FILES HAVING THE SAME NAME
+        # EXISTS FOR A GIVEN SESSION
         # returns wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
         return os.path.join(
             self.get_session_path(),
@@ -742,11 +725,7 @@ class FileRecord(BaseModel):
 
     def get_revision(self, with_hash=False):
         if with_hash:
-            return (
-                self.dataset.revision.hashed
-                if self.dataset.revision is not None
-                else ""
-            )
+            return self.dataset.revision.hashed if self.dataset.revision is not None else ""
         return self.dataset.revision.name if self.dataset.revision is not None else ""
 
     @property
@@ -786,7 +765,8 @@ class FileRecord(BaseModel):
     def session_path(self):
         return self.get_session_path()
 
-    @property  # THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
+    @property  # THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location
+    # only. Use relative_path to build a local path.
     def full_path(self):
         return os.path.join(self.remote_root, self.get_relative_path())
 
@@ -794,15 +774,10 @@ class FileRecord(BaseModel):
     def remote_root(self):
         return self.dataset.data_repository.data_path
 
-    @property  # THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location only. Use relative_path to build a local path.
+    @property  # THIS IS THE CALCULATED FIELD (not kept inside the base) of the full filename on the remote location
+    # only. Use relative_path to build a local path.
     def file_name(self):
-        return (
-            self.object
-            + "."
-            + self.attribute
-            + self.get_extra(with_dot=True)
-            + self.extension
-        )
+        return self.object + "." + self.attribute + self.get_extra(with_dot=True) + self.extension
 
     def save(self, *args, **kwargs):
         # check how to run this on change in data repository related, or
@@ -820,9 +795,7 @@ class FileRecord(BaseModel):
         if self.id is not None:
             query_set = query_set.exclude(id=self.id)
         if query_set.count():
-            raise ValidationError(
-                "Two files with the same session relative path cannot exist"
-            )
+            raise ValidationError("Two files with the same session relative path cannot exist")
 
         super(FileRecord, self).save(*args, **kwargs)
         # Save the dataset as well to make sure the auto datetime in the dateset is updated when
