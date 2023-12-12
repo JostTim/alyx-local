@@ -40,7 +40,7 @@ class ProcedureType(BaseModel):
     A procedure to be performed on a subject.
     """
 
-    description = models.TextField(blank=True, help_text="Detailed description " "of the procedure")
+    description = models.TextField(blank=True, help_text="Detailed description of the procedure")
 
     def __str__(self):
         return self.name
@@ -189,7 +189,7 @@ class BaseAction(BaseModel):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        help_text="The physical location at which the action was " "performed.",
+        help_text="The physical location at which the action was performed.",
     )
     lab = models.ForeignKey(Lab, null=True, blank=True, on_delete=models.SET_NULL)
     procedures = models.ManyToManyField("ProcedureType", blank=True, help_text="The procedure(s) performed.")
@@ -229,7 +229,7 @@ class VirusInjection(BaseAction):
         choices=INJECTION_TYPES,
         default="I",
         blank=True,
-        help_text="Whether the injection was through " "iontophoresis or pressure",
+        help_text="Whether the injection was through iontophoresis or pressure",
     )
 
 
@@ -265,7 +265,7 @@ class Surgery(BaseAction):
         blank=True,
         on_delete=models.SET_NULL,
         default=_default_surgery_location,
-        help_text="The physical location at which the surgery was " "performed",
+        help_text="The physical location at which the surgery was performed",
     )
 
     class Meta:
@@ -334,6 +334,7 @@ class Session(BaseAction):
     task_protocol = models.CharField(max_length=1023, blank=True, default="")
     n_trials = models.IntegerField(blank=True, null=True)
     n_correct_trials = models.IntegerField(blank=True, null=True)
+    default_data_repository = models.ForeignKey("data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL)
 
     QC_CHOICES = [
         (
@@ -367,7 +368,7 @@ class Session(BaseAction):
     extended_qc = models.JSONField(
         null=True,
         blank=True,
-        help_text="Structured data about session QC," "formatted in a user-defined way",
+        help_text="Structured data about session QC,formatted in a user-defined way",
     )
 
     auto_datetime = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name="last updated")
@@ -484,8 +485,6 @@ class Session(BaseAction):
     @property
     def notes(self):
         return Note.objects.filter(object_id=self.pk)
-
-    default_data_repository = models.ForeignKey("data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL)
 
     @property
     def path(self):

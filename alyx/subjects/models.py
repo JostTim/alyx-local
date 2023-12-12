@@ -69,8 +69,8 @@ def save_old_fields(obj, fields):
             continue
         if field not in d:
             d[field] = []
-        l = d[field]
-        l.append({"date_time": date_time, "value": obj._original_fields[field]})
+        _list = d[field]
+        _list.append({"date_time": date_time, "value": obj._original_fields[field]})
         # Update the new value.
         # obj._original_fields[field] = v
         # Set the object's JSON if necessary.
@@ -114,13 +114,9 @@ def default_species():
 
 class Project(BaseModel):
     name = models.CharField(max_length=255, unique=True)
-    description = models.CharField(
-        max_length=1023, blank=True, help_text="Description of the project"
-    )
+    description = models.CharField(max_length=1023, blank=True, help_text="Description of the project")
 
-    default_data_repository = models.ForeignKey(
-        "data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL
-    )
+    default_data_repository = models.ForeignKey("data.DataRepository", blank=True, null=True, on_delete=models.SET_NULL)
 
     users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -148,16 +144,16 @@ class Subject(BaseModel):
 
     nickname_validator = validators.RegexValidator(
         r"^[-._~\+\*\w]+$",
-        "Nicknames must only contain letters, " "numbers, or any of -._~.",
+        "Nicknames must only contain letters, numbers, or any of -._~.",
     )
 
     nickname = models.CharField(
         max_length=64,
         default="-",
-        help_text="""Please follow the standard format : 
-Two or three initials of the person in charge + number of the animal for that person, in chronological order. 
-e.g. wm25 => Wilson Mena mouse n°25. 
-For following the identity of the mouses in term of genotype/injected viruses and the correspunding number in mayakind, 
+        help_text="""Please follow the standard format :
+Two or three initials of the person in charge + number of the animal for that person, in chronological order.
+e.g. wm25 => Wilson Mena mouse n°25.
+For following the identity of the mouses in term of genotype/injected viruses and the correspunding number in mayakind,
 please use the Zygosities fields below, and the description field to put more details that you want to remember.""",
         validators=[nickname_validator],
     )
@@ -168,9 +164,7 @@ please use the Zygosities fields below, and the description field to put more de
         on_delete=models.SET_NULL,
         default=default_species,
     )
-    litter = models.ForeignKey(
-        "Litter", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    litter = models.ForeignKey("Litter", null=True, blank=True, on_delete=models.SET_NULL)
     sex = models.CharField(max_length=1, choices=SEXES, blank=True, default="U")
     strain = models.ForeignKey(
         "Strain",
@@ -199,7 +193,7 @@ please use the Zygosities fields below, and the description field to put more de
         on_delete=models.SET_NULL,
         default=default_responsible,
         related_name="subjects_responsible",
-        help_text="Who has primary or legal responsibility " "for the subject.",
+        help_text="Who has primary or legal responsibility for the subject.",
     )
     lab = models.ForeignKey(Lab, on_delete=models.CASCADE, default=default_lab)
 
@@ -211,23 +205,15 @@ please use the Zygosities fields below, and the description field to put more de
     )
 
     cage = models.CharField(max_length=64, null=True, blank=True)
-    request = models.ForeignKey(
-        "SubjectRequest", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    implant_weight = models.FloatField(
-        null=True, blank=True, help_text="Implant weight in grams"
-    )
+    request = models.ForeignKey("SubjectRequest", null=True, blank=True, on_delete=models.SET_NULL)
+    implant_weight = models.FloatField(null=True, blank=True, help_text="Implant weight in grams")
     ear_mark = models.CharField(max_length=32, blank=True)
-    protocol_number = models.CharField(
-        max_length=1, choices=PROTOCOL_NUMBERS, default=settings.DEFAULT_PROTOCOL
-    )
+    protocol_number = models.CharField(max_length=1, choices=PROTOCOL_NUMBERS, default=settings.DEFAULT_PROTOCOL)
     description = models.TextField(blank=True)
 
     cull_method = models.TextField(blank=True)
     adverse_effects = models.TextField(blank=True)
-    actual_severity = models.IntegerField(
-        null=True, blank=True, choices=SEVERITY_CHOICES
-    )
+    actual_severity = models.IntegerField(null=True, blank=True, choices=SEVERITY_CHOICES)
 
     to_be_genotyped = models.BooleanField(default=False)
     to_be_culled = models.BooleanField(default=False)
@@ -279,9 +265,7 @@ please use the Zygosities fields below, and the description field to put more de
     def light_cycle(self):
         if self.housing:
             if self.housing.light_cycle:
-                return self.housing._meta.get_field("light_cycle").choices[
-                    self.housing.light_cycle
-                ][1]
+                return self.housing._meta.get_field("light_cycle").choices[self.housing.light_cycle][1]
 
     @property
     def enrichment(self):
@@ -338,9 +322,7 @@ please use the Zygosities fields below, and the description field to put more de
             try:
                 tz = pytz.timezone(self.lab.timezone)
             except Exception:
-                logger.warning(
-                    "Incorrect TZ format. Assuming UTC instead of " + self.lab.timezone
-                )
+                logger.warning("Incorrect TZ format. Assuming UTC instead of " + self.lab.timezone)
                 tz = pytz.timezone("Europe/London")
             return tz
 
@@ -367,10 +349,7 @@ please use the Zygosities fields below, and the description field to put more de
 
     def genotype_test_string(self):
         tests = GenotypeTest.objects.filter(subject=self).order_by("sequence__name")
-        return ",".join(
-            "%s%s" % ("-" if test.test_result == 0 else "", str(test.sequence))
-            for test in tests
-        )
+        return ",".join("%s%s" % ("-" if test.test_result == 0 else "", str(test.sequence)) for test in tests)
 
     @property
     def session_projects(self):
@@ -399,9 +378,7 @@ please use the Zygosities fields below, and the description field to put more de
         # When a subject dies.
         if self.death_date and not _get_old_field(self, "death_date"):
             # Close all water restrictions without an end date.
-            for wr in WaterRestriction.objects.filter(
-                subject=self, start_time__isnull=False, end_time__isnull=True
-            ):
+            for wr in WaterRestriction.objects.filter(subject=self, start_time__isnull=False, end_time__isnull=True):
                 wr.end_time = self.death_date
                 wr.save()
         # deal with the synchronisation of cull object, ideally this should be done in a form
@@ -430,9 +407,7 @@ please use the Zygosities fields below, and the description field to put more de
             and self.line is not None
             and self.request is None
         ):
-            srs = SubjectRequest.objects.filter(
-                user=self.responsible_user, line=self.line
-            )
+            srs = SubjectRequest.objects.filter(user=self.responsible_user, line=self.line)
             if srs:
                 self.request = srs[0]
         # Keep the history of some fields in the JSON.
@@ -457,11 +432,7 @@ please use the Zygosities fields below, and the description field to put more de
 
 class SubjectRequestManager(models.Manager):
     def get_queryset(self, *args, **kwargs):
-        return (
-            super(SubjectRequestManager, self)
-            .get_queryset(*args, **kwargs)
-            .select_related("line", "user")
-        )
+        return super(SubjectRequestManager, self).get_queryset(*args, **kwargs).select_related("line", "user")
 
 
 class SubjectRequest(BaseModel):
@@ -495,9 +466,7 @@ class SubjectRequest(BaseModel):
         return [
             s
             for s in subjects
-            if s.responsible_user_id == self.user_id
-            and s.line_id == self.line_id
-            and s.death_date is None
+            if s.responsible_user_id == self.user_id and s.line_id == self.line_id and s.death_date is None
         ]
 
     def __str__(self):
@@ -510,12 +479,7 @@ class SubjectRequest(BaseModel):
 
 
 def stock_managers_emails():
-    return [
-        sm.email
-        for sm in get_user_model().objects.filter(
-            is_stock_manager=True, email__isnull=False
-        )
-    ]
+    return [sm.email for sm in get_user_model().objects.filter(is_stock_manager=True, email__isnull=False)]
 
 
 @receiver(post_save, sender=SubjectRequest)
@@ -534,10 +498,7 @@ def send_subject_request_mail_change(sender, instance=None, **kwargs):
     if not instance:
         return
     # Only continue if the request has changed.
-    if not (
-        _get_current_field(instance, "request") is not None
-        and _get_old_field(instance, "request") is None
-    ):
+    if not (_get_current_field(instance, "request") is not None and _get_old_field(instance, "request") is None):
         return
     # Only continue if there's an email.
     if not instance.responsible_user.email:
@@ -616,9 +577,7 @@ class BreedingPairManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(
-    name={"blank": False, "default": "-", "help_text": "Leave to - to autofill."}
-)
+@modify_fields(name={"blank": False, "default": "-", "help_text": "Leave to - to autofill."})
 class BreedingPair(BaseModel):
     line = models.ForeignKey(
         "Line",
@@ -683,12 +642,8 @@ class Line(BaseModel):
     target_phenotype = models.CharField(max_length=1023)
     nickname = models.CharField(max_length=255, unique=True)
     alleles = models.ManyToManyField("Allele")
-    strain = models.ForeignKey(
-        "Strain", null=True, blank=True, on_delete=models.SET_NULL
-    )
-    source = models.ForeignKey(
-        "Source", null=True, blank=True, on_delete=models.SET_NULL
-    )
+    strain = models.ForeignKey("Strain", null=True, blank=True, on_delete=models.SET_NULL)
+    source = models.ForeignKey("Source", null=True, blank=True, on_delete=models.SET_NULL)
     source_identifier = models.CharField(max_length=64, blank=True)
     source_url = models.URLField(blank=True)
     expression_data_url = models.URLField(blank=True)
@@ -753,7 +708,8 @@ class Line(BaseModel):
             m = self.new_subject_autoname
         else:
             raise ValueError(
-                "field must not be None. This is a a cause of set_autoname(obj) with obj not being one of : 'BreedingPair', 'Litter', nor 'Subject'"
+                "field must not be None. This is a a cause of set_autoname(obj) with obj not being one of :"
+                " 'BreedingPair', 'Litter', nor 'Subject'"
             )
         if getattr(obj, field, None) in (None, "-"):
             setattr(obj, field, m())
@@ -766,9 +722,7 @@ class SpeciesManager(models.Manager):
 
 @modify_fields(name={"blank": False, "help_text": 'Binomial name, e.g. "mus musculus"'})
 class Species(BaseModel):
-    nickname = models.CharField(
-        max_length=255, unique=True, help_text='common name, e.g. "mouse"'
-    )
+    nickname = models.CharField(max_length=255, unique=True, help_text='common name, e.g. "mouse"')
 
     objects = SpeciesManager()
 
@@ -789,8 +743,7 @@ class StrainManager(models.Manager):
 
 @modify_fields(
     name={
-        "help_text": 'Standard descriptive name E.g. "C57BL/6J", '
-        "http://www.informatics.jax.org/mgihome/nomen/",
+        "help_text": 'Standard descriptive name E.g. "C57BL/6J", http://www.informatics.jax.org/mgihome/nomen/',
     }
 )
 class Strain(BaseModel):
@@ -835,10 +788,7 @@ def _update_zygosities(line, sequence):
     # Apply the rule.
     zf = ZygosityFinder()
     # Subjects from the line and that have a test with the first sequence.
-    subjects = set(
-        gt.subject
-        for gt in GenotypeTest.objects.filter(sequence=sequence, subject__line=line)
-    )
+    subjects = set(gt.subject for gt in GenotypeTest.objects.filter(sequence=sequence, subject__line=line))
     for subject in sorted(subjects, key=attrgetter("nickname")):
         # Note: need force=True when deleting a zygosity rule.
         zf.genotype_from_litter(subject, force=True)
@@ -946,8 +896,7 @@ class ZygosityFinder(object):
                         )
                     else:
                         logger.warning(
-                            "Zygosity mismatch for %s: was %s, would have been set "
-                            "to %s but aborting now.",
+                            "Zygosity mismatch for %s: was %s, would have been set to %s but aborting now.",
                             subject,
                             zygosity,
                             symbol,
@@ -1071,9 +1020,9 @@ class AlleleManager(models.Manager):
 
 @modify_fields(
     name={
-        "help_text": "MGNC-standard genotype name e.g. "
-        "Pvalb<tm1(cre)Arbr>, "
-        "http://www.informatics.jax.org/mgihome/nomen/",
+        "help_text": (
+            "MGNC-standard genotype name e.g. Pvalb<tm1(cre)Arbr>, http://www.informatics.jax.org/mgihome/nomen/"
+        ),
         "max_length": 1023,
         "blank": False,
     }
@@ -1081,9 +1030,7 @@ class AlleleManager(models.Manager):
 class Allele(BaseModel):
     """A single allele."""
 
-    nickname = models.CharField(
-        max_length=255, unique=True, help_text="informal name in lab, e.g. Pvalb-Cre"
-    )
+    nickname = models.CharField(max_length=255, unique=True, help_text="informal name in lab, e.g. Pvalb-Cre")
     sequences = models.ManyToManyField("Sequence")
 
     objects = AlleleManager()
@@ -1129,15 +1076,9 @@ class SequenceManager(models.Manager):
 class Sequence(BaseModel):
     """A genetic sequence that you run a genotyping test for."""
 
-    name = models.CharField(
-        max_length=255, unique=True, help_text="informal name in lab, e.g. ROSA-WT"
-    )
-    base_pairs = models.TextField(
-        help_text="the actual sequence of base pairs in the test"
-    )
-    description = models.CharField(
-        max_length=1023, help_text="any other relevant information about this test"
-    )
+    name = models.CharField(max_length=255, unique=True, help_text="informal name in lab, e.g. ROSA-WT")
+    base_pairs = models.TextField(help_text="the actual sequence of base pairs in the test")
+    description = models.CharField(max_length=1023, help_text="any other relevant information about this test")
 
     objects = SequenceManager()
 

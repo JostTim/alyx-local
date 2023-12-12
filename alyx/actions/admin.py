@@ -706,6 +706,15 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
         return list(choices)
 
 
+class DatasetTypeDropdownFilter(RelatedDropdownFilter):
+    def field_choices(self, field, request, model_admin):
+        related_ids = model_admin.model.objects.values_list(
+            "data_dataset_session_related__dataset_type__id", flat=True
+        ).distinct()
+        choices = DatasetType.objects.filter(id__in=related_ids).order_by("name").values_list("id", "name")
+        return list(choices)
+
+
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
 
@@ -757,6 +766,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
+        ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
         QCFilter,
     ]
     search_fields = (

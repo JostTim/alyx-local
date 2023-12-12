@@ -639,6 +639,10 @@ class Dataset(BaseExperimentalData):
         #    if len(pis):
         #        self.probe_insertion.set(pis.values_list('pk', flat=True))
 
+    @staticmethod
+    def human_field_string():
+        return "nickname"
+
 
 # Files
 # ------------------------------------------------------------------------------------------------
