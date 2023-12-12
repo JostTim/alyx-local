@@ -284,6 +284,8 @@ class SessionFilter(BaseFilterSet):
 
     data_repository = django_filters.CharFilter(method="filter_data_repository")
 
+    default_data_repository = django_filters.CharFilter(method="filter_default_data_repository")
+
     # dataset_attribute : TODO
 
     def filter_subject(self, queryset, _, value):
@@ -311,6 +313,11 @@ class SessionFilter(BaseFilterSet):
     def filter_data_repository(self, queryset, name, value):
         data_repository = value
         queryset = queryset.filter(data_dataset_session_related__data_repository__name=data_repository)
+        return queryset
+
+    def filter_default_data_repository(self, queryset, name, value):
+        default_data_repository = value
+        queryset = queryset.filter(default_data_repository__name=default_data_repository)
         return queryset
 
     def filter_tag(self, queryset, name, value):
