@@ -708,7 +708,6 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
 
 class DatasetTypeDropdownFilter(RelatedDropdownFilter):
     title = "file type"
-    parameter_name = "data_dataset_session_related__dataset_type"
 
     def field_choices(self, field, request, model_admin):
         related_ids = model_admin.model.objects.values_list(
@@ -769,7 +768,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
-        DatasetTypeDropdownFilter,
+        ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
         QCFilter,
     ]
     search_fields = (
