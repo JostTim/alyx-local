@@ -707,8 +707,6 @@ class SortedRelatedDropdownFilter(RelatedDropdownFilter):
 
 
 class DatasetTypeDropdownFilter(RelatedDropdownFilter):
-    title = "file type"
-
     def field_choices(self, field, request, model_admin):
         related_ids = model_admin.model.objects.values_list(
             "data_dataset_session_related__dataset_type__id", flat=True
