@@ -1,5 +1,5 @@
 import uuid
-
+from datetime import datetime
 from django.db import models
 
 from actions.models import Session
@@ -9,15 +9,34 @@ class Task(models.Model):
     """
     Provides a model for a Task, with priorities and resources
     """
+
     STATUS_DATA_SOURCES = [
-        (20, 'Waiting',),
-        (25, 'Held',),
-        (30, 'Started',),
-        (40, 'Errored',),
-        (45, 'Abandoned',),
-        (50, 'Empty'),
-        (55, 'Incomplete'),
-        (60, 'Complete',),
+        (
+            20,
+            "Waiting",
+        ),
+        (
+            25,
+            "Held",
+        ),
+        (
+            30,
+            "Started",
+        ),
+        (
+            40,
+            "Errored",
+        ),
+        (
+            45,
+            "Abandoned",
+        ),
+        (50, "Empty"),
+        (55, "Incomplete"),
+        (
+            60,
+            "Complete",
+        ),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # some information for parallel runs
@@ -30,32 +49,50 @@ class Task(models.Model):
     ram = models.SmallIntegerField(blank=True, null=True)
     time_out_secs = models.SmallIntegerField(blank=True, null=True)
     time_elapsed_secs = models.FloatField(blank=True, null=True)
-    executable = models.CharField(max_length=128, blank=True, null=True,
-                                  help_text="Usually the Python class name on the workers")
+    executable = models.CharField(
+        max_length=128, blank=True, null=True, help_text="Usually the Python class name on the workers"
+    )
     graph = models.CharField(
-        max_length=64, blank=True, null=True,
-        help_text="The name of the graph containing a set of related and possibly dependent tasks")
-    _shelp = ' / '.join([str(s[0]) + ': ' + s[1] for s in STATUS_DATA_SOURCES])
+        max_length=64,
+        blank=True,
+        null=True,
+        help_text="The name of the graph containing a set of related and possibly dependent tasks",
+    )
+    _shelp = " / ".join([str(s[0]) + ": " + s[1] for s in STATUS_DATA_SOURCES])
     status = models.IntegerField(default=10, choices=STATUS_DATA_SOURCES, help_text=_shelp)
     log = models.TextField(blank=True, null=True)
-    session = models.ForeignKey(Session, blank=True, null=True,
-                                on_delete=models.CASCADE,
-                                related_name='tasks')
-    version = models.CharField(blank=True, null=True, max_length=64,
-                               help_text="version of the algorithm generating the file")
+    session = models.ForeignKey(Session, blank=True, null=True, on_delete=models.CASCADE, related_name="tasks")
+    version = models.CharField(
+        blank=True, null=True, max_length=64, help_text="version of the algorithm generating the file"
+    )
     # dependency pattern for the task graph
-    parents = models.ManyToManyField('self', blank=True, related_name='children',
-                                     symmetrical=False)
+    parents = models.ManyToManyField("self", blank=True, related_name="children", symmetrical=False)
     datetime = models.DateTimeField(auto_now=True)
     arguments = models.JSONField(blank=True, null=True, help_text="dictionary of input arguments")
-    data_repository = models.ForeignKey('data.DataRepository', null=True, blank=True,
-                                        related_name='tasks', on_delete=models.CASCADE)
+    data_repository = models.ForeignKey(
+        "data.DataRepository", null=True, blank=True, related_name="tasks", on_delete=models.CASCADE
+    )
 
     def __str__(self):
-        return self.name + '  ' + str(self.session) + '  ' + self.get_status_display()
+        return self.name + "  " + str(self.session) + "  " + self.get_status_display()
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['name', 'session', 'arguments'],
-                                    name='unique_name_arguments_per_session')
+            models.UniqueConstraint(fields=["name", "session", "arguments"], name="unique_name_arguments_per_session")
         ]
+
+    def save(self, *args, **kwargs):
+        # Issue #422.
+        if self.session is not None:
+            try:
+                uuid.UUID(self.session, version=4)
+            except ValueError:
+                session_str = self.session.replace("\\", "/")
+                subject, date, number = session_str.split("/")
+                date = datetime.strptime(date, "%Y-%m-%d")
+                number = int(number)
+                self.session = (
+                    Session.objects().filter(start_time__date=date, subject__nickname=subject, number=number).first()
+                ).pk
+
+        return super().save(*args, **kwargs)
