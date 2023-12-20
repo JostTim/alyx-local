@@ -114,7 +114,7 @@ class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
-class TaskLogs(View):
+class TaskLogs(ListView):
     template_name = "task_logs.html"
 
     def get_context_data(self, **kwargs):
