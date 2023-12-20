@@ -2,7 +2,7 @@ from django.db.models import Q, Count, Max
 from rest_framework import generics
 from django_filters.rest_framework import CharFilter
 from django.views.generic.list import ListView
-from django.views.generic.base import View
+from django.views.generic.detail import DetailView
 
 import numpy as np
 
@@ -114,7 +114,7 @@ class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
-class TaskLogs(ListView):
+class TaskLogs(DetailView):
     template_name = "task_logs.html"
 
     def get_context_data(self, **kwargs):
