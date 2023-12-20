@@ -3,6 +3,7 @@ from rest_framework import generics
 from django_filters.rest_framework import CharFilter
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
+from django.shortcuts import get_object_or_404
 
 import numpy as np
 
@@ -116,8 +117,7 @@ class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class TaskLogs(DetailView):
     template_name = "task_logs.html"
-    model = Task
-    lookup_field = "task_id"
+    # model = Task
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -126,3 +126,6 @@ class TaskLogs(DetailView):
         context["task_id"] = task_id
         context["ansi_logging_content"] = ansi_logging_content
         return context
+
+    def get_object(self):
+        return get_object_or_404(Task, pk=self.kwargs["task_id"])
