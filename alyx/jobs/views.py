@@ -117,6 +117,7 @@ class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
 class TaskLogs(DetailView):
     template_name = "task_logs.html"
     model = Task
+    lookup_field = "task_id"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
