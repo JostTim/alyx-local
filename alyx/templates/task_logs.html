@@ -100,7 +100,21 @@
     script.src = 'https://cdn.jsdelivr.net/npm/ansi_up@4.0.3';
     document.head.appendChild(script);
 
+</script>
 
+<div class="logs">
+    <div class="resize_handle"></div>
+    <div class="log_title">Logs for worker <b><a href={{task_change_url}}>{{task_id}}</a></b></div>
+    <div class="ansi">{{ ansi_logging_content }}</div>
+</div>
+
+{% endblock %}
+
+{% block title %}
+{{ title|striptags }}
+{% endblock %}
+
+<script>
     var ansi_up = new AnsiUp;
     var ansiElements = document.getElementsByClassName('ansi');
     console.log(ansiElements);
@@ -129,38 +143,26 @@
 
     }
 
-    // let startWidth, startX;
+    let startWidth, startX;
 
-    // const draggable = document.querySelector('.logs');
-    // const resizeHandle = draggable.querySelector('.resize_handle');
+    const draggable = document.querySelector('.logs');
+    const resizeHandle = draggable.querySelector('.resize_handle');
 
-    // resizeHandle.addEventListener('mousedown', function (e) {
-    //     startX = e.pageX;
-    //     startWidth = parseFloat(window.getComputedStyle(draggable, null).width.replace("px", ""));
-    //     e.preventDefault();
-    // }, false);
+    resizeHandle.addEventListener('mousedown', function (e) {
+        startX = e.pageX;
+        startWidth = parseFloat(window.getComputedStyle(draggable, null).width.replace("px", ""));
+        e.preventDefault();
+    }, false);
 
-    // document.addEventListener('mousemove', function (e) {
-    //     if (startX !== undefined) {
-    //         const pxMoved = e.pageX - startX;
-    //         draggable.style.width = startWidth + pxMoved + 'px';
-    //     }
-    // }, false);
+    document.addEventListener('mousemove', function (e) {
+        if (startX !== undefined) {
+            const pxMoved = e.pageX - startX;
+            draggable.style.width = startWidth + pxMoved + 'px';
+        }
+    }, false);
 
-    // document.addEventListener('mouseup', function () {
-    //     startX = undefined;
-    // }, false);
+    document.addEventListener('mouseup', function () {
+        startX = undefined;
+    }, false);
 
 </script>
-
-<div class="logs">
-    <div class="resize_handle"></div>
-    <div class="log_title">Logs for worker <b><a href={{task_change_url}}>{{task_id}}</a></b></div>
-    <div class="ansi">{{ ansi_logging_content }}</div>
-</div>
-
-{% endblock %}
-
-{% block title %}
-{{ title|striptags }}
-{% endblock %}
