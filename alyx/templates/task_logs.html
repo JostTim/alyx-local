@@ -103,6 +103,7 @@
 
     var ansi_up = new AnsiUp;
     var ansiElements = document.getElementsByClassName('ansi');
+    console.log(ansiElements);
     // Loop through all elements with the class 'ansi'
     for (let i = 0; i < ansiElements.length; i++) {
 
@@ -124,6 +125,8 @@
             // Append the new span to the original span element
             ansiElements[i].appendChild(newSpan);
         }
+        console.log(ansiElements[i]);
+
     }
 
     // let startWidth, startX;
