@@ -80,19 +80,3 @@ class Task(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["name", "session", "arguments"], name="unique_name_arguments_per_session")
         ]
-
-    def save(self, *args, **kwargs):
-        # Issue #422.
-        if self.session is not None:
-            try:
-                uuid.UUID(self.session, version=4)
-            except ValueError:
-                session_str = self.session.replace("\\", "/")
-                subject, date, number = session_str.split("/")
-                date = datetime.strptime(date, "%Y-%m-%d")
-                number = int(number)
-                self.session = (
-                    Session.objects().filter(start_time__date=date, subject__nickname=subject, number=number).first()
-                ).pk
-
-        return super().save(*args, **kwargs)

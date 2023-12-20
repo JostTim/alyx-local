@@ -78,7 +78,7 @@ class TaskAdmin(BaseAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "session":  # replace 'session' with your session field name
-            kwargs["queryset"] = Session.objects.order_by("start_time")  # replace Session and logic here.
+            kwargs["queryset"] = Session.objects.order_by("-start_time")  # replace Session and logic here.
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
