@@ -126,27 +126,27 @@
         }
     }
 
-    let startWidth, startX;
+    // let startWidth, startX;
 
-    const draggable = document.querySelector('.logs');
-    const resizeHandle = draggable.querySelector('.resize_handle');
+    // const draggable = document.querySelector('.logs');
+    // const resizeHandle = draggable.querySelector('.resize_handle');
 
-    resizeHandle.addEventListener('mousedown', function (e) {
-        startX = e.pageX;
-        startWidth = parseFloat(window.getComputedStyle(draggable, null).width.replace("px", ""));
-        e.preventDefault();
-    }, false);
+    // resizeHandle.addEventListener('mousedown', function (e) {
+    //     startX = e.pageX;
+    //     startWidth = parseFloat(window.getComputedStyle(draggable, null).width.replace("px", ""));
+    //     e.preventDefault();
+    // }, false);
 
-    document.addEventListener('mousemove', function (e) {
-        if (startX !== undefined) {
-            const pxMoved = e.pageX - startX;
-            draggable.style.width = startWidth + pxMoved + 'px';
-        }
-    }, false);
+    // document.addEventListener('mousemove', function (e) {
+    //     if (startX !== undefined) {
+    //         const pxMoved = e.pageX - startX;
+    //         draggable.style.width = startWidth + pxMoved + 'px';
+    //     }
+    // }, false);
 
-    document.addEventListener('mouseup', function () {
-        startX = undefined;
-    }, false);
+    // document.addEventListener('mouseup', function () {
+    //     startX = undefined;
+    // }, false);
 
 </script>
 
