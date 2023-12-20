@@ -46,19 +46,21 @@ class TaskAdmin(BaseAdmin):
             return obj.session.lab.name in request.user.lab
 
     def session_projects(self, obj):
-        if obj.session.projects is not None:
+        if obj.session is not None and obj.session.projects is not None:
             return obj.session.projects.name
 
     session_projects.short_description = "projects"
 
     def session_task_protocol(self, obj):
-        return obj.session.task_protocol
+        if obj.session is not None:
+            return obj.session.task_protocol
 
     session_task_protocol.short_description = "task_protocol"
 
     def session_str(self, obj):
-        url = get_admin_url(obj.session)
-        return format_html('<a href="{url}">{session}</a>', session=obj.session or "-", url=url)
+        if obj.session is not None:
+            url = get_admin_url(obj.session)
+            return format_html('<a href="{url}">{session}</a>', session=obj.session or "-", url=url)
 
     session_str.short_description = "session"
 
