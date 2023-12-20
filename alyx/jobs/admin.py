@@ -5,6 +5,7 @@ from django_admin_listfilter_dropdown.filters import DropdownFilter, ChoiceDropd
 
 from jobs.models import Task
 from alyx.base import BaseAdmin, get_admin_url
+from actions.models import Session
 
 
 class TaskAdmin(BaseAdmin):
@@ -74,6 +75,11 @@ class TaskAdmin(BaseAdmin):
         return format_html('<b><a style="color: #{};">{}</a></b>', col, "{}".format(obj.version))
 
     version_str.short_description = "version"
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "session":  # replace 'session' with your session field name
+            kwargs["queryset"] = Session.objects.order_by("start_time")  # replace Session and logic here.
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 admin.site.register(Task, TaskAdmin)
