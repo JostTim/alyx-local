@@ -123,7 +123,7 @@ class TaskLogs(DetailView):
         context = super().get_context_data(**kwargs)
         task_id = self.kwargs.get("task_id", None)
         ansi_logging_content = open("/mnt/one/cajal2/Adaptation/test.log", "r").read()
-        context["task_id"] = f"<a href={reverse('jobs.task.change', args=[task_id])}>{task_id}</a>"
+        context["task_id"] = f"<a href={reverse('task__change', args=[task_id])}>{task_id}</a>"
         context["ansi_logging_content"] = ansi_logging_content
         return context
 
