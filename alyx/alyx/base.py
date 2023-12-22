@@ -294,14 +294,8 @@ def _get_category_list(app_list):
     order = ADMIN_PAGES
     extra_in_common = ["Adverse effects", "Cull subjects"]
     order_models = flatten([models for app, models in order])
-    models_dict = {
-        str(model["name"]): model for app in app_list for model in app["models"]
-    }
-    model_to_app = {
-        str(model["name"]): str(app["name"])
-        for app in app_list
-        for model in app["models"]
-    }
+    models_dict = {str(model["name"]): model for app in app_list for model in app["models"]}
+    model_to_app = {str(model["name"]): str(app["name"]) for app in app_list for model in app["models"]}
     category_list = [
         Bunch(
             name=name,
@@ -346,9 +340,7 @@ class MyAdminSite(admin.AdminSite):
         context.update(extra_context or {})
         request.current_app = self.name
 
-        return TemplateResponse(
-            request, self.index_template or "admin/index.html", context
-        )
+        return TemplateResponse(request, self.index_template or "admin/index.html", context)
 
 
 class JsonWidget(forms.Textarea):
@@ -387,13 +379,11 @@ class BaseAdmin(VersionAdmin):
         from misc.models import Lab
 
         tz = pytz.timezone(Lab.objects.get(name=request.user.lab[0]).timezone)
-        assert (
-            settings.USE_TZ is False
-        )  # timezone.now() is expected to be a naive datetime
+        # assert (
+        #    settings.USE_TZ is False
+        # )  # timezone.now() is expected to be a naive datetime
         server_tz = pytz.timezone(settings.TIME_ZONE)  # server timezone
-        now = datetime.now(
-            tz=server_tz
-        )  # convert datetime from naive to server timezone
+        now = datetime.now(tz=server_tz)  # convert datetime from naive to server timezone
         now = now.astimezone(tz)  # convert to the lab timezone
         return {"start_time": now, "created_at": now, "date_time": now}
 
@@ -401,12 +391,8 @@ class BaseAdmin(VersionAdmin):
         category_list = _get_category_list(admin.site.get_app_list(request))
         extra_context = extra_context or {}
         extra_context["mininav"] = [("", "-- jump to --")]
-        extra_context["mininav"] += [
-            (model["admin_url"], model["name"]) for model in category_list[0].models
-        ]
-        return super(BaseAdmin, self).changelist_view(
-            request, extra_context=extra_context
-        )
+        extra_context["mininav"] += [(model["admin_url"], model["name"]) for model in category_list[0].models]
+        return super(BaseAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request, *args, **kwargs):
         if request.user.is_public_user:
@@ -471,9 +457,7 @@ class BaseTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         globals()["DISABLE_MAIL"] = True
-        call_command(
-            "loaddata", op.join(DATA_DIR, "all_dumped_anon.json.gz"), verbosity=1
-        )
+        call_command("loaddata", op.join(DATA_DIR, "all_dumped_anon.json.gz"), verbosity=1)
 
     def ar(self, r, code=200):
         """
@@ -506,7 +490,7 @@ class BaseFilterSet(FilterSet):
     sessions?django=~start_time__date__lt,2017-06-05'
     """
 
-    django = CharFilter(field_name="", method=("django_filter"))
+    django = CharFilter(field_name="", method="django_filter")
 
     def django_filter(self, queryset, _, value):
         kwargs = _custom_filter_parser(value)
@@ -528,12 +512,7 @@ class BaseFilterSet(FilterSet):
         try:
             value = value_map[value.lower().strip()]
         except KeyError:
-            raise ValueError(
-                "Invalid"
-                + name
-                + ", choices are: "
-                + ", ".join([ch[1] for ch in choices])
-            )
+            raise ValueError("Invalid" + name + ", choices are: " + ", ".join([ch[1] for ch in choices]))
         return queryset.filter(**{name: value})
 
     @classmethod
@@ -697,10 +676,7 @@ class BaseSerializerEnumField(serializers.Field):
         status = [ch for ch in self.choices if ch[1] == str_rep]
         if len(status) == 0:
             raise serializers.ValidationError(
-                "Invalid "
-                + self.field_name
-                + ", choices are: "
-                + ", ".join([ch[1] for ch in self.choices])
+                "Invalid " + self.field_name + ", choices are: " + ", ".join([ch[1] for ch in self.choices])
             )
         return status[0][0]
 
