@@ -104,7 +104,7 @@ class TaskListView(generics.ListCreateAPIView):
     """
 
     queryset = Task.objects.all()
-    queryset = TaskListSerializer.setup_eager_loading(queryset)
+    # queryset = TaskListSerializer.setup_eager_loading(queryset)
     permission_classes = rest_permission_classes()
     filter_class = TaskFilter
 
@@ -120,7 +120,7 @@ class TaskListView(generics.ListCreateAPIView):
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "id"
     queryset = Task.objects.all()
-    queryset = TaskDetailsSeriaizer.setup_eager_loading(queryset)
+    # queryset = TaskDetailsSeriaizer.setup_eager_loading(queryset)
     serializer_class = TaskDetailsSeriaizer
     permission_classes = rest_permission_classes()
 

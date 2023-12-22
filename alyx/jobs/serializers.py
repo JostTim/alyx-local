@@ -23,7 +23,7 @@ class TaskListSerializer(serializers.HyperlinkedModelSerializer):
     def setup_eager_loading(queryset):
         """Perform necessary eager loading of data to avoid horrible performance."""
         queryset = queryset.select_related("session", "data_repository")
-        queryset = queryset.prefetch_related("parents")
+        # queryset = queryset.prefetch_related("parents")
         return queryset.order_by("level", "-priority", "-datetime")
 
 
