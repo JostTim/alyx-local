@@ -63,7 +63,7 @@ class Task(models.Model):
     def __str__(self):
         return f"{self.name}  {self.session}  {self.get_status_display()}"
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["name", "session", "arguments"], name="unique_name_arguments_per_session")
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(fields=["name", "session", "arguments"], name="unique_name_arguments_per_session")
+    #     ]
