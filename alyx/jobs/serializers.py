@@ -5,7 +5,7 @@ from data.models import DataRepository
 from alyx.base import BaseSerializerEnumField
 
 
-class TaskListSerializer(serializers.HyperlinkedModelSerializer):
+class TaskListSerializer(serializers.ModelSerializer):
     session = serializers.SlugRelatedField(
         read_only=False, required=False, slug_field="id", many=False, queryset=Session.objects.all()
     )
@@ -27,7 +27,7 @@ class TaskListSerializer(serializers.HyperlinkedModelSerializer):
         return queryset.order_by("level", "-priority", "-datetime")
 
 
-class TaskDetailsSeriaizer(serializers.HyperlinkedModelSerializer):
+class TaskDetailsSeriaizer(serializers.ModelSerializer):
     session = serializers.SlugRelatedField(
         read_only=False, required=False, slug_field="id", many=False, queryset=Session.objects.all()
     )
