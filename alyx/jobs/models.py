@@ -73,7 +73,7 @@ class Task(models.Model):
     )
 
     def __str__(self):
-        return self.name + "  " + str(self.session) + "  " + self.get_status_display()
+        return f"{self.name}  {self.session}  {self.get_status_display()}"
 
     class Meta:
         constraints = [
