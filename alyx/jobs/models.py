@@ -13,13 +13,13 @@ class Task(models.Model):
         (20, "Created"),
         (25, "Waiting"),
         (30, "Started"),
-        (40, "No_Info"),
+        (35, "No_Info"),
         (40, "Warnings"),
         (45, "Errors"),
         (50, "Critical"),
         (55, "Failed"),
-        (55, "Uncatched_Fail"),
-        (60, "Complete"),
+        (60, "Uncatched_Fail"),
+        (100, "Complete"),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # some information for parallel runs
