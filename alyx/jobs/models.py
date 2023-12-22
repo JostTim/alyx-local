@@ -10,32 +10,16 @@ class Task(models.Model):
     """
 
     STATUS_DATA_SOURCES = [
-        (
-            20,
-            "Waiting",
-        ),
-        (
-            25,
-            "Held",
-        ),
-        (
-            30,
-            "Started",
-        ),
-        (
-            40,
-            "Errored",
-        ),
-        (
-            45,
-            "Abandoned",
-        ),
-        (50, "Empty"),
-        (55, "Incomplete"),
-        (
-            60,
-            "Complete",
-        ),
+        (20, "Created"),
+        (25, "Waiting"),
+        (30, "Started"),
+        (40, "No_Info"),
+        (40, "Warnings"),
+        (45, "Errors"),
+        (50, "Critical"),
+        (55, "Failed"),
+        (55, "Uncatched_Fail"),
+        (60, "Complete"),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # some information for parallel runs
