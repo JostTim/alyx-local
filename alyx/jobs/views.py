@@ -118,7 +118,6 @@ class TaskListView(generics.ListCreateAPIView):
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = "id"
     queryset = Task.objects.all()
     # queryset = TaskDetailsSeriaizer.setup_eager_loading(queryset)
     serializer_class = TaskDetailsSeriaizer
