@@ -33,11 +33,17 @@ class TaskDetailsSeriaizer(serializers.ModelSerializer):
     )
 
     data_repository = serializers.SlugRelatedField(
-        read_only=False, required=False, slug_field="name", many=False, queryset=DataRepository.objects.all()
+        read_only=False,
+        allow_null=True,
+        required=False,
+        slug_field="name",
+        many=False,
+        queryset=DataRepository.objects.all(),
     )
 
     parents = serializers.SlugRelatedField(
         read_only=False,
+        allow_null=True,
         required=False,
         slug_field="id",
         many=True,
