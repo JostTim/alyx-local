@@ -72,6 +72,10 @@ class Task(models.Model):
         "data.DataRepository", null=True, blank=True, related_name="tasks", on_delete=models.CASCADE
     )
 
+    @property
+    def session_path(self):
+        return self.session.path
+
     def __str__(self):
         return f"{self.name}  {self.session}  {self.get_status_display()}"
 

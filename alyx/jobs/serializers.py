@@ -50,6 +50,8 @@ class TaskDetailsSeriaizer(serializers.ModelSerializer):
         queryset=Task.objects.all(),
     )
 
+    session_path = serializers.CharField(source="session_path", read_only=True)
+
     @staticmethod
     def setup_eager_loading(queryset):
         """Perform necessary eager loading of data to avoid horrible performance."""
