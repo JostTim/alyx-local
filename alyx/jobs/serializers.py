@@ -50,6 +50,8 @@ class TaskDetailsSeriaizer(serializers.ModelSerializer):
         queryset=Task.objects.all(),
     )
 
+    qc = BaseSerializerEnumField(required=False)
+
     session_path = serializers.CharField(read_only=True)
 
     @staticmethod
