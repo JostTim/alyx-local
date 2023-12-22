@@ -12,7 +12,7 @@ import django_filters
 
 from misc.models import Lab
 from jobs.models import Task
-from jobs.serializers import TaskSerializer
+from jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
 from actions.models import Session
 
 
@@ -92,7 +92,7 @@ class TaskFilter(BaseFilterSet):
         exclude = ["json"]
 
 
-class TaskList(generics.ListCreateAPIView):
+class TaskListView(generics.ListCreateAPIView):
     """
     get: **FILTERS**
     -   **task**: task name `/jobs?task=EphysSyncPulses`
@@ -103,15 +103,24 @@ class TaskList(generics.ListCreateAPIView):
     [===> task model reference](/admin/doc/models/jobs.task)
     """
 
-    queryset = Task.objects.all().order_by("level", "-priority", "-session__start_time")
-    serializer_class = TaskSerializer
+    queryset = Task.objects.all().order_by("level", "-priority", "-datetime")
+    queryset = TaskListSerializer.setup_eager_loading(queryset)
     permission_classes = rest_permission_classes()
     filter_class = TaskFilter
 
+    def get_serializer_class(self):
+        if not self.request:
+            return TaskListSerializer
+        if self.request.method == "GET":
+            return TaskListSerializer
+        if self.request.method == "POST":
+            return TaskDetailsSeriaizer
 
-class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer
+    queryset = TaskDetailsSeriaizer.setup_eager_loading(queryset)
+    serializer_class = TaskDetailsSeriaizer
     permission_classes = rest_permission_classes()
 
 
