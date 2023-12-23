@@ -286,7 +286,6 @@
         <div class="container_title">Tune arguments</div>
         <div class="scrollable">
             <div class="arguments_view_container">
-                {% if form %}
                 <form action="{{ origin_url }}" method="post" style="text-align:center;">
                     {% csrf_token %}
                     {{ form }}
