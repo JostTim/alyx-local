@@ -13,7 +13,7 @@
     {% for pipe in pipe_list %}
     {% for step in pipe.steps %}
     {% if not step.is_empty %}
-    "{{ step.full_name }}" : { { step.requirement_stack } } {% if not loop.last %}, {% endif %}
+    "{{ step.full_name }}" : {{ step.requirement_stack }} {% if not loop.last %}, {% endif %}
     {% endif %}
     {% endfor %}
     {% if not loop.last %}, {% endif %}
