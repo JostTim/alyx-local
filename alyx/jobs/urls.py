@@ -10,6 +10,11 @@ urlpatterns = [
         name="task-logs",
     ),
     path(
+        "admin-tasks/session/<uuid:session_pk>/task/<str:step_name>",
+        jv.SessionTasksView.as_view(),
+        name="session-tasks",
+    ),
+    path(
         "admin-tasks/status",
         jv.TasksStatusView.as_view(),
         name="tasks_status",

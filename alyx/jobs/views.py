@@ -1,3 +1,4 @@
+from django import forms
 from django.db.models import Q, Count, Max
 from rest_framework import generics
 from django_filters.rest_framework import CharFilter
@@ -9,11 +10,13 @@ import numpy as np
 
 from alyx.base import BaseFilterSet, rest_permission_classes
 import django_filters
-
+import structlog
 from misc.models import Lab
 from jobs.models import Task
 from jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
 from actions.models import Session
+
+logger = structlog.get_logger(__name__)
 
 
 class TasksStatusView(ListView):
@@ -139,3 +142,65 @@ class TaskLogs(DetailView):
 
     def get_object(self):
         return get_object_or_404(Task, pk=self.kwargs["task_id"])
+
+
+class ArgumentsForm(forms.Form):
+    def __init__(self, *args, session_pk, step_name, **kwargs):
+        logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
+
+
+class SessionTasksView(forms.FormMixin, forms.TemplateView):
+    template_name = "session_tasks.html"
+    form_class = ArgumentsForm
+
+    def get_form_kwargs(self):
+        return super().get_form_kwargs()
+
+    def get_object(self):
+        return get_object_or_404(Session, pk=self.kwargs["session_pk"])
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        session_id = self.kwargs.get("session_pk", None)
+        step_name = self.kwargs.get("step_name", None)
+        pipe_list = [
+            {
+                "name": "NeuropilMask",
+                "steps": [
+                    {
+                        "name": "InitialCalculation",
+                        "full_name": "NeuropilMask.InitialCalculation",
+                        "is_empty": False,
+                        "url": "http://testurl.com",
+                        "requirement_stack": [],
+                    },
+                    {
+                        "is_empty": True,
+                    },
+                    {
+                        "name": "secondstep",
+                        "full_name": "NeuropilMask.secondstep",
+                        "is_empty": False,
+                        "url": "http://testurl.com",
+                        "requirement_stack": ["NeuropilMask.InitialCalculation"],
+                    },
+                ],
+            }
+        ]
+        context["run_url"] = "http://thisissupposedtolooptohere.com"
+        context["pipe_list"] = pipe_list
+        context["origin_url"] = reverse(
+            "admin:session-tasks", kwargs={"session_pk": session_id, "step_name": step_name}
+        )
+        return context

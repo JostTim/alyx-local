@@ -1,0 +1,289 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content %}
+
+<script>
+    var link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
+    var node_parents = {
+    {% for pipe in pipe_list %}
+    {% for step in pipe.steps %}
+    {% if not step.is_empty %}
+    "{{ step.full_name }}" : { { step.requirement_stack } } {% if not loop.last %}, {% endif %}
+    {% endif %}
+    {% endfor %}
+    {% if not loop.last %}, {% endif %}
+    {% endfor %}
+    };
+
+
+    // Function to highlight a node
+    function highlightNode(node_id) {
+        var inner_node = document.getElementById(node_id).querySelector('.node_internal');
+        inner_node.classList.add('highlighted_requirement');
+    }
+
+    // Function to restore a node's style
+    function restoreNodeStyle(node_id) {
+        var inner_node = document.getElementById(node_id).querySelector('.node_internal');
+        inner_node.classList.remove('highlighted_requirement');
+    }
+
+    function mouse_in_node() {
+        var node_id = this.id;
+        if (node_parents.hasOwnProperty(node_id)) {
+            var parent_ids = node_parents[node_id];
+            for (let j = 0; j < parent_ids.length; j++) {
+                highlightNode(parent_ids[j]);
+                var line = document.getElementById(node_id + "-" + parent_ids[j]);
+                line.stroke = "green";
+                line.style = "stroke:green;stroke-width:8";
+            }
+        }
+    }
+
+    function mouse_out_node() {
+        var node_id = this.id;
+        if (node_parents.hasOwnProperty(node_id)) {
+            var parent_ids = node_parents[node_id];
+            for (let j = 0; j < parent_ids.length; j++) {
+                restoreNodeStyle(parent_ids[j]);
+                var line = document.getElementById(node_id + "-" + parent_ids[j]);
+                line.stroke = "black";
+                line.style = "stroke:black;stroke-width:1";
+            }
+        }
+    }
+
+    function connectElements(element1, element2) {
+        var svg = document.querySelector('svg');
+        var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        line.setAttribute('stroke', 'black');
+
+        svg.appendChild(line);
+
+        var rect1 = element1.getBoundingClientRect();
+        var rect2 = element2.getBoundingClientRect();
+
+        var svgRect = svg.getBoundingClientRect();
+
+        line.setAttribute('x1', rect1.left + rect1.width / 2 - svgRect.left);
+        line.setAttribute('y1', rect1.top + rect1.height / 2 - svgRect.top);
+        line.setAttribute('x2', rect2.left + rect2.width / 2 - svgRect.left);
+        line.setAttribute('y2', rect2.top + rect2.height / 2 - svgRect.top);
+        line.id = element1.id + "-" + element2.id;
+        console.log(element1.id)
+        console.log(element2.id)
+        console.log(line)
+    }
+
+    function create_lines(node) {
+        var node_id = node.id;
+        if (node_parents.hasOwnProperty(node_id)) {
+            var parent_ids = node_parents[node_id];
+            for (let i = 0; i < parent_ids.length; i++) {
+                var parent = document.getElementById(parent_ids[i]);
+                connectElements(node, parent);
+            }
+        }
+    }
+
+    var all_nodes = document.getElementsByClassName('node');
+    for (let i = 0; i < all_nodes.length; i++) {
+        all_nodes[i].addEventListener('mouseover', mouse_in_node);
+        all_nodes[i].addEventListener('mouseout', mouse_out_node);
+        create_lines(all_nodes[i]);
+    }
+</script>
+
+<style>
+    body {
+        overflow: hidden;
+    }
+
+    :root {
+        --node_size: 150px;
+        --shadow_size: calc(var(--node_size)/2);
+        --shadow_size_r: calc(var(--node_size)/-2);
+        --border_radius: 20%;
+    }
+
+    .node_internal {
+        color: black;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        height: var(--node_size);
+        width: var(--node_size);
+        background: lightblue;
+        /* transparent */
+        border-radius: var(--border_radius);
+        box-shadow: var(--shadow_size_r) var(--shadow_size_r) 0px var(--shadow_size_r) royalblue inset;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .node_internal:hover {
+        background: gold;
+        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkorange inset;
+    }
+
+    .node_internal.highlighted_requirement {
+        background: green;
+        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkgreen inset;
+    }
+
+    .node {
+        outline: 1px solid black;
+        box-shadow: 2px 2px 3px 2px gray;
+    }
+
+    .node_location {
+        border-radius: var(--border_radius);
+        height: var(--node_size);
+        width: var(--node_size);
+        margin: 10px;
+    }
+
+    .column_title {
+        font-weight: bold;
+    }
+
+    .graph_column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .graph {
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        z-index: 2;
+    }
+
+    svg {
+        position: absolute;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        /* border: solid; */
+    }
+
+    .graph_container {
+        position: relative;
+        height: min-content;
+    }
+
+    .container {
+        flex-grow: 1;
+        text-align: center;
+    }
+
+    .scrollable {
+        overflow-y: scroll;
+        max-height: 100vh;
+        text-align: start;
+    }
+
+    .container_title {
+        font-weight: bold;
+        font-size: 28px;
+        margin-bottom: 20px;
+    }
+
+    .split_screen {
+        font-family: 'Roboto', sans-serif;
+        display: flex;
+        flex-direction: columns;
+        max-height: 100vh;
+    }
+
+    .vertical_separator {
+        border-left: solid black 1px;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    .arguments_view_container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+    }
+
+    .form_placeholder {
+        border: dashed;
+        text-align: center;
+        padding: 150px;
+    }
+
+    .run_button {
+        margin: 40px;
+        padding: 20px;
+        width: 200px;
+        color: white;
+        background: darkblue;
+        border-radius: 10px;
+        text-decoration: none;
+        text-align: center;
+        box-shadow: 2px 2px 3px 2px gray;
+    }
+</style>
+
+<span class="split_screen">
+
+    <div class="container">
+        <div class="container_title">Runnable Steps Graph</div>
+        <div class="scrollable">
+            <div class="graph_container">
+                <svg></svg>
+                <div class="graph">
+
+                    {% for pipe in pipe_list %}
+                    <div class="graph_column">
+                        <div class="column_title">{{ pipe.name }}</div>
+                        {% for step in pipe.steps %}
+                        {% if step.is_empty %}
+                        <div class="node_location"></div>
+                        {% else %}
+                        <div class="node node_location" id="{{ step.full_name }}">
+                            <a class="node_internal" href="{{ step.url }}">{{ step.name }}</a>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="vertical_separator"></div>
+
+    <div class="container">
+        <div class="container_title">Selected Step Arguments</div>
+        <div class="scrollable">
+            <div class="arguments_view_container">
+                {% if form %}
+                <form action="{{ origin_url }}" method="post">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input type="submit" value="Update arguments values">
+                </form>
+                <a href="{{ run_url }}" class="run_button">Run</a>
+                {% else %}
+                <span style="text-align:center;font-size:22px;margin:50px;">Select a step to edit the arguments and
+                    choose wether to run it.</span>
+            </div>
+        </div>
+    </div>
+
+</span>
