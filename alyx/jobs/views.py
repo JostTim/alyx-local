@@ -4,6 +4,8 @@ from rest_framework import generics
 from django_filters.rest_framework import CharFilter
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormMixin
+from django.views.generic.base import TemplateView
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 import numpy as np
@@ -149,7 +151,7 @@ class ArgumentsForm(forms.Form):
         logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
 
 
-class SessionTasksView(forms.FormMixin, forms.TemplateView):
+class SessionTasksView(FormMixin, TemplateView):
     template_name = "session_tasks.html"
     form_class = ArgumentsForm
 
