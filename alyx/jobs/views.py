@@ -156,7 +156,9 @@ class SessionTasksView(FormMixin, TemplateView):
     form_class = ArgumentsForm
 
     def get_form_kwargs(self):
-        return super().get_form_kwargs()
+        kwargs = super().get_form_kwargs()
+        kwargs.update({"session_pk": self.kwargs["session_pk"], "step_name": self.kwargs["step_name"]})
+        return kwargs
 
     def get_object(self):
         return get_object_or_404(Session, pk=self.kwargs["session_pk"])
