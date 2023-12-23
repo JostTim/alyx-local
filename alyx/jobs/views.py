@@ -148,6 +148,7 @@ class TaskLogs(DetailView):
 
 class ArgumentsForm(forms.Form):
     whatever_argument = forms.IntegerField()
+    renderer = forms.renderer
 
     def __init__(self, *args, session_pk, step_name, **kwargs):
         session_pk = str(session_pk)
