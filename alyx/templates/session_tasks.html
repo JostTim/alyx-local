@@ -158,6 +158,10 @@
         margin: 10px;
     }
 
+    .node.node_location.selected_node {
+        outline: 10px solid gold;
+    }
+
     .column_title {
         font-weight: bold;
     }
@@ -240,6 +244,7 @@
 
     .run_button {
         margin: 40px;
+        margin-bottom: 5px;
         padding: 20px;
         width: 200px;
         color: white !important;
@@ -248,6 +253,12 @@
         text-decoration: none;
         text-align: center;
         box-shadow: 2px 2px 3px 2px gray;
+        transition : background-color 0.1s, color 0.1s;
+    }
+
+    .run_button:hover{
+        color : black;
+        background : lightblue;
     }
 </style>
 
@@ -267,7 +278,7 @@
                         {% if step.is_empty %}
                         <div class="node_location"></div>
                         {% else %}
-                        <div class="node node_location" id="{{ step.full_name }}">
+                        <div class="node node_location{% if selected_step==step.full_name %} selected_node{% endif %}" id="{{ step.full_name }}">
                             <a class="node_internal" href="{{ step.url }}">{{ step.name }}</a>
                         </div>
                         {% endif %}
@@ -293,7 +304,9 @@
                 </form>
                 <div class="separator horizontal"></div>
                 <div class="container_title">Launch task and requirements</div>
-                <a href="{{ run_url }}" class="run_button">Run</a>
+                <a href="{{ run_url }}" class="run_button">Run task</a>
+                <span style="font-size:12px; text-align:center;">This will queue up the task on the processing celery cluster, if available.<br>Remember to update arguments first !</span>
+                <span>
             </div>
         </div>
     </div>

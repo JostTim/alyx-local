@@ -1,12 +1,13 @@
 from django import forms
+from django.contrib.postgres.forms import SimpleArrayField
 from django.db.models import Q, Count, Max
 from rest_framework import generics
 from django_filters.rest_framework import CharFilter
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
-from django.views.generic.base import TemplateView
-from django.shortcuts import get_object_or_404
+from django.views.generic.base import TemplateView, View
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 import numpy as np
 
@@ -148,6 +149,9 @@ class TaskLogs(DetailView):
 
 class ArgumentsForm(forms.Form):
     whatever_argument = forms.IntegerField()
+    named_argument = forms.CharField()
+    boolean_argument = forms.BooleanField()
+    array_field = SimpleArrayField(forms.CharField(max_length=100))
 
     def __init__(self, *args, session_pk, step_name, **kwargs):
         session_pk = str(session_pk)
@@ -190,9 +194,13 @@ class SessionTasksView(FormMixin, TemplateView):
         else:
             return reverse("home")
 
+    def get_session_step_url(self, session_id, step_name):
+        return reverse("session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        session_id = self.kwargs.get("session_pk", None)
+        session_id = str(self.kwargs.get("session_pk", None))
+        session_object = Session.objects.get(session_id)
         step_name = self.kwargs.get("step_name", None)
         pipe_list = [
             {
@@ -202,7 +210,7 @@ class SessionTasksView(FormMixin, TemplateView):
                         "name": "InitialCalculation",
                         "full_name": "NeuropilMask.InitialCalculation",
                         "is_empty": False,
-                        "url": "http://testurl.com",
+                        "url": self.get_session_step_url(session_id, "NeuropilMask.InitialCalculation"),
                         "requirement_stack": [],
                     },
                     {
@@ -212,14 +220,30 @@ class SessionTasksView(FormMixin, TemplateView):
                         "name": "secondstep",
                         "full_name": "NeuropilMask.secondstep",
                         "is_empty": False,
-                        "url": "http://testurl.com",
+                        "url": self.get_session_step_url(session_id, "NeuropilMask.secondstep"),
                         "requirement_stack": ["NeuropilMask.InitialCalculation"],
                     },
                 ],
             }
         ]
-        context["run_url"] = "http://thisissupposedtolooptohere.com"
+        context["site_header"] = "Alyx"
+        context["title"] = f"Processing task view for session {session_object} - With task step {step_name}"
+        context["run_url"] = reverse("create-session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
         context["pipe_list"] = pipe_list
-        context["origin_url"] = reverse("session-tasks", kwargs={"session_pk": str(session_id), "step_name": step_name})
+        context["origin_url"] = self.get_session_step_url(session_id, step_name)
         context["form"] = self.get_form().as_div()
+        context["selected_step"] = step_name
         return context
+
+
+class CreateAndViewTask(View):
+    def get(self, request, *args, **kwargs):
+        step_name = self.kwargs.get("step_name")
+        session_id = str(self.kwargs.get("session_pk"))
+        # Add more parameters if needed
+
+        new_obj = Task.objects.create(name=step_name, session=session_id)
+        new_task_pk = new_obj.pk
+        # new_task_pk = f"run the pipeline mechanism here and get the new task using {step_name}"
+
+        return redirect("task-logs", task_id=new_task_pk)
