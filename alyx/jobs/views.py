@@ -210,6 +210,7 @@ class SessionTasksView(FormMixin, TemplateView):
                         "name": "InitialCalculation",
                         "full_name": "NeuropilMask.InitialCalculation",
                         "is_empty": False,
+                        "is_selected": False,
                         "url": self.get_session_step_url(session_id, "NeuropilMask.InitialCalculation"),
                         "requirement_stack": [],
                     },
@@ -220,19 +221,26 @@ class SessionTasksView(FormMixin, TemplateView):
                         "name": "secondstep",
                         "full_name": "NeuropilMask.secondstep",
                         "is_empty": False,
+                        "is_selected": False,
                         "url": self.get_session_step_url(session_id, "NeuropilMask.secondstep"),
                         "requirement_stack": ["NeuropilMask.InitialCalculation"],
                     },
                 ],
             }
         ]
+        for k, v in pipe_list.items():
+            for i, step in enumerate(v.steps):
+                if step["is_empty"]:
+                    continue
+                if step["full_name"] == step_name:
+                    pipe_list[k][i]["is_selected"] = True
+
         context["site_header"] = "Alyx"
         context["title"] = f"Processing task view for session {session_object} - With task step {step_name}"
         context["run_url"] = reverse("create-session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
         context["pipe_list"] = pipe_list
         context["origin_url"] = self.get_session_step_url(session_id, step_name)
         context["form"] = self.get_form().as_div()
-        context["selected_step"] = step_name
         return context
 
 

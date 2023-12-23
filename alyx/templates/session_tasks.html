@@ -278,7 +278,7 @@
                         {% if step.is_empty %}
                         <div class="node_location"></div>
                         {% else %}
-                        <div class="node node_location{% if selected_step==step.full_name %} selected_node{% endif %}" id="{{ step.full_name }}">
+                        <div class="node node_location{% if step.is_selected %} selected_node{% endif %}" id="{{ step.full_name }}">
                             <a class="node_internal" href="{{ step.url }}">{{ step.name }}</a>
                         </div>
                         {% endif %}
