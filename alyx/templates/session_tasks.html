@@ -93,10 +93,14 @@
     }
 
     var all_nodes = document.getElementsByClassName('node');
+    console.log("all_nodes")
+    console.log(all_nodes)
     for (let i = 0; i < all_nodes.length; i++) {
         all_nodes[i].addEventListener('mouseover', mouse_in_node);
         all_nodes[i].addEventListener('mouseout', mouse_out_node);
         create_lines(all_nodes[i]);
+        console.log("startup")
+        console.log(all_nodes[i])
     }
 </script>
 
@@ -272,7 +276,7 @@
         <div class="scrollable">
             <div class="arguments_view_container">
                 {% if form %}
-                <form action="{{ origin_url }}" method="post">
+                <form action="{{ origin_url }}" method="post", style="text-align:center;">
                     {% csrf_token %}
                     {{ form }}
                     <input type="submit" value="Update arguments values">
