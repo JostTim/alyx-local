@@ -204,5 +204,5 @@ class SessionTasksView(FormMixin, TemplateView):
         ]
         context["run_url"] = "http://thisissupposedtolooptohere.com"
         context["pipe_list"] = pipe_list
-        context["origin_url"] = reverse("jobs:session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
+        context["origin_url"] = reverse("session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
         return context
