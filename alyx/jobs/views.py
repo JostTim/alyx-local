@@ -156,6 +156,9 @@ class ArgumentsForm(forms.Form):
         self.step_name = step_name
         super().__init__(*args, **kwargs)
 
+    def save(self):
+        logger.warning(f"attempting to save {self=}")
+
 
 class SessionTasksView(FormMixin, TemplateView):
     template_name = "session_tasks.html"
