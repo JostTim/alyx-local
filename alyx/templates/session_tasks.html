@@ -105,7 +105,7 @@
         }
     }
     document.addEventListener('DOMContentLoaded', startup);
-    
+
 </script>
 
 <style>
@@ -212,7 +212,13 @@
         max-height: 100vh;
     }
 
-    .vertical_separator {
+
+    .separator.horizontal {
+        border-top: solid black 1px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .separator.vertical {
         border-left: solid black 1px;
         margin-left: 20px;
         margin-right: 20px;
@@ -248,7 +254,7 @@
 <span class="split_screen">
 
     <div class="container">
-        <div class="container_title">Runnable Steps Graph</div>
+        <div class="container_title">Select task</div>
         <div class="scrollable">
             <div class="graph_container">
                 <svg></svg>
@@ -273,27 +279,26 @@
         </div>
     </div>
 
-    <div class="vertical_separator"></div>
+    {% if form %}
+    <div class="separator vertical"></div>
 
     <div class="container">
-        <div class="container_title">Selected Step Arguments</div>
+        <div class="container_title">Tune arguments</div>
         <div class="scrollable">
             <div class="arguments_view_container">
                 {% if form %}
-                <form action="{{ origin_url }}" method="post", style="text-align:center;">
+                <form action="{{ origin_url }}" method="post" style="text-align:center;">
                     {% csrf_token %}
                     {{ form }}
-                    <input type="submit" value="Update arguments values">
+                    <input type="submit" value="Update arguments values" style="margin:20px;">
                 </form>
+                <div class="separator horizontal"></div>
+                <div class="container_title">Launch task and requirements</div>
                 <a href="{{ run_url }}" class="run_button">Run</a>
-                {% else %}
-                <span style="text-align:center;font-size:22px;margin:50px;">Select a step to edit the arguments and
-                    choose wether to run it.</span>
-                {% endif %}
             </div>
         </div>
     </div>
-
+    {% endif %}
 </span>
 
 {% endblock %}
