@@ -151,7 +151,6 @@ class ArgumentsForm(forms.Form):
 
     def __init__(self, *args, session_pk, step_name, **kwargs):
         session_pk = str(session_pk)
-        logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
         self.session_pk = session_pk
         self.step_name = step_name
         super().__init__(*args, **kwargs)
