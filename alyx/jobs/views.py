@@ -147,7 +147,10 @@ class TaskLogs(DetailView):
 
 
 class ArgumentsForm(forms.Form):
+    whatever_argument = forms.IntegerField()
+
     def __init__(self, *args, session_pk, step_name, **kwargs):
+        session_pk = str(session_pk)
         logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
 
 
@@ -204,5 +207,6 @@ class SessionTasksView(FormMixin, TemplateView):
         ]
         context["run_url"] = "http://thisissupposedtolooptohere.com"
         context["pipe_list"] = pipe_list
-        context["origin_url"] = reverse("session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
+        context["origin_url"] = reverse("session-tasks", kwargs={"session_pk": str(session_id), "step_name": step_name})
+        context["form"] = self.get_form()
         return context
