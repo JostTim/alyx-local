@@ -152,9 +152,9 @@ class ArgumentsForm(forms.Form):
     def __init__(self, *args, session_pk, step_name, **kwargs):
         session_pk = str(session_pk)
         logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
-
-    # def render(self, request, *args, **kwargs):
-    #     return self.render_to_response(self.get_context_data(form=self.get_form()))
+        self.session_pk = session_pk
+        self.step_name = step_name
+        super().__init__(*args, **kwargs)
 
 
 class SessionTasksView(FormMixin, TemplateView):
