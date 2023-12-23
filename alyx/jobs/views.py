@@ -183,6 +183,14 @@ class SessionTasksView(FormMixin, TemplateView):
         form.save()
         return super().form_valid(form)
 
+    def get_success_url(self, **kwargs):
+        session_id = self.kwargs.get("session_pk", None)
+        step_name = self.kwargs.get("step_name", None)
+        if session_id is not None and step_name is not None:
+            return reverse("session-tasks", kwargs={"session_pk": str(session_id), "step_name": step_name})
+        else:
+            return reverse("home")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = self.kwargs.get("session_pk", None)
