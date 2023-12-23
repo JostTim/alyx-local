@@ -260,6 +260,16 @@
         color : black;
         background : lightblue;
     }
+
+    form {
+        text-align:center;
+    }
+
+    .form_flex {
+        display:flex;
+        flex-direction : column;
+        align-items : start;
+    }
 </style>
 
 <span class="split_screen">
@@ -297,9 +307,11 @@
         <div class="container_title">Tune arguments</div>
         <div class="scrollable">
             <div class="arguments_view_container">
-                <form action="{{ origin_url }}" method="post" style="text-align:center;">
-                    {% csrf_token %}
-                    {{ form }}
+                <form action="{{ origin_url }}" method="post">
+                    <div class="form_flex">
+                        {% csrf_token %}
+                        {{ form }}
+                    </div>
                     <input type="submit" value="Update arguments values" style="margin:20px;">
                 </form>
                 <div class="separator horizontal"></div>
