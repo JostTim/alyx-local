@@ -20,6 +20,8 @@
     {% endfor %}
     };
 
+    console.log(node_parents)
+
 
     // Function to highlight a node
     function highlightNode(node_id) {
@@ -114,7 +116,7 @@
     }
 
     .node_internal {
-        color: black;
+        color: black !important;
         justify-content: center;
         align-items: center;
         text-align: center;
@@ -122,21 +124,21 @@
         display: flex;
         height: var(--node_size);
         width: var(--node_size);
-        background: lightblue;
+        background: lightblue !important;
         /* transparent */
         border-radius: var(--border_radius);
-        box-shadow: var(--shadow_size_r) var(--shadow_size_r) 0px var(--shadow_size_r) royalblue inset;
-        transition: background 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: var(--shadow_size_r) var(--shadow_size_r) 0px var(--shadow_size_r) royalblue inset !important;
+        transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
     }
 
     .node_internal:hover {
-        background: gold;
-        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkorange inset;
+        background: gold !important;
+        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkorange inset !important;
     }
 
     .node_internal.highlighted_requirement {
-        background: green;
-        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkgreen inset;
+        background: green !important;
+        box-shadow: var(--shadow_size) var(--shadow_size_r) 0px var(--shadow_size_r) darkgreen inset !important;
     }
 
     .node {
@@ -187,7 +189,7 @@
     }
 
     .scrollable {
-        overflow-y: scroll;
+        overflow-y: auto;
         max-height: 100vh;
         text-align: start;
     }
@@ -229,7 +231,7 @@
         margin: 40px;
         padding: 20px;
         width: 200px;
-        color: white;
+        color: white !important;
         background: darkblue;
         border-radius: 10px;
         text-decoration: none;
