@@ -204,14 +204,14 @@ class SessionTasksView(FormMixin, TemplateView):
         step_name = self.kwargs.get("step_name", None)
         pipe_list = [
             {
-                "name": "NeuropilMask",
+                "name": "neuropil_mask",
                 "steps": [
                     {
-                        "name": "InitialCalculation",
-                        "full_name": "NeuropilMask.InitialCalculation",
+                        "name": "initial_calculation",
+                        "full_name": "neuropil_mask.initial_calculation",
                         "is_empty": False,
                         "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "NeuropilMask.InitialCalculation"),
+                        "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
                         "requirement_stack": [],
                     },
                     {
@@ -219,21 +219,42 @@ class SessionTasksView(FormMixin, TemplateView):
                     },
                     {
                         "name": "secondstep",
-                        "full_name": "NeuropilMask.secondstep",
+                        "full_name": "neuropil_mask.secondstep",
                         "is_empty": False,
                         "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "NeuropilMask.secondstep"),
-                        "requirement_stack": ["NeuropilMask.InitialCalculation"],
+                        "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
+                        "requirement_stack": ["neuropil_mask.initial_calculation", "trials_df.initial_calculation"],
                     },
                 ],
-            }
+            },
+            {
+                "name": "trials_df",
+                "steps": [
+                    {
+                        "name": "initial_calculation",
+                        "full_name": "trials_df.initial_calculation",
+                        "is_empty": False,
+                        "is_selected": False,
+                        "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
+                        "requirement_stack": [],
+                    },
+                    {
+                        "name": "secondstep",
+                        "full_name": "trials_df.secondstep",
+                        "is_empty": False,
+                        "is_selected": False,
+                        "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
+                        "requirement_stack": ["trials_df.initial_calculation"],
+                    },
+                ],
+            },
         ]
-        for k, v in pipe_list.items():
-            for i, step in enumerate(v.steps):
+        for i, pipe in enumerate(pipe_list):
+            for j, step in enumerate(pipe["steps"]):
                 if step["is_empty"]:
                     continue
                 if step["full_name"] == step_name:
-                    pipe_list[k][i]["is_selected"] = True
+                    pipe_list[i][j]["is_selected"] = True
 
         context["site_header"] = "Alyx"
         context["title"] = f"Processing task view for session {session_object} - With task step {step_name}"
