@@ -148,11 +148,13 @@ class TaskLogs(DetailView):
 
 class ArgumentsForm(forms.Form):
     whatever_argument = forms.IntegerField()
-    renderer = forms.renderer
 
     def __init__(self, *args, session_pk, step_name, **kwargs):
         session_pk = str(session_pk)
         logger.warning(f"{session_pk=} {step_name=} {kwargs=}")
+
+    # def render(self, request, *args, **kwargs):
+    #     return self.render_to_response(self.get_context_data(form=self.get_form()))
 
 
 class SessionTasksView(FormMixin, TemplateView):
@@ -164,8 +166,8 @@ class SessionTasksView(FormMixin, TemplateView):
         kwargs.update({"session_pk": self.kwargs["session_pk"], "step_name": self.kwargs["step_name"]})
         return kwargs
 
-    def get_object(self):
-        return get_object_or_404(Session, pk=self.kwargs["session_pk"])
+    # def get_object(self):
+    #    return get_object_or_404(Session, pk=self.kwargs["session_pk"])
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
@@ -209,5 +211,5 @@ class SessionTasksView(FormMixin, TemplateView):
         context["run_url"] = "http://thisissupposedtolooptohere.com"
         context["pipe_list"] = pipe_list
         context["origin_url"] = reverse("session-tasks", kwargs={"session_pk": str(session_id), "step_name": step_name})
-        context["form"] = self.get_form()
+        context["form"] = self.get_form().as_div()
         return context
