@@ -200,7 +200,7 @@ class SessionTasksView(FormMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         session_id = str(self.kwargs.get("session_pk", None))
-        session_object = Session.objects.get(session_id)
+        session_object = Session.objects.get(pk=session_id)
         step_name = self.kwargs.get("step_name", None)
         pipe_list = [
             {
