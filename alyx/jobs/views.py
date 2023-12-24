@@ -261,6 +261,7 @@ class SessionTasksView(FormMixin, TemplateView):
         context["run_url"] = reverse("create-session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
         context["pipe_list"] = pipe_list
         context["origin_url"] = self.get_session_step_url(session_id, step_name)
+        context["selected_task_name"] = step_name
         context["form"] = self.get_form().as_div()
         return context
 
