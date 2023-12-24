@@ -160,7 +160,6 @@
 
     .node.node_location.selected_node {
         outline: 10px solid gold;
-        border-inline : 1px solid black;
     }
 
     .column_title {
@@ -209,6 +208,7 @@
         font-weight: bold;
         font-size: 28px;
         margin-bottom: 20px;
+        text-align:center;
     }
 
     .split_screen {
@@ -318,7 +318,7 @@
                     <input type="submit" value="Update arguments values" style="margin:20px;">
                 </form>
                 <div class="separator horizontal"></div>
-                <div class="container_title">Launch task and requirements<br>{{selected_task_name}}</div>
+                <div class="container_title" >Launch task and requirements<br>{{selected_task_name}}</div>
                 <a href="{{ run_url }}" class="run_button">Run task</a>
                 <span style="font-size:12px; text-align:center;">This will queue up the task on the processing celery cluster, if available.<br>Remember to update arguments first !</span>
                 <span>
