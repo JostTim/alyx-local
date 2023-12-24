@@ -172,7 +172,9 @@ class SessionTasksView(FormMixin, TemplateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update({"session_pk": self.kwargs["session_pk"], "step_name": self.kwargs["step_name"]})
+        kwargs.update(
+            {"session_pk": self.kwargs.get("session_pk", None), "step_name": self.kwargs.get("step_name", None)}
+        )
         return kwargs
 
     # def get_object(self):
