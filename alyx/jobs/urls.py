@@ -20,10 +20,15 @@ urlpatterns = [
         name="session-task",
     ),
     path(
-        "admin-tasks/create-task/<uuid:session_pk>",
+        "admin-tasks/session/<uuid:session_pk>",
         jv.SessionTasksView.as_view(),
         name="session-tasks",
     ),
+    # path(
+    #     "admin-tasks",
+    #     jv.TasksOverview.as_view(),
+    #     name="session-tasks-overview",
+    # ),
     path(
         "admin-tasks/status",
         jv.TasksStatusView.as_view(),

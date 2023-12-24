@@ -286,3 +286,7 @@ class CreateAndViewTask(View):
         # new_task_pk = f"run the pipeline mechanism here and get the new task using {step_name}"
 
         return redirect("task-logs", task_id=new_task_pk)
+
+
+# class TasksOverview(View):
+#     pass
