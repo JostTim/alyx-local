@@ -262,7 +262,7 @@ class SessionTasksView(FormMixin, TemplateView):
         context["pipe_list"] = pipe_list
         context["origin_url"] = self.get_session_step_url(session_id, step_name)
         context["selected_task_name"] = step_name
-        context["form"] = self.get_form().as_table()
+        context["form"] = self.get_form().as_div()
         return context
 
 
@@ -270,9 +270,9 @@ class CreateAndViewTask(View):
     def get(self, request, *args, **kwargs):
         step_name = self.kwargs.get("step_name")
         session_id = str(self.kwargs.get("session_pk"))
-        # Add more parameters if needed
+        session_object = Session.objects.get(pk=session_id)
 
-        new_obj = Task.objects.create(name=step_name, session=session_id)
+        new_obj = Task.objects.create(name=step_name, session=session_object)
         new_task_pk = new_obj.pk
         # new_task_pk = f"run the pipeline mechanism here and get the new task using {step_name}"
 
