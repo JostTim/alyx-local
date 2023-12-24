@@ -138,6 +138,9 @@ class TaskLogs(DetailView):
         context = super().get_context_data(**kwargs)
         task_id = self.kwargs.get("task_id", None)
         ansi_logging_content = open("/mnt/one/cajal2/Adaptation/test.log", "r").read()
+
+        context["title"] = f"Logs of task {task_id}"
+        context["site_header"] = "Alyx"
         context["task_id"] = task_id
         context["task_change_url"] = reverse("admin:jobs_task_change", args=[task_id])
         context["ansi_logging_content"] = ansi_logging_content
@@ -190,12 +193,12 @@ class SessionTasksView(FormMixin, TemplateView):
         session_id = self.kwargs.get("session_pk", None)
         step_name = self.kwargs.get("step_name", None)
         if session_id is not None and step_name is not None:
-            return reverse("session-tasks", kwargs={"session_pk": str(session_id), "step_name": step_name})
+            return reverse("session-task", kwargs={"session_pk": str(session_id), "step_name": step_name})
         else:
             return reverse("home")
 
     def get_session_step_url(self, session_id, step_name):
-        return reverse("session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
+        return reverse("session-task", kwargs={"session_pk": session_id, "step_name": step_name})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -257,8 +260,14 @@ class SessionTasksView(FormMixin, TemplateView):
                     pipe_list[i]["steps"][j]["is_selected"] = True
 
         context["site_header"] = "Alyx"
-        context["title"] = f"Processing task view for session {session_object} - With task step {step_name}"
-        context["run_url"] = reverse("create-session-tasks", kwargs={"session_pk": session_id, "step_name": step_name})
+        title = f"Processing task view for session {session_object}"
+        title = title + f"- With task step {step_name}" if step_name is not None else title
+        context["title"] = title
+        context["run_url"] = (
+            reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
+            if step_name is not None
+            else ""
+        )
         context["pipe_list"] = pipe_list
         context["origin_url"] = self.get_session_step_url(session_id, step_name)
         context["selected_task_name"] = step_name

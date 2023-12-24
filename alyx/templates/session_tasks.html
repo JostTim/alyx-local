@@ -1,14 +1,9 @@
-{% extends "admin/base_site.html" %}
+{% extends "admin/base.html" %}
 {% load i18n admin_urls static admin_list %}
 
 {% block content %}
 
 <script>
-    var link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@500';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-
     var node_parents = {
     {% for pipe in pipe_list %}
     {% for step in pipe.steps %}
@@ -214,6 +209,7 @@
     .split_screen {
         font-family: 'Roboto', sans-serif;
         display: flex;
+        flex: 1 0 auto;
         flex-direction: columns;
         max-height: 100vh;
     }
@@ -249,8 +245,8 @@
         margin-bottom: 5px;
         padding: 20px;
         width: 200px;
-        color: white !important;
-        background: darkblue;
+        color : black !important; 
+        background : lightblue;
         border-radius: 10px;
         text-decoration: none;
         text-align: center;
@@ -259,8 +255,8 @@
     }
 
     .run_button:hover{
-        color : black;
-        background : lightblue;
+        color: white !important;
+        background: darkblue;
     }
 
     form {

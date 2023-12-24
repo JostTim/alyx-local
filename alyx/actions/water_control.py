@@ -116,7 +116,7 @@ def tzone_convert(date_t, tz):
         date_t = timezone.make_aware(date_t, timezone.get_default_timezone(), is_dst=False)
     except ValueError:  # date is already timezone aware
         pass
-    return timezone.make_naive(date_t, tz)
+    return date_t  # timezone.make_naive(date_t, tz) todo : make this depending on settings.USE_TZ
 
 
 class WaterControl(object):
@@ -150,7 +150,7 @@ class WaterControl(object):
         self.timezone = timezone
 
     def today(self):
-        """The date at the timezone if the current subject."""
+        """The date at the timezone of the current subject."""
         return tzone_convert(today(), self.timezone)
 
     def restriction_end_date(self, water_restriction_instance):
