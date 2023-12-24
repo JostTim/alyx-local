@@ -254,7 +254,7 @@ class SessionTasksView(FormMixin, TemplateView):
                 if step["is_empty"]:
                     continue
                 if step["full_name"] == step_name:
-                    pipe_list[i][j]["is_selected"] = True
+                    pipe_list[i]["steps"][j]["is_selected"] = True
 
         context["site_header"] = "Alyx"
         context["title"] = f"Processing task view for session {session_object} - With task step {step_name}"
