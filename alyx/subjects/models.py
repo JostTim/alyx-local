@@ -15,7 +15,7 @@ from django.utils import timezone
 from alyx.base import BaseModel, alyx_mail, modify_fields
 from actions.notifications import responsible_user_changed
 from actions.water_control import water_control
-from actions.models import Surgery
+from actions.models import Surgery, WaterAdministration
 from misc.models import Lab, default_lab, Housing
 
 logger = structlog.get_logger("subjects.models")
@@ -130,6 +130,8 @@ class Project(BaseModel):
 
 class Subject(BaseModel):
     """Metadata about an experimental subject (animal or human)."""
+
+    water_administrations: WaterAdministration.objects
 
     SEXES = (("M", "Male"), ("F", "Female"), ("U", "Unknown"))
     SEVERITY_CHOICES = (

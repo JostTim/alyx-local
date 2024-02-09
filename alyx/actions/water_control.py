@@ -299,12 +299,8 @@ class WaterControl(object):
         weighings_at = [(d, w) for (d, w) in self.weighings if d.date() == date.date()]
         return weighings_at[0][1] if weighings_at else None
 
-    def current_weighing(self):
-        """Return the last known weight."""
-        return self.last_weighing_before(date=self.today())
-
     def weight(self, date=None):
-        """Return the current weight."""
+        """Return the last known weight at the given date"""
         cw = self.last_weighing_before(date=date)
         return cw[1] if cw else 0
 
