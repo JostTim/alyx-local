@@ -513,6 +513,11 @@ class WaterControl(object):
         end_date = to_date(end_date) if end_date else self.today()
         out = []
         for d in date_range(start_date, end_date):
+            # do not show date rows where animal is either not water restricted or wight is not present that day
+            if not self.is_water_restricted(d):
+                continue
+            if self.weighing_at(d) is None:
+                continue
             obj = {}
             for col in self._columns:
                 if col == "date":
