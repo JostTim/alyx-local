@@ -238,8 +238,9 @@ class BaseActionAdmin(BaseAdmin):
 
         class RequestBaseActionForm(Form):
             def __new__(cls, *args, **kwargs):
-                kwargs["user"] = request.user
-                kwargs["last_subject_id"] = self._get_last_subject(request)
+                if self.form == BaseActionForm:
+                    kwargs["user"] = request.user
+                    kwargs["last_subject_id"] = self._get_last_subject(request)
                 return Form(*args, **kwargs)
 
         return RequestBaseActionForm
@@ -392,6 +393,7 @@ class WaterRestrictionForm(forms.ModelForm):
 
 
 class WaterRestrictionAdmin(BaseActionAdmin):
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "subject":
             kwargs["queryset"] = Subject.objects.filter(cull__isnull=True).order_by("nickname")
