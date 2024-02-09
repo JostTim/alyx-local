@@ -798,12 +798,14 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         from django.db.models import Q
 
         form = super(SessionAdmin, self).get_form(request, obj, **kwargs)
-        if form.base_fields and not request.user.is_superuser:
-            # the projects edit box is limited to projects with no user or containing current user
-            current_proj = obj.projects.all() if obj else None
-            form.base_fields["projects"].queryset = Project.objects.filter(
-                Q(users=request.user.pk) | Q(users=None) | Q(pk__in=current_proj)
-            ).distinct()
+        if form.base_fields:
+            if not request.user.is_superuser:
+                # the projects edit box is limited to projects with no user or containing current user
+                current_proj = obj.projects.all() if obj else None
+                form.base_fields["projects"].queryset = Project.objects.filter(
+                    Q(users=request.user.pk) | Q(users=None) | Q(pk__in=current_proj)
+                ).distinct()
+            form.base_fields["subject"].queryset = Subject.objects.filter(death_date__isnull=True).order_by("nickname")
         return form
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
