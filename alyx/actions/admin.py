@@ -41,7 +41,7 @@ from .models import (
 )
 from data.models import Dataset, FileRecord, DatasetType
 from misc.admin import NoteInline
-from misc.models import LabMember
+from misc.models import LabMember, Lab
 from subjects.models import Subject, Project
 from .water_control import WaterControl
 from experiments.models import ProbeInsertion
@@ -147,8 +147,8 @@ def _bring_to_front(ids, id):
 # Admin
 # ------------------------------------------------------------------------------------------------
 class BaseActionForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(BaseActionForm, self).__init__(*args, **kwargs)
+    def __init__(self, *args, last_subject_id=None, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
         if "users" in self.fields:
             self.fields["users"].queryset = get_user_model().objects.all().order_by("username")
         if "user" in self.fields:
@@ -157,23 +157,21 @@ class BaseActionForm(forms.ModelForm):
             self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
         if "projects" in self.fields:
             self.fields["projects"].queryset = Project.objects.exclude(name="DefaultParameterProject").order_by("name")
+        if "lab" in self.fields:
+            if Lab.objects.count() >= 1:
+                self.fields["lab"].initial = user
         # restricts the subject choices only to managed subjects
-        if "subject" in self.fields and not (self.current_user.is_stock_manager or self.current_user.is_superuser):
+        if "subject" in self.fields and not (user.is_stock_manager or user.is_superuser):
             inst = self.instance
-            ids = [
-                s.id
-                for s in Subject.objects.filter(responsible_user=self.current_user, cull__isnull=True).order_by(
-                    "nickname"
-                )
-            ]
+            ids = [s.id for s in Subject.objects.filter(responsible_user=user, cull__isnull=True).order_by("nickname")]
             if getattr(inst, "subject", None):
                 ids = _bring_to_front(ids, inst.subject.pk)
             if getattr(self, "last_subject_id", None):
-                ids = _bring_to_front(ids, self.last_subject_id)
+                ids = _bring_to_front(ids, last_subject_id)
             # These ids first in the list of subjects.
             if ids:
                 preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-                self.fields["subject"].queryset = Subject.objects.filter(pk__in=ids).order_by(preserved, "nickname")
+                self.fields["subject"].queryset = Subject.objects.filter(pk__in=ids).order_by(preserved)
             else:
                 self.fields["subject"].queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")
 
@@ -194,16 +192,22 @@ class BaseActionForm(forms.ModelForm):
 
 
 class BaseActionAdmin(BaseAdmin):
-    fields = [
-        "subject",
-        "start_time",
-        "end_time",
-        "users",
-        "location",
-        "lab",
-        "procedures",
-        "narrative",
-    ]
+
+    mandatory_fields = ["subject", "start_time"]
+
+    end_time_fields = ["end_time"]
+
+    fields = (
+        mandatory_fields
+        + end_time_fields
+        + [
+            "users",
+            "procedures",
+            "location",
+            "lab",
+            "narrative",
+        ]
+    )
     readonly_fields = ["subject_l"]
 
     form = BaseActionForm
@@ -222,10 +226,17 @@ class BaseActionAdmin(BaseAdmin):
         return getattr(request, "session", {}).get("last_subject_id", None)
 
     def get_form(self, request, obj=None, **kwargs):
-        form = super(BaseActionAdmin, self).get_form(request, obj, **kwargs)
-        form.current_user = request.user
-        form.last_subject_id = self._get_last_subject(request)
-        return form
+        Form = super().get_form(request, obj, **kwargs)
+        # form.current_user = request.user
+        # form.last_subject_id = self._get_last_subject(request)
+
+        class RequestBaseActionForm(Form):
+            def __new__(cls, *args, **kwargs):
+                kwargs["user"] = request.user
+                kwargs["last_subject_id"] = self._get_last_subject(request)
+                return Form(*args, **kwargs)
+
+        return RequestBaseActionForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         # Logged-in user by default.
@@ -807,20 +818,20 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
 
     alias_with_tooltip.short_description = "Session Name"
 
-    def get_form(self, request, obj=None, **kwargs):
-        from subjects.admin import Project
-        from django.db.models import Q
+    # def get_form(self, request, obj=None, **kwargs):
+    #     from subjects.admin import Project
+    #     from django.db.models import Q
 
-        form = super(SessionAdmin, self).get_form(request, obj, **kwargs)
-        if form.base_fields:
-            if not request.user.is_superuser:
-                # the projects edit box is limited to projects with no user or containing current user
-                current_proj = obj.projects.all() if obj else None
-                form.base_fields["projects"].queryset = Project.objects.filter(
-                    Q(users=request.user.pk) | Q(users=None) | Q(pk__in=current_proj)
-                ).distinct()
-            form.base_fields["subject"].queryset = Subject.objects.filter(death_date__isnull=True).order_by("nickname")
-        return form
+    #     form = super().get_form(request, obj, **kwargs)
+    #     # if form.base_fields:
+    #     #     if not request.user.is_superuser:
+    #     #         # the projects edit box is limited to projects with no user or containing current user
+    #     #         current_proj = obj.projects.all() if obj else None
+    #     #         form.base_fields["projects"].queryset = Project.objects.filter(
+    #     #             Q(users=request.user.pk) | Q(users=None) | Q(pk__in=current_proj)
+    #     #         ).distinct()
+    #     #     form.base_fields["subject"].queryset = Subject.objects.filter(death_date__isnull=True).order_by("nickname")
+    #     return form
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
         context = extra_context or {}
