@@ -491,7 +491,7 @@ class WaterControl(object):
     )
 
     def weight_status(self, date=None):
-        w = self.weight(date=date)
+        w = self.weighing_at(date=date)
         min_wdisp, max_wdisp = self.expected_weight_range(date=date)
 
         # edge case
