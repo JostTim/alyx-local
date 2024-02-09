@@ -334,7 +334,7 @@ class WaterControl(object):
         e = self.reference_weight(date=date)
         return 100 * (w - iw) / (e - iw) if (e - iw) > 0 else 0.0
 
-    def implantless_weight_percentage(self, weight, percentage=1):
+    def implantless_weight_percentage(self, weight, percentage: float = 1):
         iw = self.implant_weight or 0.0
         return (percentage * (weight - iw)) + iw
 
@@ -495,7 +495,7 @@ class WaterControl(object):
         min_wdisp, max_wdisp = self.expected_weight_range(date=date)
 
         # edge case
-        if w == 0:
+        if w is None or w <= 0:
             return 0
 
         # we are below the limit point !!! stop water restriction
@@ -514,8 +514,8 @@ class WaterControl(object):
         out = []
         for d in date_range(start_date, end_date):
             # do not show date rows where animal is either not water restricted or wight is not present that day
-            if not self.is_water_restricted(d):
-                continue
+            # if not self.is_water_restricted(d):
+            #    continue
             if self.weighing_at(d) is None:
                 continue
             obj = {}
