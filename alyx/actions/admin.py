@@ -179,17 +179,17 @@ class BaseActionForm(forms.ModelForm):
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
-        widget=FilteredSelectMultiple("procedures", False),
+        widget=FilteredSelectMultiple("procedures", is_stacked=False),
     )
 
     users = forms.ModelMultipleChoiceField(
         LabMember.objects,
-        widget=FilteredSelectMultiple("users", True),
+        widget=FilteredSelectMultiple("users", is_stacked=False),
     )
 
     projects = forms.ModelMultipleChoiceField(
         Project.objects,
-        widget=FilteredSelectMultiple("projects", True),
+        widget=FilteredSelectMultiple("projects", is_stacked=False),
     )
 
 
