@@ -4,7 +4,6 @@ import structlog
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Case, When
 from django.urls import reverse
@@ -14,8 +13,8 @@ from django_admin_listfilter_dropdown.filters import (
     SimpleDropdownFilter,
 )
 from django.shortcuts import get_object_or_404
-from django.contrib.admin import SimpleListFilter
-from django.contrib.admin import TabularInline
+from django.contrib.admin import site, SimpleListFilter, TabularInline
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models.functions import Collate
 from rangefilter.filter import DateRangeFilter
 from django.utils import timezone
@@ -42,7 +41,8 @@ from .models import (
 )
 from data.models import Dataset, FileRecord, DatasetType
 from misc.admin import NoteInline
-from subjects.models import Subject
+from misc.models import LabMember
+from subjects.models import Subject, Project
 from .water_control import WaterControl
 from experiments.models import ProbeInsertion
 
@@ -155,6 +155,8 @@ class BaseActionForm(forms.ModelForm):
             self.fields["user"].queryset = get_user_model().objects.all().order_by("username")
         if "procedures" in self.fields:
             self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
+        if "projects" in self.fields:
+            self.fields["projects"].queryset = Project.objects.order_by("name")
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields and not (self.current_user.is_stock_manager or self.current_user.is_superuser):
             inst = self.instance
@@ -177,7 +179,17 @@ class BaseActionForm(forms.ModelForm):
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
-        widget=admin.widgets.FilteredSelectMultiple("procedures", False),
+        widget=FilteredSelectMultiple("procedures", False),
+    )
+
+    users = forms.ModelMultipleChoiceField(
+        LabMember.objects,
+        widget=FilteredSelectMultiple("users", True),
+    )
+
+    projects = forms.ModelMultipleChoiceField(
+        Project.objects,
+        widget=FilteredSelectMultiple("projects", True),
     )
 
 
@@ -979,22 +991,22 @@ class CullAdmin(BaseAdmin):
         return ", ".join(p.name for p in obj.subject.projects.all())
 
 
-admin.site.register(ProcedureType, ProcedureTypeAdmin)
-admin.site.register(Weighing, WeighingAdmin)
-admin.site.register(WaterAdministration, WaterAdministrationAdmin)
-admin.site.register(WaterRestriction, WaterRestrictionAdmin)
+site.register(ProcedureType, ProcedureTypeAdmin)
+site.register(Weighing, WeighingAdmin)
+site.register(WaterAdministration, WaterAdministrationAdmin)
+site.register(WaterRestriction, WaterRestrictionAdmin)
 
-admin.site.register(Session, SessionAdmin)
-admin.site.register(EphysSession, EphysSessionAdmin)
-admin.site.register(OtherAction, BaseActionAdmin)
-admin.site.register(VirusInjection, BaseActionAdmin)
+site.register(Session, SessionAdmin)
+site.register(EphysSession, EphysSessionAdmin)
+site.register(OtherAction, BaseActionAdmin)
+site.register(VirusInjection, BaseActionAdmin)
 
-admin.site.register(Surgery, SurgeryAdmin)
-admin.site.register(WaterType, WaterTypeAdmin)
+site.register(Surgery, SurgeryAdmin)
+site.register(WaterType, WaterTypeAdmin)
 
-admin.site.register(Notification, NotificationAdmin)
-admin.site.register(NotificationRule, NotificationRuleAdmin)
+site.register(Notification, NotificationAdmin)
+site.register(NotificationRule, NotificationRuleAdmin)
 
-admin.site.register(Cull, CullAdmin)
-admin.site.register(CullReason, BaseAdmin)
-admin.site.register(CullMethod, BaseAdmin)
+site.register(Cull, CullAdmin)
+site.register(CullReason, BaseAdmin)
+site.register(CullMethod, BaseAdmin)

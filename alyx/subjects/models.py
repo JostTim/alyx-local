@@ -125,7 +125,7 @@ class Project(BaseModel):
     )
 
     def __str__(self):
-        return "<Project %s>" % self.name
+        return f'Project "{self.name}"'
 
 
 class Subject(BaseModel):
@@ -819,16 +819,14 @@ class ZygosityRule(BaseModel):
     zygosity = models.IntegerField(choices=ZYGOSITY_TYPES)
 
     class Meta:
-        unique_together = [
-            (
-                "line",
-                "allele",
-                "sequence0",
-                "sequence0_result",
-                "sequence1",
-                "sequence1_result",
-            )
-        ]
+        unique_together = [(
+            "line",
+            "allele",
+            "sequence0",
+            "sequence0_result",
+            "sequence1",
+            "sequence1_result",
+        )]
 
     def save(self, *args, **kwargs):
         super(ZygosityRule, self).save(*args, **kwargs)
@@ -1093,7 +1091,6 @@ class Sequence(BaseModel):
 
 
 class GenotypeTest(BaseModel):
-
     """
     A junction table between Subject and Sequence.
     """
