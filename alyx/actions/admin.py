@@ -162,18 +162,22 @@ class BaseActionForm(forms.ModelForm):
                 self.fields["lab"].initial = user
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields:  # and not (user.is_stock_manager or user.is_superuser):
-            # inst = self.instance
-            # ids = [s.id for s in Subject.objects.filter(responsible_user=user, cull__isnull=True).order_by("nickname")]
-            # if getattr(inst, "subject", None):
-            #     ids = _bring_to_front(ids, inst.subject.pk)
-            # if getattr(self, "last_subject_id", None):
-            #     ids = _bring_to_front(ids, last_subject_id)
-            # # These ids first in the list of subjects.
-            # if ids:
-            #     preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            #     self.fields["subject"].queryset = Subject.objects.filter(pk__in=ids).order_by(preserved)
-            # else:
-            self.fields["subject"].queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")
+            inst = self.instance
+            queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")  # responsible_user=user
+            ids = [s.id for s in queryset]
+            if getattr(inst, "subject", None):
+                ids = _bring_to_front(ids, inst.subject.pk)
+            elif getattr(self, "last_subject_id", None):
+                ids = _bring_to_front(ids, last_subject_id)
+            # These ids first in the list of subjects.
+            if ids:
+                preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
+                logger.warning(preserved)
+                # self.fields["subject"].queryset = Subject.objects.filter(pk__in=ids).order_by(preserved)
+            else:
+                preserved = "nickname"
+            self.fields["subject"].queryset = queryset.order_by(preserved)
+            # self.fields["subject"].queryset = Subject.objects.filter(cull__isnull=True).order_by(preserved)
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
