@@ -37,8 +37,12 @@ class LabMember(AbstractUser):
         lms = lms.exclude(end_date__lt=date)
         return Lab.objects.filter(id__in=lms.values_list("lab", flat=True))
 
+    def has_lab(self, date=datetime.now().date()):
+        return len(self.lab_id(date)) > 0
+
     @property
-    def lab(self, date=datetime.now().date()):
+    def lab(self):  # , date=datetime.now().date()):
+        date = datetime.now().date()
         labs = self.lab_id(date=date)
         return [str(ln[0]) for ln in labs.values_list("name").distinct()]
 
@@ -63,28 +67,21 @@ class Lab(BaseModel):
         max_length=64,
         blank=True,
         default=TIME_ZONE,
-        help_text="Timezone of the server "
-        "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
+        help_text="Timezone of the server " "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
     )
 
     reference_weight_pct = models.FloatField(
         default=0.0,
-        help_text="The minimum mouse weight is a linear combination of "
-        "the reference weight and the zscore weight.",
+        help_text="The minimum mouse weight is a linear combination of " "the reference weight and the zscore weight.",
     )
 
     zscore_weight_pct = models.FloatField(
         default=0.0,
-        help_text="The minimum mouse weight is a linear combination of "
-        "the reference weight and the zscore weight.",
+        help_text="The minimum mouse weight is a linear combination of " "the reference weight and the zscore weight.",
     )
     # those are all the default fields for populating Housing tables
-    cage_type = models.ForeignKey(
-        "CageType", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    enrichment = models.ForeignKey(
-        "Enrichment", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    cage_type = models.ForeignKey("CageType", on_delete=models.SET_NULL, null=True, blank=True)
+    enrichment = models.ForeignKey("Enrichment", on_delete=models.SET_NULL, null=True, blank=True)
     food = models.ForeignKey("Food", on_delete=models.SET_NULL, null=True, blank=True)
     cage_cleaning_frequency_days = models.IntegerField(null=True, blank=True)
     light_cycle = models.IntegerField(
@@ -144,16 +141,13 @@ def get_image_path(instance, filename):
 class Note(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_time = models.DateTimeField(default=timezone.now)
-    text = models.TextField(
-        blank=True, help_text="String, content of the note or description of the image."
-    )
+    text = models.TextField(blank=True, help_text="String, content of the note or description of the image.")
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
 
     # Generic foreign key to arbitrary model instances.
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField(
-        help_text="UUID, an object of content_type with this "
-        "ID must already exist to attach a note."
+        help_text="UUID, an object of content_type with this " "ID must already exist to attach a note."
     )
     content_object = GenericForeignKey()
 
@@ -194,9 +188,7 @@ class CageType(BaseModel):
 
 
 class Enrichment(BaseModel):
-    name = models.CharField(
-        max_length=255, unique=True, help_text="Training wheel, treadmill etc.."
-    )
+    name = models.CharField(max_length=255, unique=True, help_text="Training wheel, treadmill etc..")
     description = models.CharField(
         max_length=1023,
         blank=True,
@@ -208,9 +200,7 @@ class Enrichment(BaseModel):
 
 
 class Food(BaseModel):
-    name = models.CharField(
-        max_length=255, unique=True, help_text="Food brand and content"
-    )
+    name = models.CharField(max_length=255, unique=True, help_text="Food brand and content")
     description = models.CharField(
         max_length=1023,
         blank=True,
@@ -232,16 +222,10 @@ class Housing(BaseModel):
     3) creates HousingSubject records for the current mice and new Housing
     """
 
-    subjects = models.ManyToManyField(
-        "subjects.Subject", through="HousingSubject", related_name="housings"
-    )
+    subjects = models.ManyToManyField("subjects.Subject", through="HousingSubject", related_name="housings")
     cage_name = models.CharField(max_length=64)
-    cage_type = models.ForeignKey(
-        "CageType", on_delete=models.SET_NULL, null=True, blank=True
-    )
-    enrichment = models.ForeignKey(
-        "Enrichment", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    cage_type = models.ForeignKey("CageType", on_delete=models.SET_NULL, null=True, blank=True)
+    enrichment = models.ForeignKey("Enrichment", on_delete=models.SET_NULL, null=True, blank=True)
     food = models.ForeignKey("Food", on_delete=models.SET_NULL, null=True, blank=True)
     cage_cleaning_frequency_days = models.IntegerField(null=True, blank=True)
     light_cycle = models.IntegerField(
@@ -352,15 +336,13 @@ class HousingSubject(BaseModel):
         old = HousingSubject.objects.filter(pk=self.pk)
         # if the subject is in another housing, close the other
         if not self.end_datetime:
-            hs = HousingSubject.objects.filter(
-                subject=self.subject, end_datetime__isnull=True
-            ).exclude(pk__in=old.values_list("pk", flat=True))
+            hs = HousingSubject.objects.filter(subject=self.subject, end_datetime__isnull=True).exclude(
+                pk__in=old.values_list("pk", flat=True)
+            )
             hs.update(end_datetime=self.start_datetime)
         # if this is a modification of an existing object, force update the old and force insert
         if old:
             old[0].end_datetime = self.start_datetime
-            super(HousingSubject, self).save(
-                force_update=True
-            )  # self.save(force_insert=True)
+            super(HousingSubject, self).save(force_update=True)  # self.save(force_insert=True)
             return
         super(HousingSubject, self).save(**kwargs)
