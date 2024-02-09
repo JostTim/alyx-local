@@ -238,7 +238,7 @@ class BaseActionAdmin(BaseAdmin):
         super(BaseActionAdmin, self).save_model(request, obj, form, change)
 
 
-class ProcedureTypeAdmin(BaseActionAdmin):
+class ProcedureTypeAdmin(BaseAdmin):
     fields = ["name", "description"]
     ordering = ["name"]
 
