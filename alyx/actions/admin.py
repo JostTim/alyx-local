@@ -153,6 +153,8 @@ class BaseActionForm(forms.ModelForm):
             self.fields["users"].queryset = get_user_model().objects.all().order_by("username")
         if "user" in self.fields:
             self.fields["user"].queryset = get_user_model().objects.all().order_by("username")
+        if "procedures" in self.fields:
+            self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields and not (self.current_user.is_stock_manager or self.current_user.is_superuser):
             inst = self.instance
