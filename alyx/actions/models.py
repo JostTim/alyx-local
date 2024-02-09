@@ -42,6 +42,13 @@ class ProcedureType(BaseModel):
 
     description = models.TextField(blank=True, help_text="Detailed description of the procedure")
 
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            logger.exception("Error saving ProcedureType: %s", e)
+            raise
+        
     def __str__(self):
         return self.name
 
