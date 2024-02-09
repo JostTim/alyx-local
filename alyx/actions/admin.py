@@ -156,7 +156,7 @@ class BaseActionForm(forms.ModelForm):
         if "procedures" in self.fields:
             self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
         if "projects" in self.fields:
-            self.fields["projects"].queryset = Project.objects.order_by("name")
+            self.fields["projects"].queryset = Project.objects.exclude(name="DefaultParameterProject").order_by("name")
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields and not (self.current_user.is_stock_manager or self.current_user.is_superuser):
             inst = self.instance
