@@ -104,8 +104,13 @@ class AdminImageWidget(AdminFileWidget):
             image_url = value.url
             file_name = str(value)
             output.append(
-                ('<a href="%s" target="_blank">' '<img src="%s" width="400" alt="%s" /></a><br>')
-                % (image_url, image_url, file_name)
+                (
+                    f'<a href="{image_url}" target="_blank">'
+                    f'<img src="{image_url}" style="max-width: 400px; max-height: 400px; height: auto;"'
+                    f'alt="{file_name}"/>'
+                    "</a>"
+                    "<br>"
+                )
             )
         output.append(super(AdminFileWidget, self).render(name, value, attrs, renderer))
         return mark_safe("".join(output))
