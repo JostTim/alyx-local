@@ -258,6 +258,8 @@ class BaseActionAdmin(BaseAdmin):
                 valid = super(RequestBaseActionForm, self).is_valid()
                 if not valid:
                     logger.warning(f"Form errors: {self.errors.as_json()}")
+                else:
+                    logger.warning("No form errors found")
                 return valid
 
         return RequestBaseActionForm
