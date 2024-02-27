@@ -258,8 +258,11 @@ class BaseActionAdmin(BaseAdmin):
         class RequestBaseActionForm(Form):
             def __new__(cls, *args, **kwargs):
                 if self.form == BaseActionForm:
+                    logger.warning("BaseActionForm requested")
                     kwargs["user"] = request.user
                     kwargs["last_subject_id"] = self._get_last_subject(request)
+                else:
+                    logger.warning("Specific Action Form requested")
                 return Form(*args, **kwargs)
 
         return RequestBaseActionForm
