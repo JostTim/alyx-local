@@ -200,7 +200,7 @@ class BaseActionForm(forms.ModelForm):
         widget=FilteredSelectMultiple("projects", is_stacked=False),
     )
 
-    json = forms.JSONField(widget=JSONEditor)
+    json = forms.JSONField(widget=JSONEditor, required=False)
 
     def save(self, commit=True):
         logger.warning("Saving admin form")
