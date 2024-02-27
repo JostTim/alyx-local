@@ -13,6 +13,8 @@ from misc.models import Lab, LabLocation, LabMember, Note
 
 import os
 
+from typing import Dict
+
 # from markdownfield.models import MarkdownField, RenderedMarkdownField
 # from markdownfield.validators import VALIDATOR_STANDARD
 # https://pypi.org/project/django-markdownfield/
@@ -641,7 +643,7 @@ def get_recipients(notification_type, subject=None, users=None):
     members = LabMember.objects.all()
     rules = NotificationRule.objects.filter(notification_type=notification_type)
     # Dictionary giving the scope of every user in the database.
-    user_rules = {user: None for user in members}
+    user_rules: Dict[LabMember, None | str] = {user: None for user in members}
     user_rules.update({rule.user: rule.subjects_scope for rule in rules})
     # Remove 'none' users from the specified users.
     users = [user for user in users if user_rules.get(user, None) != "none"]

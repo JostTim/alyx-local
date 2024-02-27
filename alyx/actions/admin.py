@@ -160,6 +160,10 @@ class BaseActionForm(forms.ModelForm):
         if "procedures" in self.fields:
             self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
         if "projects" in self.fields:
+            self.fields["projects"] = forms.ModelMultipleChoiceField(
+                Project.objects,
+                widget=FilteredSelectMultiple("projects", is_stacked=False),
+            )
             self.fields["projects"].queryset = Project.objects.exclude(name="DefaultParameterProject").order_by("name")
         if "lab" in self.fields:
             if user is not None:
@@ -195,10 +199,10 @@ class BaseActionForm(forms.ModelForm):
         widget=FilteredSelectMultiple("users", is_stacked=False),
     )
 
-    projects = forms.ModelMultipleChoiceField(
-        Project.objects,
-        widget=FilteredSelectMultiple("projects", is_stacked=False),
-    )
+    # projects = forms.ModelMultipleChoiceField(
+    #     Project.objects,
+    #     widget=FilteredSelectMultiple("projects", is_stacked=False),
+    # )
 
     json = forms.JSONField(widget=JSONEditor, required=False)
 
