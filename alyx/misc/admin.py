@@ -158,7 +158,7 @@ class NoteInline(GenericTabularInline):
         return super(NoteInline, self).formfield_for_dbfield(db_field, **kwargs)
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return True
 
 
 class CageTypeAdmin(BaseAdmin):
