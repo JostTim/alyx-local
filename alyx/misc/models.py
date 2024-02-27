@@ -16,11 +16,12 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
 
 from alyx.base import BaseModel, modify_fields
-from alyx.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_PK
+from alyx.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_NAME
 
 
 def default_lab():
-    return DEFAULT_LAB_PK
+    default_lab_instance, created = Lab.objects.get_or_create(name=DEFAULT_LAB_NAME)
+    return default_lab_instance.pk
 
 
 class LabMember(AbstractUser):
