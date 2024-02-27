@@ -217,7 +217,8 @@ class BaseActionForm(forms.ModelForm):
     def save(self, commit=True):
         logger.warning("Saving admin form")
         logger.warning(f"Cleaned data : {self.cleaned_data}")
-        super().save(commit=commit)
+        instance = super().save(commit=commit)
+        return instance
 
 
 class BaseActionAdmin(BaseAdmin):
