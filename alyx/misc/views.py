@@ -118,7 +118,7 @@ class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
-class UploadedView(views.APIView):
+class MediaView(views.APIView):
     permission_classes = rest_permission_classes()
 
     def get(self, request=None, format=None, img_url=""):
@@ -131,7 +131,7 @@ class UploadedView(views.APIView):
                 content_type = "application/octet-stream"
                 return FileResponse(open(path, "rb"), content_type=content_type)
             else:
-                raise Http404(f"Media not found at {path}")
+                return HttpResponseNotFound(f"Media not found at {path}")
 
 
 def _get_cache_info(tag=None):

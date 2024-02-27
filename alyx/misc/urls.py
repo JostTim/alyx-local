@@ -15,7 +15,7 @@ urlpatterns = [
     path("notes/<uuid:pk>", mv.NoteDetail.as_view(), name="note-detail"),
     path("users/<str:username>", user_detail, name="user-detail"),
     path("users", user_list, name="user-list"),
-    re_path("^media/(?P<img_url>.*)", mv.UploadedView.as_view(), name="media"),
+    re_path("^media/(?P<img_url>.*)", mv.MediaView.as_view(), name="media"),
     path("cache.zip", mv.CacheDownloadView.as_view(), name="cache-download"),
     re_path(r"^cache/info(?:/(?P<tag>\w+))?/$", mv.CacheVersionView.as_view(), name="cache-info"),
 ]
