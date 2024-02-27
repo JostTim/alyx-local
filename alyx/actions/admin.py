@@ -202,10 +202,18 @@ class BaseActionForm(forms.ModelForm):
 
     json = forms.JSONField(widget=JSONEditor, required=False)
 
-    def save(self, commit=True):
-        logger.warning("Saving admin form")
-        logger.warning(f"Cleaned data : {self.cleaned_data}")
-        super().save(commit=commit)
+    def is_valid(self):
+        valid = super().is_valid()
+        if not valid:
+            logger.warning(f"Form errors: {self.errors.as_json()}")
+        else:
+            logger.warning("No form errors found")
+        return valid
+
+    # def save(self, commit=True):
+    #     logger.warning("Saving admin form")
+    #     logger.warning(f"Cleaned data : {self.cleaned_data}")
+    #     super().save(commit=commit)
 
 
 class BaseActionAdmin(BaseAdmin):
@@ -254,14 +262,6 @@ class BaseActionAdmin(BaseAdmin):
                     kwargs["last_subject_id"] = self._get_last_subject(request)
                 return Form(*args, **kwargs)
 
-            def is_valid(self):
-                valid = super(RequestBaseActionForm, self).is_valid()
-                if not valid:
-                    logger.warning(f"Form errors: {self.errors.as_json()}")
-                else:
-                    logger.warning("No form errors found")
-                return valid
-
         return RequestBaseActionForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -283,8 +283,8 @@ class BaseActionAdmin(BaseAdmin):
         return super(BaseActionAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_model(self, request, obj, form, change):
-        subject = getattr(obj, "subject", None)
         logger.warning(f"Saving data model {obj}")
+        subject = getattr(obj, "subject", None)
         if subject:
             getattr(request, "session", {})["last_subject_id"] = subject.id.hex
         super(BaseActionAdmin, self).save_model(request, obj, form, change)
