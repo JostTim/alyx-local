@@ -48,7 +48,7 @@ class ProcedureType(BaseModel):
         except Exception as e:
             logger.exception("Error saving ProcedureType: %s", e)
             raise
-        
+
     def __str__(self):
         return self.name
 
@@ -280,12 +280,14 @@ class Surgery(BaseAction):
 
     def save(self, *args, **kwargs):
         # Issue #422.
+        logger.warning("Tried to save a surgery")
         output = super(Surgery, self).save(*args, **kwargs)
         self.subject.set_protocol_number()
         if self.subject.actual_severity == 2:
             self.subject.actual_severity = 3
         if self.outcome_type == "a" and self.start_time:
             self.subject.death_date = self.start_time
+        logger.warning("Suceeded in pre-subject saves")
         self.subject.save()
         return output
 
