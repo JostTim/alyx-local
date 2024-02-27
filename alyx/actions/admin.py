@@ -254,6 +254,12 @@ class BaseActionAdmin(BaseAdmin):
                     kwargs["last_subject_id"] = self._get_last_subject(request)
                 return Form(*args, **kwargs)
 
+            def is_valid(self):
+                valid = super(RequestBaseActionForm, self).is_valid()
+                if not valid:
+                    logger.warning(f"Form errors: {self.errors.as_json()}")
+                return valid
+
         return RequestBaseActionForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -849,7 +855,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     #     #         form.base_fields["projects"].queryset = Project.objects.filter(
     #     #             Q(users=request.user.pk) | Q(users=None) | Q(pk__in=current_proj)
     #     #         ).distinct()
-    #     #     form.base_fields["subject"].queryset = Subject.objects.filter(death_date__isnull=True).order_by("nickname")
+    #     #     form.base_fields["subject"].queryset = Subject.objects.filter(death_date__isnull=True).
+    # order_by("nickname")
     #     return form
 
     def change_view(self, request, object_id, extra_context=None, **kwargs):
