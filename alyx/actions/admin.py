@@ -210,10 +210,10 @@ class BaseActionForm(forms.ModelForm):
             logger.warning("No form errors found")
         return valid
 
-    # def save(self, commit=True):
-    #     logger.warning("Saving admin form")
-    #     logger.warning(f"Cleaned data : {self.cleaned_data}")
-    #     super().save(commit=commit)
+    def save(self, commit=True):
+        logger.warning("Saving admin form")
+        logger.warning(f"Cleaned data : {self.cleaned_data}")
+        super().save(commit=commit)
 
 
 class BaseActionAdmin(BaseAdmin):
