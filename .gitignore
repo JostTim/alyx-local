@@ -5,6 +5,7 @@
 alyx-backups
 uploaded
 tables
+uploaded_media
 docs/_build
 docs/_templates
 *.tsv
