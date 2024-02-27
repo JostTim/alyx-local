@@ -143,6 +143,9 @@ class Subject(BaseModel):
         (5, "Non-recovery"),
     )
     PROTOCOL_NUMBERS = tuple((str(i), str(i)) for i in range(1, 5))
+    # 1 : animal without peculiar interventions
+    # 2 : animal that recieved a surgery
+    # 3 : animal that recieved at least one water restriction period
 
     nickname_validator = validators.RegexValidator(
         r"^[-._~\+\*\w]+$",
@@ -335,7 +338,7 @@ please use the Zygosities fields below, and the description field to put more de
     @property
     def water_control(self):
         if self._water_control is None:
-            self.reinit_water_control()
+            return self.reinit_water_control()
         return self._water_control
 
     def zygosity_strings(self):
@@ -417,7 +420,7 @@ please use the Zygosities fields below, and the description field to put more de
         return super(Subject, self).save(*args, **kwargs)
 
     def set_protocol_number(self):
-        if self.water_control.is_water_restricted():
+        if len(self.water_control.water_restrictions):
             self.protocol_number = "3"
         elif Surgery.objects.filter(subject=self).count() > 0:
             self.protocol_number = "2"
@@ -821,14 +824,16 @@ class ZygosityRule(BaseModel):
     zygosity = models.IntegerField(choices=ZYGOSITY_TYPES)
 
     class Meta:
-        unique_together = [(
-            "line",
-            "allele",
-            "sequence0",
-            "sequence0_result",
-            "sequence1",
-            "sequence1_result",
-        )]
+        unique_together = [
+            (
+                "line",
+                "allele",
+                "sequence0",
+                "sequence0_result",
+                "sequence1",
+                "sequence1_result",
+            )
+        ]
 
     def save(self, *args, **kwargs):
         super(ZygosityRule, self).save(*args, **kwargs)

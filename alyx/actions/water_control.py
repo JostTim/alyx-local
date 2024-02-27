@@ -7,6 +7,7 @@ import io
 import structlog
 from operator import attrgetter, itemgetter
 import os.path as op
+from typing import List
 
 from django.urls import reverse
 from django.utils.html import format_html
@@ -120,6 +121,10 @@ def tzone_convert(date_t, tz):
 
 
 class WaterControl(object):
+
+    water_restrictions: List
+    water_administrations: List
+
     def __init__(
         self,
         nickname=None,

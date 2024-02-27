@@ -282,16 +282,15 @@ class Surgery(BaseAction):
 
     def save(self, *args, **kwargs):
         # Issue #422.
-        logger.warning("Tried to save a surgery")
-        output = super(Surgery, self).save(*args, **kwargs)
+        logger.warning("Trying to save a surgery")
+        super().save(*args, **kwargs)
         self.subject.set_protocol_number()
-        if self.subject.actual_severity == 2:
+        if self.subject.actual_severity is None or self.subject.actual_severity <= 2:
+            # a sugery means severity cannot be lower than 3 (Moderate)
             self.subject.actual_severity = 3
         if self.outcome_type == "a" and self.start_time:
             self.subject.death_date = self.start_time
-        logger.warning("Suceeded in pre-subject saves")
         self.subject.save()
-        return output
 
     def delete(self, *args, **kwargs):
         output = super(Surgery, self).delete(*args, **kwargs)
