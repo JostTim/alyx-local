@@ -284,6 +284,7 @@ class BaseActionAdmin(BaseAdmin):
 
     def save_model(self, request, obj, form, change):
         subject = getattr(obj, "subject", None)
+        logger.warning(f"Saving data model {obj}")
         if subject:
             getattr(request, "session", {})["last_subject_id"] = subject.id.hex
         super(BaseActionAdmin, self).save_model(request, obj, form, change)
