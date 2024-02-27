@@ -151,8 +151,12 @@ class BaseActionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if "users" in self.fields:
             self.fields["users"].queryset = get_user_model().objects.all().order_by("username")
+            if user is not None:
+                self.fields["users"].initial = [user]
         if "user" in self.fields:
             self.fields["user"].queryset = get_user_model().objects.all().order_by("username")
+            if user is not None:
+                self.fields["user"].initial = user
         if "procedures" in self.fields:
             self.fields["procedures"].queryset = ProcedureType.objects.order_by("name")
         if "projects" in self.fields:
