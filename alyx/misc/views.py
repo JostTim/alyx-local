@@ -1,14 +1,13 @@
 from pathlib import Path
 import os.path as op
 import json
-
+from mimetypes import guess_type
 import urllib.parse
 import requests
+
 from one.remote.aws import get_s3_virtual_host
 from django.contrib.auth import get_user_model
-from django.http import (
-    HttpResponse, FileResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound
-)
+from django.http import HttpResponse, FileResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 
 from rest_framework import viewsets, views
 from rest_framework.response import Response
@@ -23,7 +22,7 @@ from .models import Lab, Note
 from alyx.settings import TABLES_ROOT, MEDIA_ROOT
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def api_root(request, format=None):
     """**[==========> CLICK HERE TO GO TO THE ADMIN INTERFACE <==========](/admin)**
 
@@ -36,47 +35,38 @@ def api_root(request, format=None):
     **[ ===> Models documentation](/admin/doc/models)**
 
     """
-    return Response({
-        'users-url': reverse('user-list', request=request, format=format),
-        'subjects-url': reverse('subject-list', request=request, format=format),
-
-        'sessions-url': reverse('session-list', request=request, format=format),
-        'projects-url': reverse('project-list', request=request, format=format),
-        'labs-url': reverse('lab-list', request=request, format=format),
-        'datasets-url': reverse('dataset-list', request=request, format=format),
-        'files-url': reverse('filerecord-list', request=request, format=format),
-
-        'datarepository-url': reverse('datarepository-list', request=request, format=format),
-        'datarepositorytype-url': reverse(
-            'datarepositorytype-list', request=request, format=format),
-
-        'dataformat-url': reverse('dataformat-list', request=request, format=format),
-        'dataset-types-url': reverse('datasettype-list', request=request, format=format),
-        'register-file': reverse(
-            'register-file', request=request, format=format),
-
-        'weighings-url': reverse('weighing-create', request=request, format=format),
-
-        'water-restricted-subjects-url': reverse(
-            'water-restricted-subject-list', request=request, format=format),
-
-        'water-administrations-url': reverse(
-            'water-administration-create', request=request, format=format),
-
-        #'water-requirement-url': reverse(
-        #    'water-requirement', request=request, format=format),
-
-    })
+    return Response(
+        {
+            "users-url": reverse("user-list", request=request, format=format),
+            "subjects-url": reverse("subject-list", request=request, format=format),
+            "sessions-url": reverse("session-list", request=request, format=format),
+            "projects-url": reverse("project-list", request=request, format=format),
+            "labs-url": reverse("lab-list", request=request, format=format),
+            "datasets-url": reverse("dataset-list", request=request, format=format),
+            "files-url": reverse("filerecord-list", request=request, format=format),
+            "datarepository-url": reverse("datarepository-list", request=request, format=format),
+            "datarepositorytype-url": reverse("datarepositorytype-list", request=request, format=format),
+            "dataformat-url": reverse("dataformat-list", request=request, format=format),
+            "dataset-types-url": reverse("datasettype-list", request=request, format=format),
+            "register-file": reverse("register-file", request=request, format=format),
+            "weighings-url": reverse("weighing-create", request=request, format=format),
+            "water-restricted-subjects-url": reverse("water-restricted-subject-list", request=request, format=format),
+            "water-administrations-url": reverse("water-administration-create", request=request, format=format),
+            #'water-requirement-url': reverse(
+            #    'water-requirement', request=request, format=format),
+        }
+    )
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Lists all users with the subjects which they are responsible for.
     """
+
     queryset = get_user_model().objects.all()
     queryset = UserSerializer.setup_eager_loading(queryset)
     serializer_class = UserSerializer
-    lookup_field = 'username'
+    lookup_field = "username"
     permission_classes = rest_permission_classes()
 
 
@@ -85,14 +75,14 @@ class LabFilter(BaseFilterSet):
 
     class Meta:
         model = Lab
-        exclude = ['json']
+        exclude = ["json"]
 
 
 class LabList(generics.ListCreateAPIView):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
     filter_class = LabFilter
 
 
@@ -100,7 +90,7 @@ class LabDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     permission_classes = rest_permission_classes()
-    lookup_field = 'name'
+    lookup_field = "name"
 
 
 class NoteList(generics.ListCreateAPIView):
@@ -115,6 +105,7 @@ class NoteList(generics.ListCreateAPIView):
     - **'orig'** to keep original image size
     - any **integer** to specify the image width
     """
+
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     permission_classes = rest_permission_classes()
@@ -130,9 +121,17 @@ class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
 class UploadedView(views.APIView):
     permission_classes = rest_permission_classes()
 
-    def get(self, request=None, format=None, img_url=''):
+    def get(self, request=None, format=None, img_url=""):
         path = op.join(MEDIA_ROOT, img_url)
-        return HttpResponse(path)
+        # return HttpResponse(path)
+
+        if op.exists(path):
+            content_type, _ = guess_type(path)
+            if content_type is None:
+                content_type = "application/octet-stream"
+                return FileResponse(open(path, "rb"), content_type=content_type)
+            else:
+                raise Http404(f"Media not found at {path}")
 
 
 def _get_cache_info(tag=None):
@@ -151,37 +150,37 @@ def _get_cache_info(tag=None):
     :param: optional tag name for fetching a specific cache
     :return: dict of cache table information
     """
-    META_NAME = 'cache_info.json'
+    META_NAME = "cache_info.json"
     parsed = urllib.parse.urlparse(TABLES_ROOT)
 
     if tag:  # Validate
         Tag.objects.get(name=tag)
 
-    scheme = parsed.scheme or 'file'  # NB: 'file' only supported on POSIX filesystems
-    if scheme == 'file':
+    scheme = parsed.scheme or "file"  # NB: 'file' only supported on POSIX filesystems
+    if scheme == "file":
         # Cache table is local
-        file_json_cache = Path(TABLES_ROOT).joinpath(tag or '', META_NAME)
+        file_json_cache = Path(TABLES_ROOT).joinpath(tag or "", META_NAME)
         with open(file_json_cache) as fid:
             cache_info = json.load(fid)
-    elif scheme.startswith('http'):
-        cache_root = TABLES_ROOT.strip('/') + (f'/{tag}' if tag else '')
-        file_json_cache = f'{cache_root}/{META_NAME}'
+    elif scheme.startswith("http"):
+        cache_root = TABLES_ROOT.strip("/") + (f"/{tag}" if tag else "")
+        file_json_cache = f"{cache_root}/{META_NAME}"
         resp = requests.get(file_json_cache)
         resp.raise_for_status()
         cache_info = resp.json()
-        if 'location' not in cache_info:
-            cache_info['location'] = cache_root + '/cache.zip'
-    elif scheme == 's3':
+        if "location" not in cache_info:
+            cache_info["location"] = cache_root + "/cache.zip"
+    elif scheme == "s3":
         # Use PyArrow to read file from s3
         from misc.management.commands.one_cache import _s3_filesystem
+
         s3 = _s3_filesystem()
-        cache_root = parsed.netloc + '/' + parsed.path.strip('/') + (f'/{tag}' if tag else '')
-        file_json_cache = f'{cache_root}/{META_NAME}'
+        cache_root = parsed.netloc + "/" + parsed.path.strip("/") + (f"/{tag}" if tag else "")
+        file_json_cache = f"{cache_root}/{META_NAME}"
         with s3.open_input_stream(file_json_cache) as stream:
             cache_info = json.load(stream)
-        if 'location' not in cache_info:
-            cache_info['location'] = \
-                get_s3_virtual_host(f'{cache_root}/cache.zip', region=s3.region)
+        if "location" not in cache_info:
+            cache_info["location"] = get_s3_virtual_host(f"{cache_root}/cache.zip", region=s3.region)
     else:
         raise ValueError(f'Unsupported URI scheme "{scheme}"')
 
@@ -202,9 +201,9 @@ class CacheDownloadView(views.APIView):
     permission_classes = rest_permission_classes()
 
     def get(self, request=None, **kwargs):
-        if TABLES_ROOT.startswith('http'):
-            response = HttpResponseRedirect(TABLES_ROOT.strip('/') + '/cache.zip')
+        if TABLES_ROOT.startswith("http"):
+            response = HttpResponseRedirect(TABLES_ROOT.strip("/") + "/cache.zip")
         else:
-            cache_file = Path(TABLES_ROOT).joinpath('cache.zip')
-            response = FileResponse(open(cache_file, 'br'))
+            cache_file = Path(TABLES_ROOT).joinpath("cache.zip")
+            response = FileResponse(open(cache_file, "br"))
         return response
