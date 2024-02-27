@@ -129,9 +129,9 @@ class MediaView(views.APIView):
             content_type, _ = guess_type(path)
             if content_type is None:
                 content_type = "application/octet-stream"
-                return FileResponse(open(path, "rb"), content_type=content_type)
-            else:
-                return HttpResponseNotFound(f"Media not found at {path}")
+            return FileResponse(open(path, "rb"), content_type=content_type)
+        else:
+            return HttpResponseNotFound(f"Media not found at {path}")
 
 
 def _get_cache_info(tag=None):
