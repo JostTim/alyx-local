@@ -825,10 +825,10 @@ class Cull(BaseModel):
 
     def delete(self, *args, **kwargs):
         # on deletion of the Cull object, setting the death_date of the related subject to None
-        sub = self.subject
+        subject = self.subject
         output = super(Cull, self).delete(*args, **kwargs)
-        sub.cull = None
-        sub.death_date = None
-        sub.cull_method = ""
-        sub.save()
+        subject.cull = None
+        subject.death_date = None
+        subject.cull_method = ""
+        subject.save()
         return output
