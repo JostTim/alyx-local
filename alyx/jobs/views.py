@@ -213,7 +213,7 @@ class SessionTasksView(FormMixin, TemplateView):
                 "steps": [
                     {
                         "name": "initial_calculation",
-                        "full_name": "neuropil_mask.initial_calculation",
+                        "relative_name": "neuropil_mask.initial_calculation",
                         "is_empty": False,
                         "is_selected": False,
                         "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
@@ -224,7 +224,7 @@ class SessionTasksView(FormMixin, TemplateView):
                     },
                     {
                         "name": "secondstep",
-                        "full_name": "neuropil_mask.secondstep",
+                        "relative_name": "neuropil_mask.secondstep",
                         "is_empty": False,
                         "is_selected": False,
                         "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
@@ -237,7 +237,7 @@ class SessionTasksView(FormMixin, TemplateView):
                 "steps": [
                     {
                         "name": "initial_calculation",
-                        "full_name": "trials_df.initial_calculation",
+                        "relative_name": "trials_df.initial_calculation",
                         "is_empty": False,
                         "is_selected": False,
                         "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
@@ -245,7 +245,7 @@ class SessionTasksView(FormMixin, TemplateView):
                     },
                     {
                         "name": "secondstep",
-                        "full_name": "trials_df.secondstep",
+                        "relative_name": "trials_df.secondstep",
                         "is_empty": False,
                         "is_selected": False,
                         "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
@@ -258,7 +258,7 @@ class SessionTasksView(FormMixin, TemplateView):
             for j, step in enumerate(pipe["steps"]):
                 if step["is_empty"]:
                     continue
-                if step["full_name"] == step_name:
+                if step["relative_name"] == step_name:
                     pipe_list[i]["steps"][j]["is_selected"] = True
 
         context["site_header"] = "Alyx"
