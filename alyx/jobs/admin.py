@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-
+from django.urls import reverse
 from django_admin_listfilter_dropdown.filters import DropdownFilter, ChoiceDropdownFilter
 
 from jobs.models import Task
@@ -10,7 +10,7 @@ from actions.models import Session
 
 class TaskAdmin(BaseAdmin):
     exclude = ["json"]
-    readonly_fields = ["log", "parents"]
+    readonly_fields = ["get_log_link", "parents"]
     list_display = [
         "name",
         "graph",
@@ -38,6 +38,12 @@ class TaskAdmin(BaseAdmin):
         ("status", ChoiceDropdownFilter),
         ("graph", DropdownFilter),
     ]
+
+    def get_log_link(self, obj):
+        url = reverse("task-logs", kwargs={"uuid": str(obj.pk)})
+        return format_html('<a href="{url}">{log}</a>', log=obj.log or "-", url=url)
+
+    get_log_link.short_description = "log"
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
