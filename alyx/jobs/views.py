@@ -172,7 +172,7 @@ class TaskLogs(DetailView):
         task_id = self.kwargs.get("task_id", None)
         task_object = self.get_object()
 
-        log_file = os.path.join(convert_mount(task_object.session_path), task_object.log)  # type: ignore
+        log_file = os.path.join(convert_mount(task_object.session_path), "logs", task_object.log)  # type: ignore
         logger.warning(f"Showing logs from file : {log_file}")
         ansi_logging_content = open(log_file, "r").read()
 
