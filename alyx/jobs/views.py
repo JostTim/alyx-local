@@ -18,6 +18,7 @@ from misc.models import Lab
 from jobs.models import Task
 from jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
 from actions.models import Session
+import os
 
 logger = structlog.get_logger(__name__)
 
@@ -130,8 +131,8 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
-def convert_mount(path, reverse=False):
-    import platform, os
+def convert_mount(path, reverse=False) -> str:
+    import platform
 
     available_mounts = {
         "//cajal/cajal_data2/ONE": "/mnt/one/cajal2",
@@ -170,7 +171,9 @@ class TaskLogs(DetailView):
         context = super().get_context_data(**kwargs)
         task_id = self.kwargs.get("task_id", None)
         task_object = self.get_object()
-        log_file = convert_mount(task_object.log)
+
+        log_file = os.path.join(convert_mount(task_object.session_path), task_object.log)  # type: ignore
+        logger.warning(f"Showing logs from file : {log_file}")
         ansi_logging_content = open(log_file, "r").read()
 
         context["title"] = f"Logs of task {task_id}"
