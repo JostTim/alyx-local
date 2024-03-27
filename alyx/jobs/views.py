@@ -130,14 +130,48 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
+def convert_mount(path, reverse=False):
+    import platform, os
+
+    available_mounts = {
+        "//cajal/cajal_data2/ONE": "/mnt/one/cajal2",
+        "//Mountcastle/lab/data/ONE": "/mnt/one/mountcastle1",
+    }
+    if "ubuntu" in platform.version().lower():
+        path = path.replace("\\", "/")
+        if reverse:
+            for original_path, mounted_path in available_mounts.items():
+                if mounted_path in path:
+                    path = path.replace(mounted_path, original_path)
+                    return os.path.normpath(
+                        path
+                    )  # we found one mount in the root. breaking and skipping the for - else clause
+            # None of the mounts were in the root. Maybe data is in an unmounted location ?
+            raise IOError("Could not reverse find a mounted location for this path")
+        else:
+            for original_path, mounted_path in available_mounts.items():
+                if original_path in path:
+                    path = path.replace(original_path, mounted_path)
+                    return os.path.normpath(
+                        path
+                    )  # we found one mount in the root. breaking and skipping the for - else clause
+            # None of the mounts were in the root. Maybe data is in an unmounted location ?
+            raise IOError("Could not find a mounted location for this path")
+    else:
+        return os.path.normpath(path)
+
+
 class TaskLogs(DetailView):
     template_name = "task_logs.html"
     # model = Task
 
     def get_context_data(self, **kwargs):
+
         context = super().get_context_data(**kwargs)
         task_id = self.kwargs.get("task_id", None)
-        ansi_logging_content = open("/mnt/one/cajal2/Adaptation/test.log", "r").read()
+        task_object = self.get_object()
+        log_file = convert_mount(task_object.log)
+        ansi_logging_content = open(log_file, "r").read()
 
         context["title"] = f"Logs of task {task_id}"
         context["site_header"] = "Alyx"
