@@ -40,7 +40,7 @@ class TaskAdmin(BaseAdmin):
     ]
 
     def get_log_link(self, obj):
-        url = reverse("task-logs", args=[str(obj.pk)])
+        url = reverse("task-logs", args={"task_id": str(obj.pk)})
         return format_html('<a href="{url}">{log}</a>', log=obj.log or "-", url=url)
 
     get_log_link.short_description = "log"
