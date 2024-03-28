@@ -1,0 +1,37 @@
+.horizontal_aligned_alyx_buttons_container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+
+.session-management-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 25px 0 0;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    height: 35px;
+    line-height: 15px;
+    transition: background-color 0.25s ease 0s;
+    text-decoration: none;
+}
+
+#go-to-result-manager {
+    background-color: hsl(280, 70%, 50%);
+}
+
+#go-to-result-manager:hover {
+    background-color: hsl(280, 85%, 60%);
+}
+
+#go-to-task-manager {
+    background-color: hsl(50, 70%, 50%);
+}
+
+#go-to-task-manager:hover {
+    background-color: hsl(50, 85%, 60%);
+}
