@@ -1,4 +1,5 @@
 from django import forms
+from django.utils.safestring import mark_safe
 from django.contrib.postgres.forms import SimpleArrayField
 from django.db.models import Q, Count, Max
 from rest_framework import generics
@@ -252,6 +253,37 @@ class SessionTasksView(FormMixin, TemplateView):
 
         pipe_list = format_app_tasks_data(tasks_data, selected_pipeline)
 
+        step_name = self.kwargs.get("step_name", None)
+        for i, pipe in enumerate(pipe_list):
+            for j, step in enumerate(pipe["steps"]):
+                if step["is_empty"]:
+                    continue
+                if step["complete_name"] == step_name:
+                    pipe_list[i]["steps"][j]["is_selected"] = True
+                pipe_list[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
+
+        context["site_header"] = "Alyx"
+
+        session_change_url = reverse("admin:actions_session_change", args=[session_id])
+
+        title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
+        if step_name is not None:
+            this_url = self.get_session_step_url(session_id, step_name)
+            title += f' - With task step <a href="{this_url}">{step_name}</a>'
+            mark_safe(title)
+
+        context["title"] = title
+        context["run_url"] = (
+            reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
+            if step_name is not None
+            else ""
+        )
+        context["pipe_list"] = pipe_list
+        context["origin_url"] = self.get_session_step_url(session_id, step_name)
+        context["selected_task_name"] = step_name
+        context["form"] = self.get_form().as_div()
+        return context
+
         # example of how pipe_list is expected to be formated :
         # pipe_list = [
         #     {
@@ -300,36 +332,6 @@ class SessionTasksView(FormMixin, TemplateView):
         #         ],
         #     },
         # ]
-
-        step_name = self.kwargs.get("step_name", None)
-        for i, pipe in enumerate(pipe_list):
-            for j, step in enumerate(pipe["steps"]):
-                if step["is_empty"]:
-                    continue
-                if step["complete_name"] == step_name:
-                    pipe_list[i]["steps"][j]["is_selected"] = True
-                pipe_list[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
-
-        context["site_header"] = "Alyx"
-
-        session_change_url = reverse("admin:actions_session_change", args=[session_id])
-
-        title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
-        if step_name is not None:
-            this_url = self.get_session_step_url(session_id, step_name)
-            title += f' - With task step <a href="{this_url}">{step_name}</a>'
-
-        context["title"] = title
-        context["run_url"] = (
-            reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
-            if step_name is not None
-            else ""
-        )
-        context["pipe_list"] = pipe_list
-        context["origin_url"] = self.get_session_step_url(session_id, step_name)
-        context["selected_task_name"] = step_name
-        context["form"] = self.get_form().as_div()
-        return context
 
 
 class CreateAndViewTask(View):
