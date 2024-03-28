@@ -2,7 +2,7 @@
 {% load i18n admin_urls static admin_list %}
 
 {% block content %}
-
+{% block super %}
 <script>
     var node_parents = {
     {% for pipe in pipe_list %}
