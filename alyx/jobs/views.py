@@ -365,13 +365,13 @@ def get_celery_app(app_name="pypelines", refresh=False):
     port = config.get("connexion", "port")
     broker_type = config.get("connexion", "broker_type")
 
-    app = Celery("pypelines", broker=f"{broker_type}://{username}:{password}@{address}:{port}//", backend="rpc://")
+    app = Celery(app_name, broker=f"{broker_type}://{username}:{password}@{address}:{port}//", backend="rpc://")
     app.conf.accept_content = ["pickle", "json", "msgpack", "yaml"]
     app.conf.worker_send_task_events = True
     app.conf.timezone = "Europe/Paris"
 
     @app.task()
-    def tasks_infos(Task) -> dict:
+    def tasks_infos(task_name) -> dict:
         return {}
 
     @app.task()
@@ -388,8 +388,6 @@ def get_celery_app(app_name="pypelines", refresh=False):
                 task_names.append(task)
 
         return {"task_names": task_names, "workers": workers}
-
-    app.register_task(tasks_infos)
 
     app.get_remote_tasks = MethodType(get_remote_tasks, app)  # type: ignore
 
