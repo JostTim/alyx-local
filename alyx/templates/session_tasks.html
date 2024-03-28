@@ -21,36 +21,67 @@
         inner_node.classList.add('highlighted_requirement');
     }
 
+    function highlightLine(current_node, parent_node) {
+        var line = document.getElementById(current_node + "-" + parent_node);
+        line.stroke = "green";
+        line.style = "stroke:green;stroke-width:8";
+    }
+
     // Function to restore a node's style
     function restoreNodeStyle(node_id) {
         var inner_node = document.getElementById(node_id).querySelector('.node_internal');
         inner_node.classList.remove('highlighted_requirement');
     }
 
-    function mouse_in_node() {
-        var node_id = this.id;
+    function restoreLineStyle(current_node, parent_node) {
+        var line = document.getElementById(current_node + "-" + parent_node);
+        line.stroke = "black";
+        line.style = "stroke:black;stroke-width:1";
+    }
+
+    function check_parents(node_id, highlight = true) {
         if (node_parents.hasOwnProperty(node_id)) {
             var parent_ids = node_parents[node_id];
             for (let j = 0; j < parent_ids.length; j++) {
-                highlightNode(parent_ids[j]);
-                var line = document.getElementById(node_id + "-" + parent_ids[j]);
-                line.stroke = "green";
-                line.style = "stroke:green;stroke-width:8";
+                if (highlight) {
+                    highlightNode(parent_ids[j]);
+                    highlightLine(node_id, parent_ids[j]);
+                }
+                else {
+                    restoreNodeStyle(parent_ids[j]);
+                    restoreLineStyle(node_id, parent_ids[j]);
+                }
+                check_parents(parent_ids[j], highlight);
             }
         }
     }
 
+    function mouse_in_node() {
+        var node_id = this.id;
+        check_parents(node_id, true);
+        // if (node_parents.hasOwnProperty(node_id)) {
+        //     var parent_ids = node_parents[node_id];
+        //     for (let j = 0; j < parent_ids.length; j++) {
+        //         highlightNode(parent_ids[j]);
+        //         var line = document.getElementById(node_id + "-" + parent_ids[j]);
+        //         line.stroke = "green";
+        //         line.style = "stroke:green;stroke-width:8";
+        //     }
+        // }
+    }
+
     function mouse_out_node() {
         var node_id = this.id;
-        if (node_parents.hasOwnProperty(node_id)) {
-            var parent_ids = node_parents[node_id];
-            for (let j = 0; j < parent_ids.length; j++) {
-                restoreNodeStyle(parent_ids[j]);
-                var line = document.getElementById(node_id + "-" + parent_ids[j]);
-                line.stroke = "black";
-                line.style = "stroke:black;stroke-width:1";
-            }
-        }
+        check_parents(node_id, false);
+        // if (node_parents.hasOwnProperty(node_id)) {
+        //     var parent_ids = node_parents[node_id];
+        //     for (let j = 0; j < parent_ids.length; j++) {
+        //         restoreNodeStyle(parent_ids[j]);
+        //         var line = document.getElementById(node_id + "-" + parent_ids[j]);
+        //         line.stroke = "black";
+        //         line.style = "stroke:black;stroke-width:1";
+        //     }
+        // }
     }
 
     function connectElements(element1, element2) {
