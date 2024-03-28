@@ -252,6 +252,7 @@ class SessionTasksView(FormMixin, TemplateView):
 
         pipe_list = format_app_tasks_data(tasks_data, selected_pipeline)
 
+        # example of how pipe_list is expected to be formated :
         # pipe_list = [
         #     {
         #         "name": "neuropil_mask",
@@ -307,6 +308,7 @@ class SessionTasksView(FormMixin, TemplateView):
                     continue
                 if step["complete_name"] == step_name:
                     pipe_list[i]["steps"][j]["is_selected"] = True
+                pipe_list[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
 
         context["site_header"] = "Alyx"
         title = f"Processing task view for session {session_object}"
