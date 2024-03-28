@@ -358,7 +358,7 @@ def get_celery_app(app_name="pypelines", refresh=False):
     password = config.get("connexion", "password")
     address = config.get("connexion", "address")
     port = config.get("connexion", "port")
-    broker_type = config.get("connexion", "type")
+    broker_type = config.get("connexion", "broker_type")
 
     app = Celery("pypelines", broker=f"{broker_type}://{username}:{password}@{address}:{port}//", backend="rpc://")
     app.conf.accept_content = ["pickle", "json", "msgpack", "yaml"]
