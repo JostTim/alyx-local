@@ -270,8 +270,8 @@ class SessionTasksView(FormMixin, TemplateView):
         if step_name is not None:
             this_url = self.get_session_step_url(session_id, step_name)
             title += f' - With task step <a href="{this_url}">{step_name}</a>'
-            mark_safe(title)
 
+        mark_safe(title)
         context["title"] = title
         context["run_url"] = (
             reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
