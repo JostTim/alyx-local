@@ -7,7 +7,7 @@
     var node_parents = {
     {% for pipe in pipe_list %}
     {% for step in pipe.steps %}
-    {% if not step.is_empty %}"{{ step.relative_name }}" : [{% for item in step.requirement_stack %}"{{ item }}",{% endfor %}],{% endif %}
+    {% if not step.is_empty %} "{{ step.complete_name }}" : [{% for item in step.requirement_stack %}"{{ item }}", {% endfor %}], {% endif %}
     {% endfor %}
     {% endfor %}
     };
@@ -87,7 +87,7 @@
         }
     }
 
-    function startup(){
+    function startup() {
         var all_nodes = document.getElementsByClassName('node');
         console.log("all_nodes")
         console.log(all_nodes)
@@ -185,7 +185,7 @@
     .graph_container {
         position: relative;
         height: min-content;
-        overflow-x : auto;
+        overflow-x: auto;
     }
 
     .container {
@@ -203,7 +203,7 @@
         font-weight: bold;
         font-size: 28px;
         margin-bottom: 20px;
-        text-align:center;
+        text-align: center;
     }
 
     .split_screen {
@@ -218,8 +218,9 @@
         border-top: solid black 1px;
         margin-top: 20px;
         margin-bottom: 20px;
-        width:100%;
+        width: 100%;
     }
+
     .separator.vertical {
         border-left: solid black 1px;
         margin-left: 20px;
@@ -244,28 +245,28 @@
         margin-bottom: 5px;
         padding: 20px;
         width: 200px;
-        color : black !important; 
-        background : lightblue;
+        color: black !important;
+        background: lightblue;
         border-radius: 10px;
         text-decoration: none;
         text-align: center;
         box-shadow: 2px 2px 3px 2px gray;
-        transition : background-color 0.1s, color 0.1s;
+        transition: background-color 0.1s, color 0.1s;
     }
 
-    .run_button:hover{
+    .run_button:hover {
         color: white !important;
         background: darkblue;
     }
 
     form {
-        text-align:center;
+        text-align: center;
     }
 
     .form_flex {
-        display:flex;
-        flex-direction : column;
-        align-items : start;
+        display: flex;
+        flex-direction: column;
+        align-items: start;
         row-gap: 10px;
     }
 </style>
@@ -286,7 +287,8 @@
                         {% if step.is_empty %}
                         <div class="node_location"></div>
                         {% else %}
-                        <div class="node node_location{% if step.is_selected %} selected_node{% endif %}" id="{{ step.relative_name }}">
+                        <div class="node node_location{% if step.is_selected %} selected_node{% endif %}"
+                            id="{{ step.complete_name }}">
                             <a class="node_internal" href="{{ step.url }}">{{ step.name }}</a>
                         </div>
                         {% endif %}
@@ -313,9 +315,10 @@
                     <input type="submit" value="Update arguments values" style="margin:20px;">
                 </form>
                 <div class="separator horizontal"></div>
-                <div class="container_title" >Launch task and requirements<br>{{selected_task_name}}</div>
+                <div class="container_title">Launch task and requirements<br>{{selected_task_name}}</div>
                 <a href="{{ run_url }}" class="run_button">Run task</a>
-                <span style="font-size:12px; text-align:center;">This will queue up the task on the processing celery cluster, if available.<br>Remember to update arguments first !</span>
+                <span style="font-size:12px; text-align:center;">This will queue up the task on the processing celery
+                    cluster, if available.<br>Remember to update arguments first !</span>
                 <span>
             </div>
         </div>

@@ -248,59 +248,64 @@ class SessionTasksView(FormMixin, TemplateView):
         celery_app = get_celery_app("pypelines", refresh=False)
         tasks_data = get_celery_app_tasks(celery_app)
 
+        selected_pipeline = "adaptation"  # todo : auto select based on project and allow switching
+
+        pipe_list = format_app_tasks_data(tasks_data, selected_pipeline)
+
+        # pipe_list = [
+        #     {
+        #         "name": "neuropil_mask",
+        #         "steps": [
+        #             {
+        #                 "name": "initial_calculation",
+        #                 "complete_name": "neuropil_mask.initial_calculation",
+        #                 "is_empty": False,
+        #                 "is_selected": False,
+        #                 "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
+        #                 "requirement_stack": [],
+        #             },
+        #             {
+        #                 "is_empty": True,
+        #             },
+        #             {
+        #                 "name": "secondstep",
+        #                 "complete_name": "neuropil_mask.secondstep",
+        #                 "is_empty": False,
+        #                 "is_selected": False,
+        #                 "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
+        #                 "requirement_stack": ["neuropil_mask.initial_calculation", "trials_df.initial_calculation"],
+        #             },
+        #         ],
+        #     },
+        #     {
+        #         "name": "trials_df",
+        #         "steps": [
+        #             {
+        #                 "name": "initial_calculation",
+        #                 "complete_name": "trials_df.initial_calculation",
+        #                 "is_empty": False,
+        #                 "is_selected": False,
+        #                 "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
+        #                 "requirement_stack": [],
+        #             },
+        #             {
+        #                 "name": "secondstep",
+        #                 "complete_name": "trials_df.secondstep",
+        #                 "is_empty": False,
+        #                 "is_selected": False,
+        #                 "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
+        #                 "requirement_stack": ["trials_df.initial_calculation"],
+        #             },
+        #         ],
+        #     },
+        # ]
+
         step_name = self.kwargs.get("step_name", None)
-        pipe_list = [
-            {
-                "name": "neuropil_mask",
-                "steps": [
-                    {
-                        "name": "initial_calculation",
-                        "relative_name": "neuropil_mask.initial_calculation",
-                        "is_empty": False,
-                        "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
-                        "requirement_stack": [],
-                    },
-                    {
-                        "is_empty": True,
-                    },
-                    {
-                        "name": "secondstep",
-                        "relative_name": "neuropil_mask.secondstep",
-                        "is_empty": False,
-                        "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
-                        "requirement_stack": ["neuropil_mask.initial_calculation", "trials_df.initial_calculation"],
-                    },
-                ],
-            },
-            {
-                "name": "trials_df",
-                "steps": [
-                    {
-                        "name": "initial_calculation",
-                        "relative_name": "trials_df.initial_calculation",
-                        "is_empty": False,
-                        "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
-                        "requirement_stack": [],
-                    },
-                    {
-                        "name": "secondstep",
-                        "relative_name": "trials_df.secondstep",
-                        "is_empty": False,
-                        "is_selected": False,
-                        "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
-                        "requirement_stack": ["trials_df.initial_calculation"],
-                    },
-                ],
-            },
-        ]
         for i, pipe in enumerate(pipe_list):
             for j, step in enumerate(pipe["steps"]):
                 if step["is_empty"]:
                     continue
-                if step["relative_name"] == step_name:
+                if step["complete_name"] == step_name:
                     pipe_list[i]["steps"][j]["is_selected"] = True
 
         context["site_header"] = "Alyx"
@@ -395,4 +400,54 @@ def get_celery_app(app_name="pypelines", refresh=False):
 
 def get_celery_app_tasks(app, refresh=False):
 
-    app_task_data = getattr(app, "task_data", {})
+    app_task_data = getattr(app, "task_data", None)
+
+    if app_task_data is None or refresh:
+        app_task_data = app.tasks[f"{app.main}.tasks_infos"].delay(app.main).get(timeout=2)
+        setattr(app, "task_data", app_task_data)
+
+    return app_task_data
+
+
+def format_app_tasks_data(app_task_data, selected_pipeline):
+    formated_data = {}
+    max_level = 0
+
+    # first organize steps bu pipe groups, and format the required data
+    for task_name, task_data in app_task_data.items():
+        pipeline = task_name.split(".")[0]
+        if pipeline != selected_pipeline:
+            continue
+        pipe_name = task_data["pipe_name"]
+        step_data = {
+            "name": task_data["step_name"],
+            "complete_name": task_name,
+            "is_empty": False,
+            "is_selected": False,
+            "url": "temp//temp",  # self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
+            "requirement_stack": [item if pipeline in item else f"{pipeline}.{item}" for item in task_data["requires"]],
+            "level": task_data["step_level_in_pipe"],
+        }
+        max_level = max_level if max_level > task_data["step_level_in_pipe"] else task_data["step_level_in_pipe"]
+        pipe_data = formated_data.get(pipe_name, {"name": pipe_name, "steps": []})
+
+        pipe_data["steps"].append(step_data)
+
+        formated_data[pipe_name] = pipe_data
+
+    formated_data = list(formated_data.values())
+
+    # then fill the empty steps with is_empty: True placeholders to facilitate the later assortment
+    # of steps by html and javascript in a visually readable way with empty divs
+    for pipe in formated_data:
+        pipe_levels = [step["level"] for step in pipe["steps"]]
+        new_steps_data = []
+        for step_level in range(max_level + 1):
+            try:
+                level_index = pipe_levels.index(step_level)
+                new_steps_data.append(pipe["steps"][level_index])
+            except ValueError:  # level not in list
+                new_steps_data.append({"is_empty": True, "level": step_level})
+        pipe.update({"steps": new_steps_data})
+
+    return formated_data
