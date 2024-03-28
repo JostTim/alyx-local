@@ -258,7 +258,7 @@ TIME_ZONE = "Europe/Paris"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_ROOT = "/uploaded/static_root"  # os.path.join(BASE_DIR, 'static_prod/')
+STATIC_ROOT = "/uploaded/static_root"
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (
