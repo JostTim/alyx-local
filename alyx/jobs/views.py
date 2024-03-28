@@ -311,8 +311,14 @@ class SessionTasksView(FormMixin, TemplateView):
                 pipe_list[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
 
         context["site_header"] = "Alyx"
-        title = f"Processing task view for session {session_object}"
-        title = title + f"- With task step {step_name}" if step_name is not None else title
+
+        session_change_url = reverse("admin:actions_session_change", args=[session_id])
+
+        title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
+        if step_name is not None:
+            this_url = self.get_session_step_url(session_id, step_name)
+            title += f' - With task step <a href="{this_url}">{step_name}</a>'
+
         context["title"] = title
         context["run_url"] = (
             reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
