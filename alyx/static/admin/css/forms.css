@@ -9,7 +9,8 @@
     border-bottom: 1px solid var(--hairline-color);
 }
 
-.form-row img, .form-row input {
+.form-row img,
+.form-row input {
     vertical-align: middle;
 }
 
@@ -30,7 +31,8 @@ label {
     font-size: 0.8125rem;
 }
 
-.required label, label.required {
+.required label,
+label.required {
     font-weight: bold;
     color: var(--body-fg);
 }
@@ -82,7 +84,9 @@ form ul.inline li {
     height: 26px;
 }
 
-.aligned label + p, .aligned label + div.help, .aligned label + div.readonly {
+.aligned label+p,
+.aligned label+div.help,
+.aligned label+div.readonly {
     padding: 6px 0;
     margin-top: 0;
     margin-bottom: 0;
@@ -100,7 +104,8 @@ form ul.inline li {
     margin-bottom: 0;
 }
 
-.colMS .aligned .vLargeTextField, .colMS .aligned .vXMLLargeTextField {
+.colMS .aligned .vLargeTextField,
+.colMS .aligned .vXMLLargeTextField {
     width: 350px;
 }
 
@@ -123,8 +128,8 @@ form .aligned div.help {
     padding-left: 10px;
 }
 
-form .aligned label + p.help,
-form .aligned label + div.help {
+form .aligned label+p.help,
+form .aligned label+div.help {
     margin-left: 0;
     padding-left: 0;
 }
@@ -135,12 +140,12 @@ form .aligned div.help:last-child {
     padding-bottom: 0;
 }
 
-form .aligned input + p.help,
-form .aligned textarea + p.help,
-form .aligned select + p.help,
-form .aligned input + div.help,
-form .aligned textarea + div.help,
-form .aligned select + div.help {
+form .aligned input+p.help,
+form .aligned textarea+p.help,
+form .aligned select+p.help,
+form .aligned input+div.help,
+form .aligned textarea+div.help,
+form .aligned select+div.help {
     margin-left: 160px;
     padding-left: 10px;
 }
@@ -162,12 +167,13 @@ form .aligned table p {
     padding: 0 0 5px 5px;
 }
 
-.aligned .vCheckboxLabel + p.help,
-.aligned .vCheckboxLabel + div.help {
+.aligned .vCheckboxLabel+p.help,
+.aligned .vCheckboxLabel+div.help {
     margin-top: -4px;
 }
 
-.colM .aligned .vLargeTextField, .colM .aligned .vXMLLargeTextField {
+.colM .aligned .vLargeTextField,
+.colM .aligned .vXMLLargeTextField {
     width: 610px;
 }
 
@@ -189,8 +195,8 @@ fieldset .fieldBox {
 }
 
 form .wide p,
-form .wide input + p.help,
-form .wide input + div.help {
+form .wide input+p.help,
+form .wide input+div.help {
     margin-left: 200px;
 }
 
@@ -204,7 +210,8 @@ form div.help ul {
     margin-left: 0;
 }
 
-.colM fieldset.wide .vLargeTextField, .colM fieldset.wide .vXMLLargeTextField {
+.colM fieldset.wide .vLargeTextField,
+.colM fieldset.wide .vXMLLargeTextField {
     width: 450px;
 }
 
@@ -214,7 +221,8 @@ fieldset.collapsed * {
     display: none;
 }
 
-fieldset.collapsed h2, fieldset.collapsed {
+fieldset.collapsed h2,
+fieldset.collapsed {
     display: block;
 }
 
@@ -325,7 +333,8 @@ body.popup .submit-row {
     border: none;
 }
 
-.vDateField, .vTimeField {
+.vDateField,
+.vTimeField {
     margin-right: 2px;
     margin-bottom: 4px;
 }
@@ -342,7 +351,8 @@ body.popup .submit-row {
     width: 30em;
 }
 
-.vLargeTextField, .vXMLLargeTextField {
+.vLargeTextField,
+.vXMLLargeTextField {
     width: 48em;
 }
 
@@ -366,7 +376,8 @@ body.popup .submit-row {
     width: 5em;
 }
 
-.vTextField, .vUUIDField {
+.vTextField,
+.vUUIDField {
     width: 20em;
 }
 
@@ -525,4 +536,43 @@ form .related-widget-wrapper ul {
 
 .clearable-file-input input {
     margin-top: 0;
+}
+
+
+.horizontal_aligned_alyx_buttons_container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+
+.session-management-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 25px 0 0;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    height: 35px;
+    line-height: 15px;
+    transition: background-color 0.25s ease 0s;
+    text-decoration: none;
+}
+
+#go-to-result-manager {
+    background-color: hsl(280, 70%, 50%);
+}
+
+#go-to-result-manager:hover {
+    background-color: hsl(280, 85%, 60%);
+}
+
+#go-to-task-manager {
+    background-color: hsl(50, 70%, 50%);
+}
+
+#go-to-task-manager:hover {
+    background-color: hsl(50, 85%, 60%);
 }
