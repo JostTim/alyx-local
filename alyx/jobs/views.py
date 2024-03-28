@@ -401,8 +401,13 @@ def get_celery_app_tasks(app, refresh=False):
     app_task_data = getattr(app, "task_data", None)
 
     if app_task_data is None or refresh:
-        app_task_data = app.tasks[f"{app.main}.tasks_infos"].delay(app.main).get(timeout=2)
-        setattr(app, "task_data", app_task_data)
+        try:
+            app_task_data = app.tasks[f"{app.main}.tasks_infos"].delay(app.main).get(timeout=2)
+            setattr(app, "task_data", app_task_data)
+        except Exception as e:
+            logger.warning(f"Could not get tasks from app. {e}")
+            logger.warning(f"Tasks are : {app.get_remote_tasks()}")
+            return {}
 
     return app_task_data
 
