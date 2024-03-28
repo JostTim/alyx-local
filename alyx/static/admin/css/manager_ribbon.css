@@ -14,10 +14,15 @@
     padding: 10px;
     border-radius: 5px;
     color: white;
-    height: 35px;
+    height: 15px;
     line-height: 15px;
     transition: background-color 0.25s ease 0s;
     text-decoration: none;
+}
+
+.session-management-button:visited {
+    text-decoration: none;
+    color: white;
 }
 
 #go-to-result-manager {
