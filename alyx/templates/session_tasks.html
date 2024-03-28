@@ -109,7 +109,8 @@
     }
 
     :root {
-        --node_size: 150px;
+        --node_height: 50px;
+        --node_size: 100px;
         --shadow_size: calc(var(--node_size)/2);
         --shadow_size_r: calc(var(--node_size)/-2);
         --border_radius: 20%;
@@ -122,7 +123,7 @@
         text-align: center;
         text-decoration: none;
         display: flex;
-        height: var(--node_size);
+        height: var(--node_height);
         width: var(--node_size);
         background: lightblue !important;
         /* transparent */
@@ -148,9 +149,9 @@
 
     .node_location {
         border-radius: var(--border_radius);
-        height: var(--node_size);
+        height: var(--node_height);
         width: var(--node_size);
-        margin: 10px;
+        margin: 3px;
     }
 
     .node.node_location.selected_node {
