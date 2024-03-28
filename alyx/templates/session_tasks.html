@@ -148,6 +148,11 @@
     }
 
     .node_internal {
+        text-shadow:
+            1px 1px 0 #ffffff,
+            -1px 1px 0 #ffffff,
+            -1px -1px 0 #ffffff,
+            1px -1px 0 #ffffff;
         color: black !important;
         justify-content: center;
         align-items: center;
@@ -160,7 +165,8 @@
         /* transparent */
         border-radius: var(--border_radius);
         box-shadow: var(--shadow_size_r) var(--shadow_size_r) 0px var(--shadow_size_r) royalblue inset !important;
-        transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
+        transition: background-color 0.15s ease,
+            box-shadow 0.15s ease !important;
     }
 
     .node_internal:hover {
@@ -182,11 +188,11 @@
         border-radius: var(--border_radius);
         height: var(--node_height);
         width: var(--node_size);
-        margin: 3px;
+        margin: 5px;
     }
 
     .node.node_location.selected_node {
-        outline: 10px solid gold;
+        outline: 5px solid gold;
     }
 
     .column_title {
