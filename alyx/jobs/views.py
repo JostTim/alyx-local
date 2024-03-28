@@ -370,11 +370,11 @@ def get_celery_app(app_name="pypelines", refresh=False):
     app.conf.worker_send_task_events = True
     app.conf.timezone = "Europe/Paris"
 
-    @app.task()
+    @app.task(name=f"{app_name}.tasks_infos")
     def tasks_infos(task_name) -> dict:
         return {}
 
-    @app.task()
+    @app.task(name=f"{app_name}.handshake")
     def handshake() -> str:
         return ""
 
