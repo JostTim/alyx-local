@@ -35,3 +35,4 @@ scripts/deployment_examples/docker-apache/settings*
 alyx/.idea/
 
 alyx.log
+*secrets*

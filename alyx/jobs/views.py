@@ -18,6 +18,7 @@ from misc.models import Lab
 from jobs.models import Task
 from jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
 from actions.models import Session
+from pathlib import Path
 import os
 
 logger = structlog.get_logger(__name__)
@@ -243,6 +244,10 @@ class SessionTasksView(FormMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         session_id = str(self.kwargs.get("session_pk", None))
         session_object = Session.objects.get(pk=session_id)
+
+        celery_app = get_celery_app("pypelines", refresh=False)
+        tasks_data = get_celery_app_tasks(celery_app)
+
         step_name = self.kwargs.get("step_name", None)
         pipe_list = [
             {
@@ -329,3 +334,65 @@ class CreateAndViewTask(View):
 
 # class TasksOverview(View):
 #     pass
+
+APP_STORAGE = {}
+
+
+def get_celery_app(app_name="pypelines", refresh=False):
+
+    if app_name in APP_STORAGE.keys() and not refresh:
+
+        return APP_STORAGE[app_name]
+
+    from celery import Celery
+    from types import MethodType
+
+    from configparser import ConfigParser
+
+    config = ConfigParser()
+
+    config_file_path = Path(__file__).parent / ".celery_secrets.ini"
+
+    config.read(config_file_path)
+    username = config.get("connexion", "username")
+    password = config.get("connexion", "password")
+    address = config.get("connexion", "address")
+    port = config.get("connexion", "port")
+    broker_type = config.get("connexion", "type")
+
+    app = Celery("pypelines", broker=f"{broker_type}://{username}:{password}@{address}:{port}//", backend="rpc://")
+    app.conf.accept_content = ["pickle", "json", "msgpack", "yaml"]
+    app.conf.worker_send_task_events = True
+    app.conf.timezone = "Europe/Paris"
+
+    @app.task()
+    def tasks_infos(Task) -> dict:
+        return {}
+
+    @app.task()
+    def handshake() -> str:
+        return ""
+
+    def get_remote_tasks(self):
+        registered_tasks = app.control.inspect().registered_tasks()
+        workers = []
+        task_names = []
+        for worker, tasks in registered_tasks.items():
+            workers.append(worker)
+            for task in tasks:
+                task_names.append(task)
+
+        return {"task_names": task_names, "workers": workers}
+
+    app.register_task(tasks_infos)
+
+    app.get_remote_tasks = MethodType(get_remote_tasks, app)  # type: ignore
+
+    APP_STORAGE[app_name] = app
+
+    return app
+
+
+def get_celery_app_tasks(app, refresh=False):
+
+    app_task_data = getattr(app, "task_data", {})
