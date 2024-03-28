@@ -406,7 +406,8 @@ def get_celery_app_tasks(app, refresh=False):
             setattr(app, "task_data", app_task_data)
         except Exception as e:
             logger.warning(f"Could not get tasks from app. {e}")
-            logger.warning(f"Tasks are : {app.get_remote_tasks()}")
+            logger.warning(f"Remote tasks are : {app.get_remote_tasks()}")
+            logger.warning(f"Local tasks are : {app.tasks}")
             return {}
 
     return app_task_data
