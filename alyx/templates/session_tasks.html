@@ -484,34 +484,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var pipelineDropdown = document.getElementById('pipelineDropdown');
-    pipelineDropdown.addEventListener('click', function (e) {
-        e.preventDefault();
-        var dropdownMenu = this.nextElementSibling;
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    var dropdowns = document.querySelectorAll('.dropdown');
+
+    dropdowns.forEach(function (dropdown) {
+        var button = dropdown.querySelector('.dropdown-toggle');
+        var menu = dropdown.querySelector('.dropdown-menu');
+
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
     });
 
     document.addEventListener('click', function (e) {
-        var dropdownMenu = document.querySelector('.dropdown-menu');
-        if (!pipelineDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
-            dropdownMenu.style.display = 'none';
-        }
-    });
-});
+        dropdowns.forEach(function (dropdown) {
+            var button = dropdown.querySelector('.dropdown-toggle');
+            var menu = dropdown.querySelector('.dropdown-menu');
 
-document.addEventListener('DOMContentLoaded', function () {
-    var pipelineDropdown = document.getElementById('workerDropdown');
-    pipelineDropdown.addEventListener('click', function (e) {
-        e.preventDefault();
-        var dropdownMenu = this.nextElementSibling;
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.addEventListener('click', function (e) {
-        var dropdownMenu = document.querySelector('.dropdown-menu');
-        if (!pipelineDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
-            dropdownMenu.style.display = 'none';
-        }
+            if (!button.contains(e.target) && !menu.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
     });
 });
 </script>
