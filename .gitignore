@@ -36,3 +36,4 @@ alyx/.idea/
 
 alyx.log
 *secrets*
+alyx/jobs/test.log
