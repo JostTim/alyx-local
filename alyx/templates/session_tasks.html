@@ -431,14 +431,14 @@
 
 <script>
 $(document).ready(function(){
-    $('#pipelineDropdown').click(function (e) {
-        e.stopPropagation();
-        $(this).next('.dropdown-menu').toggleClass('show');
+    $('#pipelineDropdown').on('click', function (e) {
+        e.preventDefault();
+        $(this).siblings('.dropdown-menu').toggle();
     });
-    
-    $(document).click(function (e) {
-        if (!$('.dropdown').is(e.target) && $('.dropdown').has(e.target).length === 0) {
-            $('.dropdown-menu').removeClass('show');
+
+    $('body').on('click', function (e) {
+        if (!$('#pipelineDropdown').is(e.target) && $('#pipelineDropdown').has(e.target).length === 0 && $('.dropdown-menu').has(e.target).length === 0) {
+            $('.dropdown-menu').hide();
         }
     });
 });
