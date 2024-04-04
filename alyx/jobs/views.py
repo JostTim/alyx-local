@@ -320,60 +320,79 @@ class SessionTasksView(FormMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         session_id = str(self.kwargs.get("session_pk", None))
         session_object = Session.objects.get(pk=session_id)
+        step_name = self.kwargs.get("step_name", None)
+
+        context["site_header"] = "Alyx"
+        context["flower_url"] = r"http://haiss-alyx.local:5001"
+        context["rabbitmq_url"] = r"http://haiss-alyx.local:15672/"
 
         # celery_app = get_celery_app("pypelines", refresh=False)
         celery_app = create_celery_app(__file__, "pypelines")
+        if celery_app is None or len(celery_app.get_remote_tasks()["workers"]) == 0:
+            context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
+            context["worker_status_description"] = "offline"  # or "online" or "all busy"
+
         tasks_data = celery_app.get_celery_app_tasks("pypelines")
 
-        available_pipelines = list(set([task_name.split(".")[0] for task_name in tasks_data.keys()]))
-
-        default_project = session_object.projects.first()
-        if default_project is None:
-            default_pipeline = available_pipelines[0]
+        if celery_app.is_hand_shaken():
+            context["worker_status_color"] = "status-green"  # or "status-green" or "status-orange"
+            context["worker_status_description"] = "online and ready"  # or "online" or "all busy"
         else:
-            project_name = str(default_project.name).lower()
-            if project_name not in available_pipelines:
+            context["worker_status_color"] = "status-orange"  # or "status-green" or "status-orange"
+            context["worker_status_description"] = "online and all busy"  # or "online" or "all busy"
+
+        if tasks_data is not None:
+
+            available_pipelines = list(set([task_name.split(".")[0] for task_name in tasks_data.keys()]))
+
+            default_project = session_object.projects.first()
+            if default_project is None:
                 default_pipeline = available_pipelines[0]
             else:
-                default_pipeline = project_name
+                project_name = str(default_project.name).lower()
+                if project_name not in available_pipelines:
+                    default_pipeline = available_pipelines[0]
+                else:
+                    default_pipeline = project_name
 
-        selected_pipeline = self.kwargs.get("pipeline", default_pipeline)
+            selected_pipeline = self.kwargs.get("pipeline", default_pipeline)
 
-        # reorder the pipelines so that the selected one is on top
-        available_pipelines.pop(available_pipelines.index(selected_pipeline))
-        available_pipelines = [
-            selected_pipeline,
-        ] + available_pipelines
+            # reorder the pipelines so that the selected one is on top
+            available_pipelines.pop(available_pipelines.index(selected_pipeline))
+            available_pipelines = [
+                selected_pipeline,
+            ] + available_pipelines
 
-        formated_data = self.format_app_tasks_data(tasks_data, selected_pipeline)
+            formated_data = self.format_app_tasks_data(tasks_data, selected_pipeline)
 
-        step_name = self.kwargs.get("step_name", None)
-        for i, pipe in enumerate(formated_data):
-            for j, step in enumerate(pipe["steps"]):
-                if step["is_empty"]:
-                    continue
-                if step["complete_name"] == step_name:
-                    formated_data[i]["steps"][j]["is_selected"] = True
-                formated_data[i]["steps"][j]["url"] = self.get_session_step_url(
-                    session_id, step["complete_name"], selected_pipeline
+            for i, pipe in enumerate(formated_data):
+                for j, step in enumerate(pipe["steps"]):
+                    if step["is_empty"]:
+                        continue
+                    if step["complete_name"] == step_name:
+                        formated_data[i]["steps"][j]["is_selected"] = True
+                    formated_data[i]["steps"][j]["url"] = self.get_session_step_url(
+                        session_id, step["complete_name"], selected_pipeline
+                    )
+
+            session_change_url = reverse("admin:actions_session_change", args=[session_id])
+
+            title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
+            if step_name is not None:
+                this_url = self.get_session_step_url(session_id, step_name, selected_pipeline)
+                title += f' - With task step <a href="{this_url}">{step_name}</a>'
+
+            available_pipelines_dict = {}
+            for pipeline_name in available_pipelines:
+                # we do not allow to select tasks with that because
+                # it's not guaranteed an equivalent taks will exist in the other pipeline
+                available_pipelines_dict[pipeline_name] = reverse(
+                    "session-tasks-with-pipeline", kwargs={"session_pk": session_id, "pipeline": pipeline_name}
                 )
-
-        context["site_header"] = "Alyx"
-
-        session_change_url = reverse("admin:actions_session_change", args=[session_id])
-
-        title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
-        if step_name is not None:
-            this_url = self.get_session_step_url(session_id, step_name, selected_pipeline)
-            title += f' - With task step <a href="{this_url}">{step_name}</a>'
-
-        available_pipelines_dict = {}
-        for pipeline_name in available_pipelines:
-            # we do not allow to select tasks with that because
-            # it's not guaranteed an equivalent taks will exist in the other pipeline
-            available_pipelines_dict[pipeline_name] = reverse(
-                "session-tasks-with-pipeline", kwargs={"session_pk": session_id, "pipeline": pipeline_name}
-            )
+        else:
+            selected_pipeline = ""
+            pipe_list = []
+            available_pipelines_dict = {}
 
         context["title"] = mark_safe(title)
         context["run_url"] = (
@@ -381,16 +400,13 @@ class SessionTasksView(FormMixin, TemplateView):
             if step_name is not None
             else ""
         )
+
         context["selected_pipeline"] = selected_pipeline
         context["pipe_list"] = formated_data
         context["origin_url"] = self.get_session_step_url(session_id, step_name, selected_pipeline)
         context["selected_task_name"] = step_name
         context["form"] = self.get_form().as_div()
         context["available_pipelines"] = available_pipelines_dict
-        context["flower_url"] = r"http://haiss-alyx.local:5001"
-        context["rabbitmq_url"] = r"http://haiss-alyx.local:15672/"
-        context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
-        context["worker_status_description"] = "offline"  # or "online" or "all busy"
         return context
 
     def format_app_tasks_data(self, app_task_data, selected_pipeline):
