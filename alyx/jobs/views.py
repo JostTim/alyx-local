@@ -305,7 +305,10 @@ class SessionTasksView(FormMixin, TemplateView):
         Returns:
             str: The URL for the session step.
         """
-        return reverse("session-task", kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline})
+        return reverse(
+            "session-task-with-pipeline",
+            kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline},
+        )
 
     def get_context_data(self, **kwargs):
         """Get context data for processing task view.
@@ -379,7 +382,7 @@ class SessionTasksView(FormMixin, TemplateView):
             else ""
         )
         context["pipe_list"] = formated_data
-        context["origin_url"] = self.get_session_step_url(session_id, step_name)
+        context["origin_url"] = self.get_session_step_url(session_id, step_name, selected_pipeline)
         context["selected_task_name"] = step_name
         context["form"] = self.get_form().as_div()
         context["available_pipelines"] = available_pipelines_dict
