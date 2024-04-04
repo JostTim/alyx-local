@@ -334,7 +334,7 @@ class SessionTasksView(FormMixin, TemplateView):
             context["worker_status_description"] = "offline"  # or "online" or "all busy"
             context["available_workers"] = []
 
-        tasks_data = celery_app.get_celery_app_tasks("pypelines", refresh=False)
+        tasks_data = celery_app.get_celery_app_tasks(refresh=False)
 
         if celery_app.is_hand_shaken():
             context["worker_status_color"] = "status-green"  # or "status-green" or "status-orange"
