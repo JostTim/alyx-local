@@ -295,7 +295,7 @@ class SessionTasksView(FormMixin, TemplateView):
         else:
             return reverse("home")
 
-    def get_session_step_url(self, session_id, step_name):
+    def get_session_step_url(self, session_id, step_name, pipeline):
         """Return the URL for a specific session step.
 
         Args:
@@ -305,7 +305,7 @@ class SessionTasksView(FormMixin, TemplateView):
         Returns:
             str: The URL for the session step.
         """
-        return reverse("session-task", kwargs={"session_pk": session_id, "step_name": step_name})
+        return reverse("session-task", kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline})
 
     def get_context_data(self, **kwargs):
         """Get context data for processing task view.
@@ -351,7 +351,9 @@ class SessionTasksView(FormMixin, TemplateView):
                     continue
                 if step["complete_name"] == step_name:
                     formated_data[i]["steps"][j]["is_selected"] = True
-                formated_data[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
+                formated_data[i]["steps"][j]["url"] = self.get_session_step_url(
+                    session_id, step["complete_name"], selected_pipeline
+                )
 
         context["site_header"] = "Alyx"
 
@@ -359,7 +361,7 @@ class SessionTasksView(FormMixin, TemplateView):
 
         title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
         if step_name is not None:
-            this_url = self.get_session_step_url(session_id, step_name)
+            this_url = self.get_session_step_url(session_id, step_name, selected_pipeline)
             title += f' - With task step <a href="{this_url}">{step_name}</a>'
 
         available_pipelines_dict = {}
