@@ -500,13 +500,17 @@ class CreateAndViewTask(View):
     def get(self, request, *args, **kwargs):
         step_name = self.kwargs.get("step_name")
         session_id = str(self.kwargs.get("session_pk"))
-        session_object = Session.objects.get(pk=session_id)
 
-        new_obj = Task.objects.create(name=step_name, session=session_object)
-        new_task_pk = new_obj.pk
-        # new_task_pk = f"run the pipeline mechanism here and get the new task using {step_name}"
+        # session_object = Session.objects.get(pk=session_id)
 
-        return redirect("task-logs", task_id=new_task_pk)
+        # new_obj = Task.objects.create(name=step_name, session=session_object)
+        # new_task_pk = new_obj.pk
+        # # new_task_pk = f"run the pipeline mechanism here and get the new task using {step_name}"
+
+        celery_app = create_celery_app(__file__, "pypelines")
+        task_data = celery_app.launch_named_task_remotely(session_id, step_name)
+
+        return redirect("task-logs", task_id=task_data["id"])
 
 
 # class TasksOverview(View):
