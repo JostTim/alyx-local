@@ -364,18 +364,11 @@ class SessionTasksView(FormMixin, TemplateView):
 
         available_pipelines_dict = {}
         for pipeline_name in available_pipelines:
-
-            if step_name is not None:
-                value = reverse(
-                    "session-task-with-pipeline",
-                    kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline_name},
-                )
-            else:
-                value = reverse(
-                    "session-tasks-with-pipeline", kwargs={"session_pk": session_id, "pipeline": pipeline_name}
-                )
-
-            available_pipelines_dict[pipeline_name] = value
+            # we do not allow to select tasks with that because
+            # it's not guaranteed an equivalent taks will exist in the other pipeline
+            available_pipelines_dict[pipeline_name] = reverse(
+                "session-tasks-with-pipeline", kwargs={"session_pk": session_id, "pipeline": pipeline_name}
+            )
 
         context["title"] = mark_safe(title)
         context["run_url"] = (
