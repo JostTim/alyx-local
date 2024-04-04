@@ -334,10 +334,10 @@
     }
 
     .btn-primary.dropdown-toggle {
-        color: #26a69a;
-        background-color: #fff;
+        color: rgb(0, 0, 0) ;
+        background-color: lightblue;
         border: none;
-        border-radius: 2px;
+        border-radius: 5px;
         text-align: center;
         height: 36px;
         line-height: 36px;
@@ -345,11 +345,13 @@
         padding: 0 2rem;
         text-transform: uppercase;
         vertical-align: middle;
-        -webkit-tap-highlight-color: transparent;
+        box-shadow: 0 2px 7px rgba(255, 255, 255, 0);
+        transition: box-shadow 0.15s ease ;
     }
 
     .btn-primary.dropdown-toggle:focus {
-        background-color: #e1f5fe;
+        background-color: rgb(135, 175, 188);
+        box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
     }
     
 </style>
@@ -370,7 +372,7 @@
 <span class="split_screen">
 
     <div class="container">
-        <div class="container_title">Select task</div>
+        <div class="container_title">Select task in the {{ selected_pipeline }} pipeline</div>
         <div class="scrollable">
             <div class="graph_container">
                 <svg></svg>

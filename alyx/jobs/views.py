@@ -381,6 +381,7 @@ class SessionTasksView(FormMixin, TemplateView):
             if step_name is not None
             else ""
         )
+        context["selected_pipeline"] = selected_pipeline
         context["pipe_list"] = formated_data
         context["origin_url"] = self.get_session_step_url(session_id, step_name, selected_pipeline)
         context["selected_task_name"] = step_name
