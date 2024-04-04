@@ -1,0 +1,13 @@
+[connexion]
+backend = "rpc"
+broker_type = "pyamqp"
+
+[broker_conf]
+virtual_host = "/"
+
+[conf]
+accept_content = ["pickle", "json", "msgpack", "yaml"]
+worker_send_task_events = true
+broker_connection_retry_on_startup = true
+timezone = "Europe/Paris"
+worker_pool_restarts = true

@@ -22,6 +22,8 @@ from actions.models import Session
 from pathlib import Path
 import os
 
+from pypelines.celery_tasks import create_celery_app
+
 logger = structlog.get_logger(__name__)
 
 
@@ -30,6 +32,14 @@ class TasksStatusView(ListView):
     paginate_by = 50
 
     def get_context_data(self, **kwargs):
+        """Return context data for TasksStatusView.
+
+        This method retrieves context data for the TasksStatusView class.
+        It includes information about tasks, labs, space availability, and other relevant details.
+
+        Returns:
+            dict: A dictionary containing context data for the view.
+        """
         graph = self.kwargs.get("graph", None)
         context = super(TasksStatusView, self).get_context_data(**kwargs)
         context["tableFilter"] = self.f
@@ -62,6 +72,18 @@ class TasksStatusView(ListView):
         return context
 
     def get_queryset(self):
+        """Return a filtered queryset based on the provided graph and lab parameters.
+
+        This method retrieves the graph and lab parameters from the view's kwargs.
+        It then filters the Session objects based on these parameters.
+        If both lab and graph are None, an empty queryset is returned.
+        Otherwise, the queryset is filtered based on the lab and graph values.
+        The final queryset is passed through a ProjectFilter instance and returned after applying distinct()
+        and order_by() operations.
+
+        Returns:
+            QuerySet: A filtered and ordered queryset of Session objects.
+        """
         graph = self.kwargs.get("graph", None)
         lab = self.kwargs.get("lab", None)
         qs = Session.objects.exclude(qc=50)
@@ -210,6 +232,12 @@ class SessionTasksView(FormMixin, TemplateView):
     form_class = ArgumentsForm
 
     def get_form_kwargs(self):
+        """Return the keyword arguments for instantiating the form.
+
+        Returns:
+            dict: A dictionary containing the keyword arguments for instantiating the form,
+                including session_pk and step_name.
+        """
         kwargs = super().get_form_kwargs()
         kwargs.update(
             {"session_pk": self.kwargs.get("session_pk", None), "step_name": self.kwargs.get("step_name", None)}
@@ -220,6 +248,16 @@ class SessionTasksView(FormMixin, TemplateView):
     #    return get_object_or_404(Session, pk=self.kwargs["session_pk"])
 
     def post(self, request, *args, **kwargs):
+        """Handles POST requests for the view.
+
+        Args:
+            request: HttpRequest object.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            Response based on form validation.
+        """
         form = self.get_form()
         if form.is_valid():
             return self.form_valid(form)
@@ -227,10 +265,29 @@ class SessionTasksView(FormMixin, TemplateView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
+        """Save the form data and call the parent class's form_valid method.
+
+        Args:
+            form: The form instance to be saved.
+
+        Returns:
+            The result of calling the parent class's form_valid method.
+        """
         form.save()
         return super().form_valid(form)
 
     def get_success_url(self, **kwargs):
+        """Return the success URL based on the session ID and step name.
+
+        Args:
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            str: The success URL.
+
+        Example:
+            get_success_url(session_pk=1, step_name='step1')
+        """
         session_id = self.kwargs.get("session_pk", None)
         step_name = self.kwargs.get("step_name", None)
         if session_id is not None and step_name is not None:
@@ -239,28 +296,58 @@ class SessionTasksView(FormMixin, TemplateView):
             return reverse("home")
 
     def get_session_step_url(self, session_id, step_name):
+        """Return the URL for a specific session step.
+
+        Args:
+            session_id (int): The ID of the session.
+            step_name (str): The name of the step.
+
+        Returns:
+            str: The URL for the session step.
+        """
         return reverse("session-task", kwargs={"session_pk": session_id, "step_name": step_name})
 
     def get_context_data(self, **kwargs):
+        """Get context data for processing task view.
+
+        Returns:
+            dict: A dictionary containing context data for the processing task view.
+        """
+
         context = super().get_context_data(**kwargs)
         session_id = str(self.kwargs.get("session_pk", None))
         session_object = Session.objects.get(pk=session_id)
 
-        celery_app = get_celery_app("pypelines", refresh=False)
-        tasks_data = get_celery_app_tasks(celery_app)
+        # celery_app = get_celery_app("pypelines", refresh=False)
+        celery_app = create_celery_app(__file__, "pypelines")
+        tasks_data = celery_app.get_celery_app_tasks("pypelines")
 
-        selected_pipeline = "adaptation"  # todo : auto select based on project and allow switching
+        available_pipelines = list(set([task_name.split(".")[0] for task_name in tasks_data.keys()]))
 
-        pipe_list = format_app_tasks_data(tasks_data, selected_pipeline)
+        default_project = session_object.projects.first()
+        if default_project is None:
+            default_pipeline = available_pipelines[0]
+        else:
+            default_pipeline = str(default_project.name).lower()
+
+        selected_pipeline = self.kwargs.get("pipeline", default_pipeline)
+
+        # reorder the pipelines so that the selected one is on top
+        available_pipelines.pop(available_pipelines.index(selected_pipeline))
+        available_pipelines = [
+            selected_pipeline,
+        ] + available_pipelines
+
+        formated_data = self.format_app_tasks_data(tasks_data, selected_pipeline)
 
         step_name = self.kwargs.get("step_name", None)
-        for i, pipe in enumerate(pipe_list):
+        for i, pipe in enumerate(formated_data):
             for j, step in enumerate(pipe["steps"]):
                 if step["is_empty"]:
                     continue
                 if step["complete_name"] == step_name:
-                    pipe_list[i]["steps"][j]["is_selected"] = True
-                pipe_list[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
+                    formated_data[i]["steps"][j]["is_selected"] = True
+                formated_data[i]["steps"][j]["url"] = self.get_session_step_url(session_id, step["complete_name"])
 
         context["site_header"] = "Alyx"
 
@@ -271,69 +358,141 @@ class SessionTasksView(FormMixin, TemplateView):
             this_url = self.get_session_step_url(session_id, step_name)
             title += f' - With task step <a href="{this_url}">{step_name}</a>'
 
+        available_pipelines_dict = {}
+        for pipeline_name in available_pipelines:
+
+            if step_name is not None:
+                value = reverse(
+                    "session-task-with-pipeline",
+                    kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline_name},
+                )
+            else:
+                value = reverse(
+                    "session-tasks-with-pipeline", kwargs={"session_pk": session_id, "pipeline": pipeline_name}
+                )
+
+            available_pipelines_dict[pipeline_name] = value
+
         context["title"] = mark_safe(title)
         context["run_url"] = (
             reverse("create-session-task", kwargs={"session_pk": session_id, "step_name": step_name})
             if step_name is not None
             else ""
         )
-        context["pipe_list"] = pipe_list
+        context["pipe_list"] = formated_data
         context["origin_url"] = self.get_session_step_url(session_id, step_name)
         context["selected_task_name"] = step_name
         context["form"] = self.get_form().as_div()
+        context["available_pipelines"] = available_pipelines_dict
         return context
 
-        # example of how pipe_list is expected to be formated :
-        # pipe_list = [
-        #     {
-        #         "name": "neuropil_mask",
-        #         "steps": [
-        #             {
-        #                 "name": "initial_calculation",
-        #                 "complete_name": "neuropil_mask.initial_calculation",
-        #                 "is_empty": False,
-        #                 "is_selected": False,
-        #                 "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
-        #                 "requirement_stack": [],
-        #             },
-        #             {
-        #                 "is_empty": True,
-        #             },
-        #             {
-        #                 "name": "secondstep",
-        #                 "complete_name": "neuropil_mask.secondstep",
-        #                 "is_empty": False,
-        #                 "is_selected": False,
-        #                 "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
-        #                 "requirement_stack": ["neuropil_mask.initial_calculation", "trials_df.initial_calculation"],
-        #             },
-        #         ],
-        #     },
-        #     {
-        #         "name": "trials_df",
-        #         "steps": [
-        #             {
-        #                 "name": "initial_calculation",
-        #                 "complete_name": "trials_df.initial_calculation",
-        #                 "is_empty": False,
-        #                 "is_selected": False,
-        #                 "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
-        #                 "requirement_stack": [],
-        #             },
-        #             {
-        #                 "name": "secondstep",
-        #                 "complete_name": "trials_df.secondstep",
-        #                 "is_empty": False,
-        #                 "is_selected": False,
-        #                 "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
-        #                 "requirement_stack": ["trials_df.initial_calculation"],
-        #             },
-        #         ],
-        #     },
-        # ]
+    def format_app_tasks_data(self, app_task_data, selected_pipeline):
+        """_summary_
+
+        Args:
+            app_task_data (_type_): _description_
+            selected_pipeline (_type_): _description_
+
+        Returns:
+            list: see below for an example :
+
+            ```python
+            formated_data = [
+                {
+                    "name": "neuropil_mask",
+                    "steps": [
+                        {
+                            "name": "initial_calculation",
+                            "complete_name": "neuropil_mask.initial_calculation",
+                            "is_empty": False,
+                            "is_selected": False,
+                            "url": self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
+                            "requirement_stack": [],
+                        },
+                        {
+                            "is_empty": True,
+                        },
+                        {
+                            "name": "secondstep",
+                            "complete_name": "neuropil_mask.secondstep",
+                            "is_empty": False,
+                            "is_selected": False,
+                            "url": self.get_session_step_url(session_id, "neuropil_mask.secondstep"),
+                            "requirement_stack": ["neuropil_mask.initial_calculation", "trials_df.initial_calculation"],
+                        },
+                    ],
+                },
+                {
+                    "name": "trials_df",
+                    "steps": [
+                        {
+                            "name": "initial_calculation",
+                            "complete_name": "trials_df.initial_calculation",
+                            "is_empty": False,
+                            "is_selected": False,
+                            "url": self.get_session_step_url(session_id, "trials_df.initial_calculation"),
+                            "requirement_stack": [],
+                        },
+                        {
+                            "name": "secondstep",
+                            "complete_name": "trials_df.secondstep",
+                            "is_empty": False,
+                            "is_selected": False,
+                            "url": self.get_session_step_url(session_id, "trials_df.secondstep"),
+                            "requirement_stack": ["trials_df.initial_calculation"],
+                        },
+                    ],
+                },
+            ]
+            ```
+        """
+        formated_data = {}
+        max_level = 0
+
+        # first organize steps bu pipe groups, and format the required data
+        for task_name, task_data in app_task_data.items():
+            pipeline = task_name.split(".")[0]
+            if pipeline != selected_pipeline:
+                continue
+            pipe_name = task_data["pipe_name"]
+            step_data = {
+                "name": task_data["step_name"],
+                "complete_name": task_name,
+                "is_empty": False,
+                "is_selected": False,
+                "url": "temp//temp",  # self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
+                "requirement_stack": [
+                    item if pipeline in item else f"{pipeline}.{item}" for item in task_data["requires"]
+                ],
+                "level": task_data["step_level_in_pipe"],
+            }
+            max_level = max_level if max_level > task_data["step_level_in_pipe"] else task_data["step_level_in_pipe"]
+            pipe_data = formated_data.get(pipe_name, {"name": pipe_name, "steps": []})
+
+            pipe_data["steps"].append(step_data)
+
+            formated_data[pipe_name] = pipe_data
+
+        formated_data = list(formated_data.values())
+
+        # then fill the empty steps with is_empty: True placeholders to facilitate the later assortment
+        # of steps by html and javascript in a visually readable way with empty divs
+        for pipe in formated_data:
+            pipe_levels = [step["level"] for step in pipe["steps"]]
+            new_steps_data = []
+            for step_level in range(max_level + 1):
+                try:
+                    level_index = pipe_levels.index(step_level)
+                    new_steps_data.append(pipe["steps"][level_index])
+                except ValueError:  # level not in list
+                    new_steps_data.append({"is_empty": True, "level": step_level})
+            pipe.update({"steps": new_steps_data})
+
+        return formated_data
 
 
 class CreateAndViewTask(View):
+
     def get(self, request, *args, **kwargs):
         step_name = self.kwargs.get("step_name")
         session_id = str(self.kwargs.get("session_pk"))
@@ -389,6 +548,9 @@ def get_celery_app(app_name="pypelines", refresh=False):
 
     def get_remote_tasks(self):
         registered_tasks = app.control.inspect().registered_tasks()
+        if registered_tasks is None:
+            logger.warning("Cannot get names of remotely registered tasks")
+            return {"task_names": [], "workers": []}
         workers = []
         task_names = []
         for worker, tasks in registered_tasks.items():
@@ -422,45 +584,27 @@ def get_celery_app_tasks(app, refresh=False):
     return app_task_data
 
 
-def format_app_tasks_data(app_task_data, selected_pipeline):
-    formated_data = {}
-    max_level = 0
+# # In your Django view
 
-    # first organize steps bu pipe groups, and format the required data
-    for task_name, task_data in app_task_data.items():
-        pipeline = task_name.split(".")[0]
-        if pipeline != selected_pipeline:
-            continue
-        pipe_name = task_data["pipe_name"]
-        step_data = {
-            "name": task_data["step_name"],
-            "complete_name": task_name,
-            "is_empty": False,
-            "is_selected": False,
-            "url": "temp//temp",  # self.get_session_step_url(session_id, "neuropil_mask.initial_calculation"),
-            "requirement_stack": [item if pipeline in item else f"{pipeline}.{item}" for item in task_data["requires"]],
-            "level": task_data["step_level_in_pipe"],
-        }
-        max_level = max_level if max_level > task_data["step_level_in_pipe"] else task_data["step_level_in_pipe"]
-        pipe_data = formated_data.get(pipe_name, {"name": pipe_name, "steps": []})
+# from django.http import HttpResponse
+# from PIL import Image
+# import io
 
-        pipe_data["steps"].append(step_data)
+# def display_image(request):
+#     # Assuming `image_data` is a variable containing image bytes
+#     # For example, let's create an image with PIL and convert it to bytes
+#     image = Image.new('RGB', (100, 100), color = 'blue')
+#     buffer = io.BytesIO()
+#     image.save(buffer, format='JPEG')
+#     image_data = buffer.getvalue()
 
-        formated_data[pipe_name] = pipe_data
+#     # Create an HttpResponse with the image data and the correct MIME type
+#     return HttpResponse(image_data, content_type="image/jpeg")
 
-    formated_data = list(formated_data.values())
+# # In your urls.py, map the view to a URL
+# from django.urls import path
+# from .views import display_image
 
-    # then fill the empty steps with is_empty: True placeholders to facilitate the later assortment
-    # of steps by html and javascript in a visually readable way with empty divs
-    for pipe in formated_data:
-        pipe_levels = [step["level"] for step in pipe["steps"]]
-        new_steps_data = []
-        for step_level in range(max_level + 1):
-            try:
-                level_index = pipe_levels.index(step_level)
-                new_steps_data.append(pipe["steps"][level_index])
-            except ValueError:  # level not in list
-                new_steps_data.append({"is_empty": True, "level": step_level})
-        pipe.update({"steps": new_steps_data})
-
-    return formated_data
+# urlpatterns = [
+#     path('display_image/', display_image, name='display_image'),
+# ]

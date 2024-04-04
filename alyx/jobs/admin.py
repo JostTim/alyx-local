@@ -31,7 +31,7 @@ class TaskAdmin(BaseAdmin):
         "session__task_protocol",
         "session__projects__name",
     )
-    ordering = ("-session__start_time", "level")
+    ordering = ("-datetime",)
     list_editable = ("status",)
     list_filter = [
         ("name", DropdownFilter),

@@ -309,6 +309,19 @@
     }
 </style>
 
+<div class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="pipelineDropdown" data-toggle="dropdown"
+        aria-haspopup="true" aria-expanded="false">
+        Select Pipeline
+    </button>
+    <div class="dropdown-menu" aria-labelledby="pipelineDropdown">
+        {% for key, value in available_pipelines.items %}
+        <a class="dropdown-item" href="{{ value }}">{{ key }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+
 <span class="split_screen">
 
     <div class="container">
