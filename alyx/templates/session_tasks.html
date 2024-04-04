@@ -354,21 +354,63 @@
         background-color: royalblue ;
         box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
     }
+
+    .horizontal-band {
+        display: flex;
+        align-items: center;
+        background-color: #f8f8f8;
+        padding: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .horizontal-band > * {
+        margin-right: 15px;
+    }
+
+    .horizontal-band > *:last-child {
+        margin-right: 0;
+    }
+
+    .status-indicator {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .status-red { background-color: red; }
+    .status-green { background-color: green; }
+    .status-orange { background-color: orange; }
+
+    .status-text {
+        display: inline-flex;
+        align-items: center;
+    }
     
 </style>
 
-<div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="pipelineDropdown" data-toggle="dropdown"
-        aria-haspopup="true" aria-expanded="false">
-        Select Pipeline
-    </button>
-    <div class="dropdown-menu" aria-labelledby="pipelineDropdown">
-        {% for key, value in available_pipelines.items %}
-        <a class="dropdown-item" href="{{ value }}">{{ key }}</a>
-        {% endfor %}
+<div class="horizontal-band">
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="pipelineDropdown" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            Select Pipeline
+        </button>
+        <div class="dropdown-menu" aria-labelledby="pipelineDropdown">
+            {% for key, value in available_pipelines.items %}
+            <a class="dropdown-item" href="{{ value }}">{{ key }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="location.href='{{ flower_url }}';">Flower Web App</button>
+    <button class="btn btn-primary" onclick="location.href='{{ rabbitmq_url }}';">RabbitMQ Management</button>
+
+    <div class="status-text">
+        <span class="status-indicator {{ worker_status_color }}"></span>
+        Workers Status: {{ worker_status_text }}
     </div>
 </div>
-
 
 <span class="split_screen">
 

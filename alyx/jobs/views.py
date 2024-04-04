@@ -387,6 +387,9 @@ class SessionTasksView(FormMixin, TemplateView):
         context["selected_task_name"] = step_name
         context["form"] = self.get_form().as_div()
         context["available_pipelines"] = available_pipelines_dict
+        context["flower_url"] = r"http://haiss-alyx.local:5001"
+        context["rabbitmq_url"] = r"http://haiss-alyx.local:15672/"
+        context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
         return context
 
     def format_app_tasks_data(self, app_task_data, selected_pipeline):
