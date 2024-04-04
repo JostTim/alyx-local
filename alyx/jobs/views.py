@@ -391,7 +391,7 @@ class SessionTasksView(FormMixin, TemplateView):
                 )
         else:
             selected_pipeline = ""
-            pipe_list = []
+            formated_data = []
             available_pipelines_dict = {}
 
         context["title"] = mark_safe(title)
