@@ -431,7 +431,16 @@
 
 <script>
 $(document).ready(function(){
-    $('.dropdown-toggle').dropdown();
+    $('#pipelineDropdown').click(function (e) {
+        e.stopPropagation();
+        $(this).next('.dropdown-menu').toggleClass('show');
+    });
+    
+    $(document).click(function (e) {
+        if (!$('.dropdown').is(e.target) && $('.dropdown').has(e.target).length === 0) {
+            $('.dropdown-menu').removeClass('show');
+        }
+    });
 });
 </script>
 
