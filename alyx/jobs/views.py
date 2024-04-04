@@ -390,6 +390,7 @@ class SessionTasksView(FormMixin, TemplateView):
         context["flower_url"] = r"http://haiss-alyx.local:5001"
         context["rabbitmq_url"] = r"http://haiss-alyx.local:15672/"
         context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
+        context["worker_status_description"] = "offline"  # or "online" or "all busy"
         return context
 
     def format_app_tasks_data(self, app_task_data, selected_pipeline):

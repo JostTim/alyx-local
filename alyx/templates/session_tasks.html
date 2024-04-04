@@ -333,7 +333,7 @@
         background-color: #eeeeee;
     }
 
-    .btn-primary.dropdown-toggle {
+    .btn-primary{
         color: rgb(0, 0, 0) ;
         background-color: lightblue;
         border: none;
@@ -349,7 +349,7 @@
         transition: box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
     }
 
-    .btn-primary.dropdown-toggle:focus {
+    .btn-primary:focus {
         color: rgb(255, 255, 255) ;
         background-color: royalblue ;
         box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
@@ -387,6 +387,10 @@
         display: inline-flex;
         align-items: center;
     }
+
+    .spacer {
+        flex-grow: 1;
+    }
     
 </style>
 
@@ -402,13 +406,15 @@
             {% endfor %}
         </div>
     </div>
+    
+    <div class="spacer"></div>
+    
+    <button class="btn btn-primary" onclick="location.href='{{ flower_url }}';">Task Queue & Workers Management</button>
+    <button class="btn btn-primary" onclick="location.href='{{ rabbitmq_url }}';">RabbitMQ Message Broker Management</button>
 
-    <button class="btn btn-primary" onclick="location.href='{{ flower_url }}';">Flower Web App</button>
-    <button class="btn btn-primary" onclick="location.href='{{ rabbitmq_url }}';">RabbitMQ Management</button>
-
-    <div class="status-text">
+    <div class="btn btn-primary status-text">
         <span class="status-indicator {{ worker_status_color }}"></span>
-        Workers Status: {{ worker_status_text }}
+        Workers Status: {{ worker_status_description }}
     </div>
 </div>
 
