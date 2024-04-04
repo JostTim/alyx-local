@@ -307,6 +307,52 @@
         align-items: start;
         row-gap: 10px;
     }
+    .dropdown-content {
+            background-color: white;
+            border-radius: 2px;
+            box-shadow: 0 2px 7px rgba(0, 0, 0, 0.15);
+            margin: 0;
+            display: none;
+            min-width: 200px;
+            overflow: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 999;
+            will-change: width, height;
+        }
+        
+        .dropdown-content li > a, .dropdown-content li > span {
+            color: rgba(0,0,0,0.87);
+            display: block;
+            font-size: 16px;
+            line-height: 22px;
+            padding: 14px 16px;
+        }
+        
+        .dropdown-content li > a:hover, .dropdown-content li > a:focus {
+            background-color: #eeeeee;
+        }
+        
+        .dropdown-button {
+            display: inline-block;
+            color: #26a69a;
+            border: none;
+            border-radius: 2px;
+            background-color: #fff;
+            text-align: center;
+            height: 36px;
+            line-height: 36px;
+            outline: 0;
+            padding: 0 2rem;
+            text-transform: uppercase;
+            vertical-align: middle;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .dropdown-trigger:focus {
+            background-color: #e1f5fe;
+        }
+        
 </style>
 
 <div class="dropdown">
