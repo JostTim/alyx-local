@@ -5,7 +5,7 @@ from mimetypes import guess_type
 import urllib.parse
 import requests
 
-from one.remote.aws import get_s3_virtual_host
+# from one.remote.aws import get_s3_virtual_host
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, FileResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 
