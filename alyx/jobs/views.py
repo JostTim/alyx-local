@@ -328,7 +328,11 @@ class SessionTasksView(FormMixin, TemplateView):
         if default_project is None:
             default_pipeline = available_pipelines[0]
         else:
-            default_pipeline = str(default_project.name).lower()
+            project_name = str(default_project.name).lower()
+            if project_name not in available_pipelines:
+                default_pipeline = available_pipelines[0]
+            else:
+                default_pipeline = project_name
 
         selected_pipeline = self.kwargs.get("pipeline", default_pipeline)
 
