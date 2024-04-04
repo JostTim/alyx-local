@@ -328,18 +328,22 @@ class SessionTasksView(FormMixin, TemplateView):
 
         # celery_app = get_celery_app("pypelines", refresh=False)
         celery_app = create_celery_app(__file__, "pypelines")
-        if celery_app is None or len(celery_app.get_remote_tasks()["workers"]) == 0:
+        app_info = celery_app.get_remote_tasks()
+        if celery_app is None or len(app_info["workers"]) == 0:
             context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "offline"  # or "online" or "all busy"
+            context["available_workers"] = []
 
         tasks_data = celery_app.get_celery_app_tasks("pypelines")
 
         if celery_app.is_hand_shaken():
             context["worker_status_color"] = "status-green"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "online and ready"  # or "online" or "all busy"
+            context["available_workers"] = app_info["workers"]
         else:
             context["worker_status_color"] = "status-orange"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "online and all busy"  # or "online" or "all busy"
+            context["available_workers"] = app_info["workers"]
 
         if tasks_data is not None:
 

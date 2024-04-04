@@ -413,9 +413,17 @@
     <button class="btn btn-primary" onclick="location.href='{{ flower_url }}';">Task Queue & Workers Management</button>
     <button class="btn btn-primary" onclick="location.href='{{ rabbitmq_url }}';">RabbitMQ Message Broker Management</button>
 
-    <div class="btn btn-primary status-text">
-        <span class="status-indicator {{ worker_status_color }}"></span>
-        Workers Status: {{ worker_status_description }}
+    <div class="dropdown status-text">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="pipelineDropdown" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
+            <span class="status-indicator {{ worker_status_color }}"></span>
+            Workers Status: {{ worker_status_description }}
+        </button>
+        <div class="dropdown-menu" aria-labelledby="pipelineDropdown">
+            {% for worker_name in available_workers %}
+            <span class="dropdown-item">{{ worker_name }}</span>
+            {% endfor %}
+        </div>
     </div>
 </div>
 
