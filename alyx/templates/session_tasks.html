@@ -414,12 +414,12 @@
     <button class="btn btn-primary" onclick="location.href='{{ rabbitmq_url }}';">RabbitMQ Message Broker Management</button>
 
     <div class="dropdown status-text">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="pipelineDropdown" data-toggle="dropdown"
+        <button class="btn btn-primary dropdown-toggle" type="button" id="workerDropdown" data-toggle="dropdown"
             aria-haspopup="true" aria-expanded="false">
             <span class="status-indicator {{ worker_status_color }}"></span>
             Workers Status: {{ worker_status_description }}
         </button>
-        <div class="dropdown-menu" aria-labelledby="pipelineDropdown">
+        <div class="dropdown-menu" aria-labelledby="workerDropdown">
             {% for worker_name in available_workers %}
             <span class="dropdown-item">{{ worker_name }}</span>
             {% endfor %}
@@ -485,6 +485,22 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var pipelineDropdown = document.getElementById('pipelineDropdown');
+    pipelineDropdown.addEventListener('click', function (e) {
+        e.preventDefault();
+        var dropdownMenu = this.nextElementSibling;
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', function (e) {
+        var dropdownMenu = document.querySelector('.dropdown-menu');
+        if (!pipelineDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    var pipelineDropdown = document.getElementById('workerDropdown');
     pipelineDropdown.addEventListener('click', function (e) {
         e.preventDefault();
         var dropdownMenu = this.nextElementSibling;
