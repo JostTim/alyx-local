@@ -529,87 +529,8 @@ class CreateAndViewTask(View):
         task_data = celery_app.launch_named_task_remotely(
             session_object, task_name=step_name, task_model=Task, extra=None  # TODO :handle optional arguments in there
         )
-
-        return redirect("admin:jobs_task_change", args=[task_data["id"]])
-
-
-# class TasksOverview(View):
-#     pass
-
-# APP_STORAGE = {}
-
-
-# def get_celery_app(app_name="pypelines", refresh=False):
-
-#     if app_name in APP_STORAGE.keys() and not refresh:
-
-#         return APP_STORAGE[app_name]
-
-#     from celery import Celery
-#     from types import MethodType
-
-#     from configparser import ConfigParser
-
-#     config = ConfigParser()
-
-#     config_file_path = Path(__file__).parent / ".celery_secrets.ini"
-
-#     config.read(config_file_path)
-#     username = config.get("connexion", "username")
-#     password = config.get("connexion", "password")
-#     address = config.get("connexion", "address")
-#     port = config.get("connexion", "port")
-#     broker_type = config.get("connexion", "broker_type")
-
-#     app = Celery(app_name, broker=f"{broker_type}://{username}:{password}@{address}:{port}//", backend="rpc://")
-#     app.conf.accept_content = ["pickle", "json", "msgpack", "yaml"]
-#     app.conf.worker_send_task_events = True
-#     app.conf.timezone = "Europe/Paris"
-
-#     @app.task(name=f"{app_name}.tasks_infos")
-#     def tasks_infos(task_name) -> dict:
-#         return {}
-
-#     @app.task(name=f"{app_name}.handshake")
-#     def handshake() -> str:
-#         return ""
-
-#     def get_remote_tasks(self):
-#         registered_tasks = app.control.inspect().registered_tasks()
-#         if registered_tasks is None:
-#             logger.warning("Cannot get names of remotely registered tasks")
-#             return {"task_names": [], "workers": []}
-#         workers = []
-#         task_names = []
-#         for worker, tasks in registered_tasks.items():
-#             workers.append(worker)
-#             for task in tasks:
-#                 task_names.append(task)
-
-#         return {"task_names": task_names, "workers": workers}
-
-#     app.get_remote_tasks = MethodType(get_remote_tasks, app)  # type: ignore
-
-#     APP_STORAGE[app_name] = app
-
-#     return app
-
-
-# def get_celery_app_tasks(app, refresh=False):
-
-#     app_task_data = getattr(app, "task_data", None)
-
-#     if app_task_data is None or refresh:
-#         try:
-#             app_task_data = app.tasks[f"{app.main}.tasks_infos"].delay(app.main).get(timeout=2)
-#             setattr(app, "task_data", app_task_data)
-#         except Exception as e:
-#             logger.warning(f"Could not get tasks from app. {e}")
-#             logger.warning(f"Remote tasks are : {app.get_remote_tasks()}")
-#             logger.warning(f"Local tasks are : {app.tasks}")
-#             return {}
-
-#     return app_task_data
+        url = reverse("admin:jobs_task_change", args=[task_data["id"]])
+        return redirect(url)
 
 
 # # In your Django view
