@@ -530,7 +530,7 @@ class CreateAndViewTask(View):
             session_object, task_name=step_name, task_model=Task, extra=None  # TODO :handle optional arguments in there
         )
 
-        return redirect("task-logs", task_id=task_data["id"])
+        return redirect("admin:jobs_task_change", args=[task_data["id"]])
 
 
 # class TasksOverview(View):
