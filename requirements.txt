@@ -7,6 +7,8 @@ django-admin-rangefilter
 django-autocomplete-light
 django-cleanup
 django-filter==21.1
+django-jsoneditor
+django-markdownx
 django-mptt
 django-polymorphic>=3.0.0
 django-reversion>=3.0.8
@@ -19,13 +21,15 @@ drfdocs
 flake8
 globus-cli
 globus-sdk
+gunicorn
 markdown
 matplotlib
 pillow
+processing-pypelines[celery]
 psycopg2-binary
 python-dateutil
 python-magic
 pytz
 structlog>=21.5.0
 webdavclient3
-ONE-api>=1.13.0
+alyx-connector>=2.1.5

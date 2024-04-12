@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/stable/ref/settings/
 """
 
 import os
-
+from pathlib import Path
 import structlog
 from django.conf.locale.en import formats as en_formats
 
@@ -27,10 +27,18 @@ try:
 except ImportError:
     from .settings_lab_template import *  # noqa
 
+
+def read_db_password(secret_file_path):
+    with open(secret_file_path) as f:
+        return f.read().strip()
+
+
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
 # changes by timothe on 28-11-2022 to try to fix "time offset" issues
 USE_DEPRECATED_PYTZ = True  # Support for using pytz will be removed in Django 5.0
+
+IS_DOCKER = os.path.exists("/.dockerenv")
 
 if "GITHUB_ACTIONS" in os.environ:
     DATABASES = {
@@ -43,11 +51,28 @@ if "GITHUB_ACTIONS" in os.environ:
             "PORT": "5432",
         }
     }
+elif IS_DOCKER:
+    # settings.py
+    DB_PASSWORD_FILE = "/run/secrets/db-password"
+    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if os.path.isfile(DB_PASSWORD_FILE) else "default_password"
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "alyx",  # Your database name
+            "USER": "postgres",  # Your database user
+            "PASSWORD": DB_PASSWORD,  # Your database password
+            "HOST": "db",  # Name of the service defined in docker-compose.yml
+            "PORT": "5432",  # The default port for PostgreSQL
+        }
+    }
+
 
 # Custom User model with UUID primary key
 AUTH_USER_MODEL = "misc.LabMember"
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -77,7 +102,7 @@ LOGGING = {
         "file": {
             "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "/var/log/alyx/alyx_db.log",
+            "filename": "../uploaded/log/alyx_db.log",
             "maxBytes": 16777216,
             "backupCount": 5,
             "formatter": "simple",
@@ -86,7 +111,7 @@ LOGGING = {
         "json_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "/var/log/alyx/alyx_db_json.log",
+            "filename": "../uploaded/log/alyx_db_json.log",
             "maxBytes": 16777216,
             "backupCount": 5,
             "formatter": "json_formatter",
@@ -199,7 +224,7 @@ ROOT_URLCONF = "alyx.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [str(BASE_DIR / "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -223,7 +248,7 @@ TEMPLATE_LOADERS = (
 )
 
 TEMPLATE_DIRS = [
-    os.path.join(BASE_DIR, "templates"),
+    str(BASE_DIR / "templates"),
 ]
 
 WSGI_APPLICATION = "alyx.wsgi.application"
@@ -258,22 +283,22 @@ TIME_ZONE = "Europe/Paris"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_ROOT = "/uploaded/static_root"
+STATIC_ROOT = str(BASE_DIR.parent / "uploaded" / "static")
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(BASE_DIR, "static"),
+    str(BASE_DIR / "static"),
 )
 
-MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, "../../uploaded_media/"))
+MEDIA_ROOT = str(BASE_DIR.parent / "uploaded" / "media")
 # MEDIA_ROOT = "/backups/uploaded/"
 MEDIA_URL = "/media/"
 
 # The location for saving and/or serving the cache tables.
 # May be a local path, http address or s3 uri (i.e. s3://)
-TABLES_ROOT = os.path.realpath(os.path.join(BASE_DIR, "../tables/"))
+TABLES_ROOT = str(BASE_DIR / "uploaded" / "tables/")
 
 UPLOADED_IMAGE_WIDTH = 800
 

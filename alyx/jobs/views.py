@@ -22,7 +22,6 @@ from actions.models import Session
 from pathlib import Path
 import os
 
-from pypelines.celery_tasks import create_celery_app
 
 logger = structlog.get_logger(__name__)
 
@@ -316,6 +315,7 @@ class SessionTasksView(FormMixin, TemplateView):
         Returns:
             dict: A dictionary containing context data for the processing task view.
         """
+        from pypelines.celery_tasks import create_celery_app
 
         context = super().get_context_data(**kwargs)
         session_id = str(self.kwargs.get("session_pk", None))
@@ -521,6 +521,8 @@ class SessionTasksView(FormMixin, TemplateView):
 class CreateAndViewTask(View):
 
     def get(self, request, *args, **kwargs):
+        from pypelines.celery_tasks import create_celery_app
+
         step_name = self.kwargs.get("step_name")
         session_id = str(self.kwargs.get("session_pk"))
         session_object = Session.objects.get(pk=session_id)

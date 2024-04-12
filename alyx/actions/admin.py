@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.admin import site, SimpleListFilter, TabularInline
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models.functions import Collate
-from rangefilter.filter import DateRangeFilter
+from rangefilter.filters import DateRangeFilter
 from django.utils import timezone
 from functools import partial
 
