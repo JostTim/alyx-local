@@ -283,12 +283,14 @@ TIME_ZONE = "Europe/Paris"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
+# this is where the collected static assets will be copied
 STATIC_ROOT = str(BASE_DIR.parent / "uploaded" / "static")
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    # this is from where we collect static assets
     str(BASE_DIR / "static"),
 )
 
