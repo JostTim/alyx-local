@@ -6,12 +6,67 @@
 {{ block.super }}
 {% endblock %}
 
+{% block extrahead %}
+<script>
+  const url = 'http://127.0.0.1:52163'; // Python local utility app port : 52163
+
+  document.addEventListener('DOMContentLoaded', function() {
+
+      fetch(url + '/set_current_session', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ uuid: uuid }),
+        })
+      .then(response => {
+          if (response.ok) {
+              console.log('POST request sent successfully');
+          } else {
+              console.error('Failed to send POST request');
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('set-current-session').style.display = "none";
+      });
+
+
+
+      document.getElementById('set-current-session').addEventListener('mouseup', function() {
+        const uuid = '{{ alias }}';
+        console.log("Alias is : " + uuid)
+        fetch(url + '/set_current_session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ uuid: uuid }),
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('POST request sent successfully');
+            } else {
+                console.error('Failed to send POST request');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+      });
+    });
+  </script>
+
+{{ block.super }}
+{% endblock %}
+
 {% block content %}
 
   {% if show_button %}
 	<div class = "horizontal_aligned_alyx_buttons_container">
 		<a class= "session-management-button" id="go-to-result-manager" href="{{results_url}}">Open in Result Manager</a>
     <a class= "session-management-button" id="go-to-task-manager" href="{{tasks_url}}">Open in Task Manager</a>
+    <div class= "session-management-button" id="set-current-session">Set as setup's current session</div>
   </div>
   {% endif %}
 
