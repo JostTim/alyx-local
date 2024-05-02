@@ -38,12 +38,11 @@
       document.getElementById('set-current-session').addEventListener('mouseup', function() {
         const uuid = '{{ uuid }}';
         console.log("Alias is : " + uuid)
-        fetch(url + '/set_current_session', {
+        fetch(url + '/set_current_session' + '?uuid=' + encodeURIComponent(uuid), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ uuid: uuid }),
             mode: 'cors',
             credentials: 'same-origin'
         })
@@ -51,7 +50,7 @@
             if (response.ok) {
                 console.log('POST request sent successfully');
             } else {
-                console.error('Failed to send POST request');
+                console.error('POST bad request answered');
             }
         })
         .catch(error => {
