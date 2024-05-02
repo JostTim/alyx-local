@@ -12,18 +12,20 @@
 
   document.addEventListener('DOMContentLoaded', function() {
 
-      fetch(url + '/set_current_session', {
+      fetch(url + '/handshake', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            mode: 'cors',
+            credentials: 'same-origin'
         })
       .then(response => {
           if (response.ok) {
-              console.log('POST request sent successfully');
+              console.log('GET handshake request sent successfully');
               document.getElementById('set-current-session').style.display = "block";
           } else {
-              console.error('Failed to send POST request');
+              console.error('Failed to send GET handshake request');
           }
       })
       .catch(error => {
@@ -42,6 +44,8 @@
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ uuid: uuid }),
+            mode: 'cors',
+            credentials: 'same-origin'
         })
         .then(response => {
             if (response.ok) {
