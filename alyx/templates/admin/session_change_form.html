@@ -21,13 +21,14 @@
       .then(response => {
           if (response.ok) {
               console.log('POST request sent successfully');
+              document.getElementById('set-current-session').style.display = "block";
           } else {
               console.error('Failed to send POST request');
           }
       })
       .catch(error => {
           console.error('Error:', error);
-          document.getElementById('set-current-session').style.display = "none";
+          
       });
 
 

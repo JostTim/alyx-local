@@ -44,6 +44,7 @@
 #set-current-session {
     background-color: hsl(1, 85%, 60%);
     cursor: pointer;
+    display: none;
 }
 
 #set-current-session:hover {
