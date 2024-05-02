@@ -876,6 +876,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         if context["show_button"]:
             context["tasks_url"] = reverse("session-tasks", kwargs={"session_pk": object_id})
             context["results_url"] = f"http://haiss-alyx.local:5000/images/{object_id}"  # url for result-manager
+            context["uuid"] = object_id
         context = _pass_narrative_templates(context)
         return super(SessionAdmin, self).change_view(request, object_id, extra_context=context, **kwargs)
 
@@ -883,6 +884,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         context = extra_context or {}
         context = _pass_narrative_templates(context)
         context["show_button"] = False
+        context["uuid"] = None
         return super(SessionAdmin, self).add_view(request, extra_context=context)
 
     def procedures_(self, obj):

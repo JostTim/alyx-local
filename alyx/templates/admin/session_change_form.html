@@ -34,7 +34,7 @@
 
 
       document.getElementById('set-current-session').addEventListener('mouseup', function() {
-        const uuid = '{{ alias }}';
+        const uuid = '{{ uuid }}';
         console.log("Alias is : " + uuid)
         fetch(url + '/set_current_session', {
             method: 'POST',
