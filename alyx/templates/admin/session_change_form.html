@@ -49,6 +49,7 @@
         .then(response => {
             if (response.ok) {
                 console.log('POST request sent successfully');
+                document.getElementById('set-current-session').style.backgroundColor = "green";
             } else {
                 console.error('POST bad request answered');
             }
