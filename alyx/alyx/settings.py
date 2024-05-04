@@ -284,7 +284,7 @@ TIME_ZONE = "Europe/Paris"
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 # this is where the collected static assets will be copied
-STATIC_ROOT = str(BASE_DIR.parent / "uploaded" / "static")
+STATIC_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "static")
 STATIC_URL = "/static/"
 
 STATICFILES_DIRS = (

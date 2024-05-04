@@ -175,7 +175,8 @@ class DataFormat(BaseModel):
     def save(self, *args, **kwargs):
         """this is to trigger the update of the auto-date field"""
 
-        self.name = self.file_extension.strip(".")
+        if self.name is None and self.file_extension is not None:
+            self.name = self.file_extension.strip(".")
         self.file_extension = "." + self.name
 
         super(DataFormat, self).save(*args, **kwargs)
@@ -350,11 +351,13 @@ class BaseExperimentalData(BaseModel):
 
 
 def default_dataset_type():
-    return DatasetType.objects.get_or_create(name="unknown")[0].pk
+    default_dataset_object, created = DatasetType.objects.only("id").get_or_create(name="unknown")
+    return default_dataset_object.pk
 
 
 def default_data_format():
-    return DataFormat.objects.get_or_create(name="unknown")[0].pk
+    default_data_format_object, created = DataFormat.objects.only("id").get_or_create(name="unknown")
+    return default_data_format_object.pk
 
 
 class Tag(BaseModel):
@@ -558,7 +561,7 @@ class Dataset(BaseExperimentalData):
     def remote_root(self):
         return self.data_repository.data_path
 
-    def get_session_path(self, as_dict=False):
+    def get_session_path(self, as_dict=False) -> str | dict:
         # returns wm29/2023-05-25/002
         session_path = self.session.alias
         if not as_dict:

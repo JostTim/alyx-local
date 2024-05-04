@@ -20,7 +20,7 @@ from alyx.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_NAME
 
 
 def default_lab():
-    default_lab_instance, created = Lab.objects.get_or_create(name=DEFAULT_LAB_NAME)
+    default_lab_instance, created = Lab.objects.only("id").get_or_create(name=DEFAULT_LAB_NAME)
     return default_lab_instance.pk
 
 
