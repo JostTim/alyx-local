@@ -37,4 +37,4 @@ alyx/.idea/
 alyx.log
 *secrets*
 alyx/jobs/test.log
-*password*
+*password.txt
