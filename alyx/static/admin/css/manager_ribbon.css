@@ -40,3 +40,13 @@
 #go-to-task-manager:hover {
     background-color: hsl(50, 85%, 60%);
 }
+
+#set-current-session {
+    background-color: hsl(1, 85%, 60%);
+    cursor: pointer;
+    display: none;
+}
+
+#set-current-session:hover {
+    background-color: hsl(24, 85%, 60%);
+}
