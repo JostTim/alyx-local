@@ -2,8 +2,7 @@
 
 DUMP_DIR="/data"
 
-echo "Django version installed"
-echo python -m django --version
+echo -n "Django version installed :" && echo $(python -m django --version)
 
 echo "Applying database migrations..."
 python manage.py migrate --noinput 

@@ -294,7 +294,7 @@ class SessionTasksView(FormMixin, TemplateView):
         else:
             return reverse("home")
 
-    def get_session_step_url(self, session_id, step_name, pipeline):
+    def get_session_step_url(self, session_id, step_name=None, pipeline=None):
         """Return the URL for a specific session step.
 
         Args:
@@ -304,10 +304,29 @@ class SessionTasksView(FormMixin, TemplateView):
         Returns:
             str: The URL for the session step.
         """
-        return reverse(
-            "session-task-with-pipeline",
-            kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline},
-        )
+        if pipeline:
+            if step_name:
+                return reverse(
+                    "session-task-with-pipeline",
+                    kwargs={"session_pk": session_id, "step_name": step_name, "pipeline": pipeline},
+                )
+            else:
+                return reverse(
+                    "session-tasks-with-pipeline",
+                    kwargs={"session_pk": session_id, "pipeline": pipeline},
+                )
+
+        else:
+            if step_name:
+                return reverse(
+                    "session-task",
+                    kwargs={"session_pk": session_id, "step_name": step_name},
+                )
+            else:
+                return reverse(
+                    "session-tasks",
+                    kwargs={"session_pk": session_id},
+                )
 
     def get_context_data(self, **kwargs):
         """Get context data for processing task view.
@@ -322,21 +341,23 @@ class SessionTasksView(FormMixin, TemplateView):
         session_object = Session.objects.get(pk=session_id)
         step_name = self.kwargs.get("step_name", None)
 
+        session_change_url = reverse("admin:actions_session_change", args=[session_id])
+        title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
+
         context["site_header"] = "Alyx"
         context["flower_url"] = r"http://haiss-alyx.local:5001"
         context["rabbitmq_url"] = r"http://haiss-alyx.local:15672/"
 
         # celery_app = get_celery_app("pypelines", refresh=False)
         celery_app = create_celery_app(__file__, "pypelines")
-        app_info = celery_app.get_remote_tasks()
-        if celery_app is None or len(app_info["workers"]) == 0:
+        app_info = celery_app.get_remote_tasks() if celery_app else None
+        tasks_data = celery_app.get_celery_app_tasks(refresh=False) if celery_app else None
+
+        if celery_app is None or app_info is None or len(app_info["workers"]) == 0:
             context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "offline"  # or "online" or "all busy"
             context["available_workers"] = []
-
-        tasks_data = celery_app.get_celery_app_tasks(refresh=False)
-
-        if celery_app.is_hand_shaken():
+        elif celery_app is not None and celery_app.is_hand_shaken():
             context["worker_status_color"] = "status-green"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "online and ready"  # or "online" or "all busy"
             context["available_workers"] = app_info["workers"]
@@ -346,7 +367,6 @@ class SessionTasksView(FormMixin, TemplateView):
             context["available_workers"] = app_info["workers"]
 
         if tasks_data is not None:
-
             available_pipelines = list(set([task_name.split(".")[0] for task_name in tasks_data.keys()]))
 
             default_project = session_object.projects.first()
@@ -379,9 +399,6 @@ class SessionTasksView(FormMixin, TemplateView):
                         session_id, step["complete_name"], selected_pipeline
                     )
 
-            session_change_url = reverse("admin:actions_session_change", args=[session_id])
-
-            title = f'Processing task view for session <a href="{session_change_url}">{session_object}</a>'
             if step_name is not None:
                 this_url = self.get_session_step_url(session_id, step_name, selected_pipeline)
                 title += f' - With task step <a href="{this_url}">{step_name}</a>'
