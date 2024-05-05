@@ -15,7 +15,6 @@ services:
       - uploaded_volume:/app/uploaded
       - static_volume:/app/uploaded/static
       - media_volume:/app/uploaded/media
-    command: /app/alyx/entrypoint.sh
     secrets:
       - db-password
     expose:

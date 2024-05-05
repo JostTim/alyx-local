@@ -27,19 +27,21 @@ if [ -n "$LATEST_DUMP_FILE" ]; then
             GRANT USAGE ON SCHEMA public TO readaccess;
             GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;
         END IF;
-    END
-    \$\$;" && echo "OK"
-    # psql -h db -U postgres -d alyx -c "CREATE ROLE readaccess LOGIN;"
 
-    # psql -h db -U postgres -d alyx -c "GRANT CONNECT ON DATABASE alyx TO readaccess;"
-    # psql -h db -U postgres -d alyx -c "GRANT USAGE ON SCHEMA public TO readaccess;"
-    # psql -h db -U postgres -d alyx -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO readaccess;"
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'tjostmou') THEN
+            CREATE ROLE tjostmou LOGIN;
+            GRANT CONNECT ON DATABASE alyx TO tjostmou;
+            GRANT USAGE ON SCHEMA public TO tjostmou;
+            GRANT SELECT ON ALL TABLES IN SCHEMA public TO tjostmou;
+        END IF;
+    END
+    \$\$;"
 
     # Run pg_restore on the db service 
     # (password is passed throug the ENV variable defined above, 
     # and host is the db service defined in compose.yaml)
-    echo "Restoring database from $LATEST_DUMP_FILE..."
-    pg_restore --clean -h db -U postgres -d alyx < "$LATEST_DUMP_FILE"
+    echo -n "Restoring database from $LATEST_DUMP_FILE..."
+    pg_restore --clean -h db -U postgres -d alyx < "$LATEST_DUMP_FILE" && echo "OK"
 else
     echo "No SQL dump file found in $DUMP_DIR. Skipping restore."
 fi

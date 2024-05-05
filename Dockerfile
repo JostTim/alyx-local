@@ -12,6 +12,8 @@ FROM python:${PYTHON_VERSION}-slim as base
 ARG APP_USER=appuser
 ARG UID=10001
 
+RUN echo "Building the Docker image..."
+
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
 
@@ -30,7 +32,6 @@ RUN adduser \
     --home "/${APP_USER}" \
     --uid "${UID}" \
     ${APP_USER}
-
 
 WORKDIR /app
 
@@ -78,6 +79,8 @@ WORKDIR /app/alyx
 
 # Expose the port that the application listens on.
 EXPOSE 80
+
+RUN echo "Launching the entrypoint script..."
 
 # Run the Django application and Gunicorn to serve it.
 # Nginx is launched via config file from compose.yaml file instructions
