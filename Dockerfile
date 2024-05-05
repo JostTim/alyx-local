@@ -42,7 +42,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
     python -m pip install -r requirements.txt
 
-# Switch to the non-privileged user to run the application.
+# get pg_restore and other database tools
+RUN apt-get update && apt-get install -y postgresql-client
 
 # Copy the source code into the container.
 
@@ -63,11 +64,14 @@ chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
 
 COPY ./alyx/ /app/alyx/
 COPY ./.production/entrypoint.sh /app/alyx/entrypoint.sh
+COPY ./data/ /data/
 
 RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.sh
 RUN chmod +x /app/alyx/entrypoint.sh
+
 RUN chown -R ${APP_USER}:${APP_USER} /app/
 
+# Switch to the non-privileged user to run the application.
 USER ${APP_USER}
 
 WORKDIR /app/alyx
@@ -75,7 +79,7 @@ WORKDIR /app/alyx
 # Expose the port that the application listens on.
 EXPOSE 80
 
-# Start Nginx and Gunicorn
-# Run the application.
+# Run the Django application and Gunicorn to serve it.
+# Nginx is launched via config file from compose.yaml file instructions
 CMD ["/app/alyx/entrypoint.sh"]
 #CMD gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000

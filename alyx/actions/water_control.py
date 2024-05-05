@@ -114,7 +114,7 @@ def return_figure(f):
 def tzone_convert(date_t, tz):
     assert isinstance(date_t, datetime)
     try:
-        date_t = timezone.make_aware(date_t, timezone.get_default_timezone(), is_dst=False)
+        date_t = timezone.make_aware(date_t, timezone.get_default_timezone())  # removing : is_dst=False) deprecated ?
     except ValueError:  # date is already timezone aware
         pass
     return date_t  # timezone.make_naive(date_t, tz) todo : make this depending on settings.USE_TZ
