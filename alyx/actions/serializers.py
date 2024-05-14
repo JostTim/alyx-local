@@ -172,6 +172,7 @@ class SessionListSerializer(BaseActionSerializer):
             "start_time",
             "number",
             "projects",
+            "users",
             "url",
             "admin_url",
             "procedures",
