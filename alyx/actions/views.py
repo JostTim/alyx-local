@@ -381,12 +381,12 @@ class SessionFilter(BaseFilterSet):
     def filter_procedures(self, queryset, name, value):
         procedures_names = value.split(",")
         logger.warning(f"Filtering for {procedures_names} in filter_procedures")
+        q_objects = Q()
 
         for procedures_name in procedures_names:
-            logger.warning(f"Filtering for {procedures_name.strip()}")
-            queryset = queryset.filter(procedures__name__icontains=procedures_name.strip())
-
-        return queryset.distinct()
+            logger.warning(f"Filtering for {procedures_name}")
+            q_objects &= Q(procedures__name__icontains=procedures_name)
+        return queryset.filter(q_objects)
 
     def filter_exclude_procedures(self, queryset, name, value):
         excluded_procedures_names = value.split(",")
