@@ -5,7 +5,7 @@ import structlog
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Case, When
+from django.db.models import Case, When, Q
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 from django_admin_listfilter_dropdown.filters import (
@@ -174,24 +174,30 @@ class BaseActionForm(forms.ModelForm):
 
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields:  # and not (user.is_stock_manager or user.is_superuser):
-            queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")  # responsible_user=user
-            ids = [s.id for s in queryset]
 
-            if last_subject_id is not None:
-                ids = _bring_to_front(ids, last_subject_id)
+            # prepare for a complex query with multiple or cases
+            query = Q(cull__isnull=True)
 
+            priority_order = []
             # Check if the instance already has a subject selected
             selected_subject = getattr(self.instance, "subject", None)
             if selected_subject:
-                # Add the selected subject id to the front of the ids list
-                ids = _bring_to_front(ids, selected_subject.id)
+                query |= Q(id=selected_subject.id)
+                priority_order.append(selected_subject.id)
 
-            # Use the modified ids list to preserve order in the queryset
-            if ids:
-                preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            else:
-                preserved = "nickname"
-            self.fields["subject"].queryset = queryset.order_by(preserved)
+            # Check if there is a last subject for which we should make quick select available
+            elif last_subject_id is not None:
+                query |= Q(id=last_subject_id)
+                priority_order.append(last_subject_id)
+
+            preserved_order = [When(id=id, then=pos) for pos, id in enumerate(priority_order)]
+            queryset = Subject.objects.filter(query).annotate(
+                priority_order=Case(*preserved_order, default=len(priority_order))
+            )  # default : makes all annotation one more than the priority orders max value.
+
+            # we order first on priority_order, wich is all 0 if no priority is set, then on nickname
+            queryset = Subject.objects.filter(query).order_by("priority_order", "nickname")
+            self.fields["subject"].queryset = queryset
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
