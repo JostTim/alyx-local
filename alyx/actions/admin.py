@@ -138,10 +138,11 @@ class CreatedByListFilter(DefaultListFilter):
             return queryset.all()
 
 
-def _bring_to_front(ids, id):
+def _bring_to_front(ids: list, id: int):
     if id in ids:
         ids.remove(id)
-    return [id] + ids
+    ids.insert(0, id)
+    return ids
 
 
 # Admin
@@ -173,16 +174,19 @@ class BaseActionForm(forms.ModelForm):
 
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields:  # and not (user.is_stock_manager or user.is_superuser):
-            inst = self.instance
             queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")  # responsible_user=user
             ids = [s.id for s in queryset]
 
-            # These ids first in the list of subjects.
-            if getattr(inst, "subject", None):
-                ids = _bring_to_front(ids, inst.subject.pk)
-            elif last_subject_id is not None:
+            if last_subject_id is not None:
                 ids = _bring_to_front(ids, last_subject_id)
 
+            # Check if the instance already has a subject selected
+            selected_subject = getattr(self.instance, "subject", None)
+            if selected_subject:
+                # Add the selected subject id to the front of the ids list
+                ids = _bring_to_front(ids, selected_subject.id)
+
+            # Use the modified ids list to preserve order in the queryset
             if ids:
                 preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
             else:
@@ -885,7 +889,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         context = _pass_narrative_templates(context)
         context["show_button"] = False
         context["uuid"] = None
-        return super(SessionAdmin, self).add_view(request, extra_context=context)
+        return super(SessionAdmin, self).add_view(request, extra_context=context)  # type: ignore
 
     def procedures_(self, obj):
         return [getattr(p, "name", None) for p in obj.procedures.all()]
