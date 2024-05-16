@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+import structlog
 
 from alyx.base import BaseSerializerEnumField, get_admin_url
 from .models import ProcedureType, Session, Surgery, WaterAdministration, Weighing, WaterType, WaterRestriction
@@ -12,6 +13,8 @@ from experiments.serializers import ProbeInsertionListSerializer, FilterDatasetS
 from misc.serializers import NoteSerializer
 from data.serializers import DatasetSerializer
 from data.models import DataRepository
+
+from time import time
 
 SESSION_FIELDS = (
     "id",
@@ -40,6 +43,8 @@ SESSION_FIELDS = (
     "u_alias",
     "path",
 )
+
+logger = structlog.get_logger("actions.serializers")
 
 
 def _log_entry(instance, user):
@@ -227,6 +232,13 @@ class SessionDetailSerializer(BaseActionSerializer):
             "probe_insertion",
         )
         return queryset.order_by("-start_time")
+
+    def to_representation(self, instance):
+        start_time = time()
+        representation = super().to_representation(instance)
+        end_time = time()
+        logger.warning(f"Serializing {instance} took {end_time - start_time:.6f} seconds")
+        return representation
 
     class Meta:
         model = Session
