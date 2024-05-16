@@ -695,7 +695,7 @@ class FileRecord(BaseModel):
     # //cajal/cajal_data2/ONE/Adaptation/wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
 
     # @cached_property cached property cannot work with methods needing arguments
-    def get_session_path(self, as_dict=False):
+    def get_session_path(self, as_dict=False) -> str | dict:
         # returns wm29/2023-05-25/002
         session_path = self.dataset.session.alias
         if not as_dict:
@@ -714,7 +714,7 @@ class FileRecord(BaseModel):
         self,
     ):  # THIS IN THE ONLY FIELD THAT IS SAVED IN THE MODEL TABLE,FOR CHECKING THAT NO FILES HAVING THE SAME NAME
         # EXISTS FOR A GIVEN SESSION
-        # returns wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
+        # returns for ex : wm29/2023-05-25/002/trials/test_folder/trials.eventTimeline.special.001.tdms
         return os.path.join(
             self.get_session_path(),
             self.collection,
