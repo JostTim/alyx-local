@@ -24,6 +24,7 @@ from alyx.base import (
     BaseFilterSet,
     rest_permission_classes,
 )
+
 from subjects.models import Subject
 from experiments.views import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
@@ -379,17 +380,20 @@ class SessionFilter(BaseFilterSet):
 
     def filter_procedures(self, queryset, name, value):
         procedures_names = value.split(",")
+        q_objects = Q()
 
         for procedures_name in procedures_names:
-            queryset = queryset.filter(procedures__name__icontains=procedures_name)
-        return queryset
+            q_objects &= Q(procedures__name__icontains=procedures_name)
+        return queryset.filter(q_objects)
 
     def filter_exclude_procedures(self, queryset, name, value):
         excluded_procedures_names = value.split(",")
+        q_objects = Q()
 
         for excluded_procedure_name in excluded_procedures_names:
-            queryset = queryset.exclude(procedures__name__icontains=excluded_procedure_name)
-        return queryset
+            q_objects |= Q(procedures__name__icontains=excluded_procedure_name)
+
+        return queryset.exclude(q_objects)
 
     def filter_performance_gte(self, queryset, name, perf):
         queryset = queryset.exclude(n_trials__isnull=True)
