@@ -191,13 +191,14 @@ class BaseActionForm(forms.ModelForm):
                 priority_order.append(last_subject_id)
 
             preserved_order = [When(id=id, then=pos) for pos, id in enumerate(priority_order)]
+
+            # default : makes all annotation one more than the priority orders max value.
             queryset = Subject.objects.filter(query).annotate(
                 priority_order=Case(*preserved_order, default=len(priority_order))
-            )  # default : makes all annotation one more than the priority orders max value.
+            )
 
             # we order first on priority_order, wich is all 0 if no priority is set, then on nickname
-            queryset = Subject.objects.filter(query).order_by("priority_order", "nickname")
-            self.fields["subject"].queryset = queryset
+            self.fields["subject"].queryset = queryset.order_by("priority_order", "nickname")
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
