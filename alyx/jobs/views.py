@@ -49,7 +49,7 @@ class TasksStatusView(ListView):
         ls = Max("session__start_time", filter=Q(session__tasks__isnull=False))
         lj = Max("session__tasks__datetime")
         context["labs"] = Lab.objects.annotate(count_waiting=cw, last_session=ls, last_job=lj).order_by("name")
-        space = np.array(context["labs"].values_list("json__raid_available", flat=True), dtype=np.float)
+        space = np.array(context["labs"].values_list("json__raid_available", flat=True), dtype=float)
         context["space_left"] = np.round(space / 1000, decimals=1)
         context["ibllib_version"] = list(context["labs"].values_list("json__ibllib_version", flat=True))
         if graph:
