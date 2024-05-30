@@ -37,6 +37,9 @@ class TrajectoryEstimateInline(TabularInline):
     extra = 0
 
 
+# here
+
+
 class ProbeInsertionInline(BaseAdmin):
     ordering = ("-session__start_time",)
     exclude = ["session", "datasets"]
@@ -53,8 +56,7 @@ class ProbeInsertionInline(BaseAdmin):
     def _session(self, obj):
         # this is to provide a link back to the session page
         url = reverse(
-            "admin:%s_%s_change"
-            % (obj.session._meta.app_label, obj.session._meta.model_name),
+            "admin:%s_%s_change" % (obj.session._meta.app_label, obj.session._meta.model_name),
             args=[obj.session.id],
         )
         return format_html('<b><a href="{url}" ">{}</a></b>', obj.session, url=url)
@@ -89,9 +91,7 @@ class ProbeInsertionInline(BaseAdmin):
             ),
             args=[obj.session.subject.id],
         )
-        return format_html(
-            '<b><a href="{url}" ">{}</a></b>', obj.session.subject, url=url
-        )
+        return format_html('<b><a href="{url}" ">{}</a></b>', obj.session.subject, url=url)
 
     _subject.short_descritption = "subject"
 
@@ -150,9 +150,7 @@ class TrajectoryEstimateAdmin(BaseAdmin):
             ),
             args=[obj.probe_insertion.id],
         )
-        return format_html(
-            '<b><a href="{url}" ">{}</a></b>', obj.probe_insertion.name, url=url
-        )
+        return format_html('<b><a href="{url}" ">{}</a></b>', obj.probe_insertion.name, url=url)
 
     _probe_insertion.short_description = "probe"
 
@@ -161,9 +159,7 @@ class TrajectoryEstimateAdmin(BaseAdmin):
         if count:
             info = (Channel._meta.app_label, Channel._meta.model_name)
             url = reverse("admin:%s_%s_changelist" % info)
-            return format_html(
-                '<b><a href="{url}?q={pk}" ">{}</a></b>', count, pk=obj.id, url=url
-            )
+            return format_html('<b><a href="{url}?q={pk}" ">{}</a></b>', count, pk=obj.id, url=url)
         else:
             return count
 
@@ -203,9 +199,7 @@ class BrainRegionsAdmin(MPTTModelAdmin):
         descriptions = obj.related_descriptions
         return "\n\n".join(
             [
-                "{} (id: {}, level:{}): \n {}".format(
-                    d["name"], d["id"], d["level"], d["description"]
-                )
+                "{} (id: {}, level:{}): \n {}".format(d["name"], d["id"], d["level"], d["description"])
                 for d in descriptions
             ]
         )
@@ -252,8 +246,7 @@ class FOVInline(BaseAdmin):
     def _session(self, obj):
         # this is to provide a link back to the session page
         url = reverse(
-            "admin:%s_%s_change"
-            % (obj.session._meta.app_label, obj.session._meta.model_name),
+            "admin:%s_%s_change" % (obj.session._meta.app_label, obj.session._meta.model_name),
             args=[obj.session.id],
         )
         return format_html('<b><a href="{url}" ">{}</a></b>', obj.session, url=url)
@@ -288,9 +281,7 @@ class FOVInline(BaseAdmin):
             ),
             args=[obj.session.subject.id],
         )
-        return format_html(
-            '<b><a href="{url}" ">{}</a></b>', obj.session.subject, url=url
-        )
+        return format_html('<b><a href="{url}" ">{}</a></b>', obj.session.subject, url=url)
 
     _subject.short_descritption = "subject"
 
