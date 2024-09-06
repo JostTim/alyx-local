@@ -5,7 +5,8 @@ import structlog
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Case, When, Q
+from django.db.models import Case, When, Q, Value, Func, F, CharField
+from django.db.models.functions import Concat
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 from django_admin_listfilter_dropdown.filters import (
@@ -668,7 +669,7 @@ class SurgeryAdmin(BaseActionAdmin):
     ]
     list_select_related = ("subject",)
 
-    fields = BaseActionAdmin.fields + ["outcome_type"]
+    fields = list(BaseActionAdmin.fields) + ["outcome_type"]
     list_display_links = ["date"]
     search_fields = ("subject__nickname", "subject__projects__name")
     list_filter = [
@@ -787,6 +788,16 @@ class DatasetTypeDropdownFilter(RelatedDropdownFilter):
         return list(choices)
 
 
+class FormatDate(Func):
+    function = "DATE_FORMAT"
+    template = "%(function)s(%(expressions)s, '%%Y-%%m-%%d')"
+
+
+class ZFill(Func):
+    function = "LPAD"
+    template = "%(function)s(%(expressions)s, 3, '0')"
+
+
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
 
@@ -807,11 +818,11 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     list_display_links = ["alias_with_tooltip"]
     fields = None
     fieldsets = (
-        ("Mandatory", {"fields": BaseActionAdmin.fields[:2] + ["number"]}),
+        ("Mandatory", {"fields": list(BaseActionAdmin.fields[:2]) + ["number"]}),
         (
             "Main session infos",
             {
-                "fields": BaseActionAdmin.fields[2:-1]
+                "fields": list(BaseActionAdmin.fields[2:-1])
                 + ["projects"]
                 + [BaseActionAdmin.fields[-1]]  # removed 'repo_url' as we are not web based but samba based
             },
@@ -848,6 +859,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         "users__username",
         "task_protocol",
         "pk",
+        "alias",
     )
     ordering = ("-start_time", "task_protocol", "lab")
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
@@ -855,6 +867,22 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     formfield_overrides = {
         JSONField: {"widget": JSONEditor},
     }
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset = queryset.annotate(
+            formatted_datetime=FormatDate(F("datetime")),
+            formatted_number=ZFill(F("number"), Value(3)),
+            alias=Concat(
+                "subject__nickname",
+                Value("/"),
+                F("formatted_datetime"),
+                Value("/"),
+                F("formatted_number"),
+                output_field=CharField(),
+            ),
+        )
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        return queryset, use_distinct
 
     def alias_with_tooltip(self, obj):
         return format_html(
