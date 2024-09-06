@@ -789,13 +789,15 @@ class DatasetTypeDropdownFilter(RelatedDropdownFilter):
 
 
 class FormatDate(Func):
-    function = "DATE_FORMAT"
+    function = "TO_CHAR"
     template = "%(function)s(%(expressions)s, '%%Y-%%m-%%d')"
+    arity = 1
 
 
 class ZFill(Func):
     function = "LPAD"
     template = "%(function)s(%(expressions)s, 3, '0')"
+    arity = 1
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
