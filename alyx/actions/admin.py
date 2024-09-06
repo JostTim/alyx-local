@@ -852,6 +852,9 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
         QCFilter,
     ]
+
+    search_fields = ("subject__nickname",)
+
     # search_fields = (
     #     "subject__nickname",
     #     "lab__name",
