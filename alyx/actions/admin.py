@@ -871,7 +871,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         queryset = queryset.annotate(
             formatted_datetime=FormatDate(F("start_time")),
             formatted_number=ZFill(F("number")),
-            alias=Concat(
+            search_alias=Concat(
                 "subject__nickname",
                 Value("/"),
                 F("formatted_datetime"),
@@ -885,7 +885,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         # Adding custom filtering for the alias
         if search_term:
             custom_filter = (
-                Q(alias__iexact=search_term)
+                Q(search_alias__iexact=search_term)
                 | Q(formatted_number__icontains=search_term)
                 | Q(formatted_datetime__icontains=search_term)
             )
