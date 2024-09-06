@@ -874,14 +874,14 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         queryset = queryset.annotate(
             formatted_datetime=FormatDate(F("start_time")),
             formatted_number=ZFill(F("number")),
-            # alias=Concat(
-            #     "subject__nickname",
-            #     Value("/"),
-            #     F("formatted_datetime"),
-            #     Value("/"),
-            #     F("formatted_number"),
-            #     output_field=CharField(),
-            # ),
+            alias=Concat(
+                "subject__nickname",
+                Value("/"),
+                F("formatted_datetime"),
+                Value("/"),
+                F("formatted_number"),
+                output_field=CharField(),
+            ),
         )
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
         return queryset, use_distinct
