@@ -471,10 +471,7 @@ class Session(BaseAction):
             string = "%s with primary key : %s" % (
                 self.alias,
                 str(self.pk),
-            )  # "%s %s/%s/%s"
-            # self.subject,
-            # str(self.start_time)[:10],
-            # str(self.number).zfill(3))
+            )
         except Exception:
             string = "%s %s" % (str(self.pk), self.subject)
         return string
