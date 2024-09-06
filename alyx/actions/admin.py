@@ -796,7 +796,7 @@ class FormatDate(Func):
 
 class ZFill(Func):
     function = "LPAD"
-    template = "%(function)s(%(expressions)s, 3, '0')"
+    template = "%(function)s(CAST(%(expressions)s AS TEXT), 3, '0')"
     arity = 1
 
 
