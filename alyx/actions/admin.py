@@ -790,7 +790,7 @@ class DatasetTypeDropdownFilter(RelatedDropdownFilter):
 
 class FormatDate(Func):
     function = "TO_CHAR"
-    template = "%(function)s(%(expressions)s, '%%Y-%%m-%%d')"
+    template = "%(function)s(%(expressions)s, 'YYYY-MM-DD')"
     arity = 1
 
 
