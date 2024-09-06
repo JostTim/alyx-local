@@ -891,6 +891,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
                 | Q(subject__nickname__iexact=search_term)
                 | Q(users__username__iexact=search_term)
                 | Q(pk__iexact=search_term)
+                | Q(projects__name__iexact=search_term)
             )
             queryset = queryset.filter(custom_filter)
 
