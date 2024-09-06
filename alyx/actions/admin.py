@@ -886,9 +886,12 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
 
         # Adding custom filtering for the alias
         if search_term:
-            queryset = queryset.filter(Q(alias__icontains=search_term))
-            queryset = queryset.filter(Q(formatted_number__icontains=search_term))
-            queryset = queryset.filter(Q(formatted_datetime__icontains=search_term))
+            custom_filter = (
+                Q(alias__icontains=search_term)
+                | Q(formatted_number__icontains=search_term)
+                | Q(formatted_datetime__icontains=search_term)
+            )
+            queryset = queryset.filter(custom_filter)
 
         return queryset, use_distinct
 
