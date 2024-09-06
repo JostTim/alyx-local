@@ -861,7 +861,6 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         "users__username",
         "task_protocol",
         "pk",
-        "alias",
     )
     ordering = ("-start_time", "task_protocol", "lab")
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
@@ -884,6 +883,13 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
             ),
         )
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # Adding custom filtering for the alias
+        if search_term:
+            queryset = queryset.filter(Q(alias__icontains=search_term))
+            queryset = queryset.filter(Q(formatted_number__icontains=search_term))
+            queryset = queryset.filter(Q(formatted_datetime__icontains=search_term))
+
         return queryset, use_distinct
 
     def alias_with_tooltip(self, obj):
