@@ -852,14 +852,14 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
         QCFilter,
     ]
-    search_fields = (
-        "subject__nickname",
-        "lab__name",
-        "projects__name",
-        "users__username",
-        "task_protocol",
-        "pk",
-    )
+    # search_fields = (
+    #     "subject__nickname",
+    #     "lab__name",
+    #     "projects__name",
+    #     "users__username",
+    #     "task_protocol",
+    #     "pk",
+    # )
     ordering = ("-start_time", "task_protocol", "lab")
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ["repo_url", "task_protocol", "weighing", "auto_datetime"]
@@ -891,8 +891,6 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
                 | Q(subject__nickname__iexact=search_term)
                 | Q(users__username__iexact=search_term)
                 | Q(pk__iexact=search_term)
-                | Q(pk__exact=search_term)
-                | Q(pk__exact=search_term)
             )
             queryset = queryset.filter(custom_filter)
 
