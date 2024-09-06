@@ -880,18 +880,23 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
                 output_field=CharField(),
             ),
         )
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+        # queryset, use_distinct = super().get_search_results(request, queryset, search_term)
 
         # Adding custom filtering for the alias
         if search_term:
             custom_filter = (
                 Q(search_alias__iexact=search_term)
-                | Q(formatted_number__icontains=search_term)
-                | Q(formatted_datetime__icontains=search_term)
+                | Q(formatted_number__iexact=search_term)
+                | Q(formatted_datetime__iexact=search_term)
+                | Q(subject__nickname__iexact=search_term)
+                | Q(users__username__iexact=search_term)
+                | Q(pk__iexact=search_term)
+                | Q(pk__exact=search_term)
+                | Q(pk__exact=search_term)
             )
             queryset = queryset.filter(custom_filter)
 
-        return queryset, use_distinct
+        return queryset, True  # use_distinct
 
     def alias_with_tooltip(self, obj):
         return format_html(
