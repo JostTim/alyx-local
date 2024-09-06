@@ -481,7 +481,7 @@ class Session(BaseAction):
 
     @property
     def alias(self):
-        return "/".join([self.subject, str(self.start_time)[:10], str(self.number).zfill(3)])
+        return "/".join([self.subject.nickname, str(self.start_time)[:10], str(self.number).zfill(3)])
 
     @property
     def u_alias(self):
