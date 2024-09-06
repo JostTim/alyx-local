@@ -791,13 +791,11 @@ class DatasetTypeDropdownFilter(RelatedDropdownFilter):
 class FormatDate(Func):
     function = "TO_CHAR"
     template = "%(function)s(%(expressions)s, 'YYYY-MM-DD')"
-    arity = 1
 
 
 class ZFill(Func):
     function = "LPAD"
     template = "%(function)s(CAST(%(expressions)s AS TEXT), 3, '0')"
-    arity = 1
 
 
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
@@ -887,7 +885,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         # Adding custom filtering for the alias
         if search_term:
             custom_filter = (
-                Q(alias__icontains=search_term)
+                Q(alias__iexact=search_term)
                 | Q(formatted_number__icontains=search_term)
                 | Q(formatted_datetime__icontains=search_term)
             )
