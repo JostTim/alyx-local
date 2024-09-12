@@ -468,7 +468,7 @@ class Dataset(BaseExperimentalData):
         DatasetType,
         blank=False,
         null=False,
-        on_delete=models.SET_DEFAULT,
+        on_delete=models.PROTECT,
         default=default_dataset_type,
     )
 
@@ -476,7 +476,7 @@ class Dataset(BaseExperimentalData):
         DataFormat,
         blank=False,
         null=False,
-        on_delete=models.SET_DEFAULT,
+        on_delete=models.PROTECT,
         default=default_data_format,
     )
 
