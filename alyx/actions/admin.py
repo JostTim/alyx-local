@@ -882,6 +882,14 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
                 F("formatted_number"),
                 output_field=CharField(),
             ),
+            search_u_alias=Concat(
+                "subject__nickname",
+                Value("_"),
+                F("formatted_datetime"),
+                Value("_"),
+                F("formatted_number"),
+                output_field=CharField(),
+            ),
         )
         # queryset, use_distinct = super().get_search_results(request, queryset, search_term)
 
@@ -889,6 +897,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         if search_term:
             custom_filter = (
                 Q(search_alias__iexact=search_term)
+                | Q(search_u_alias__iexact=search_term)
                 | Q(formatted_number__iexact=search_term)
                 | Q(formatted_datetime__iexact=search_term)
                 | Q(subject__nickname__iexact=search_term)
