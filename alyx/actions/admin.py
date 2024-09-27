@@ -871,6 +871,9 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     }
 
     def get_search_results(self, request, queryset, search_term):
+
+        search_term.replace("\\", "/")
+
         queryset = queryset.annotate(
             formatted_datetime=FormatDate(F("start_time")),
             formatted_number=ZFill(F("number")),
