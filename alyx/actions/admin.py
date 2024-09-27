@@ -872,6 +872,8 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
 
     def get_search_results(self, request, queryset, search_term):
 
+        ## Just convert back slashes to forward slashes to make sure we search for the session.alias in the right way
+        # (unix style)
         search_term = search_term.replace("\\", "/")
 
         queryset = queryset.annotate(
