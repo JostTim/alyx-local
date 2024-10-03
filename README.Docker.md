@@ -5,6 +5,9 @@ When you're ready, start your application by running:
 
 Your application will be available at http://localhost:80.
 
+The first time you run the build command, you will need to make sure a file with a password of your choice 
+(for the root linux user to create the postgres database) exists on the folder ./production/db_password.txt
+
 ### Deploying your application to the cloud
 
 First, build your image, e.g.: `docker build -t myapp .`.
