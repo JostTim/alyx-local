@@ -7,7 +7,8 @@
 # Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
 
 ARG PYTHON_VERSION=3.12.3
-FROM python:${PYTHON_VERSION}-slim as base
+
+FROM python:${PYTHON_VERSION}-slim AS base
 
 ARG APP_USER=appuser
 ARG UID=10001
@@ -33,7 +34,7 @@ RUN adduser \
     --uid "${UID}" \
     ${APP_USER}
 
-WORKDIR /app
+# WORKDIR /app
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
@@ -44,7 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python -m pip install -r requirements.txt
 
 # get pg_restore and other database tools
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apt-get update && apt-get install -y postgresql-client dos2unix
 
 # Copy the source code into the container.
 
@@ -63,12 +64,15 @@ RUN mkdir -p /app/uploaded/media && \
 RUN mkdir -p /app/uploaded/tables && \
 chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
 
-COPY ./alyx/ /app/alyx/
-COPY ./.production/entrypoint.sh /app/alyx/entrypoint.sh
-COPY ./data/ /data/
+COPY ./alyx/ /app/alyx
+COPY ./.production/entrypoint.bash /app/alyx/entrypoint.bash
+COPY ./data/ /data
 
-RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.sh
-RUN chmod +x /app/alyx/entrypoint.sh
+# Ensure the entrypoint.bash file is LF ended, in place.
+RUN dos2unix -o /app/alyx/entrypoint.bash
+
+RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.bash
+RUN chmod +x /app/alyx/entrypoint.bash
 
 RUN chown -R ${APP_USER}:${APP_USER} /app/
 
@@ -80,9 +84,13 @@ WORKDIR /app/alyx
 # Expose the port that the application listens on.
 EXPOSE 80
 
+RUN ls -l /app/alyx 
+RUN cat /app/alyx/entrypoint.bash
+
 RUN echo "Launching the entrypoint script..."
 
 # Run the Django application and Gunicorn to serve it.
 # Nginx is launched via config file from compose.yaml file instructions
-CMD ["/app/alyx/entrypoint.sh"]
+# CMD ["/app/alyx/entrypoint.sh"]
+CMD /bin/bash -c /app/alyx/entrypoint.bash
 #CMD gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000

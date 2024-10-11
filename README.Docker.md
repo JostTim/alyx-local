@@ -5,8 +5,13 @@ When you're ready, start your application by running:
 
 Your application will be available at http://localhost:80.
 
-The first time you run the build command, you will need to make sure a file with a password of your choice 
-(for the root linux user to create the postgres database) exists on the folder ./production/db_password.txt
+Warnings :
+
+- The first time you run the build command, you will need to make sure a file with a password of your choice 
+  (for the root linux user to create the postgres database) exists on the folder ./production/db_password.txt
+- You need to make sure that the entrypoint.bash file in .production has LF end termination, otherwise it will not work !!! 
+
+
 
 ### Deploying your application to the cloud
 

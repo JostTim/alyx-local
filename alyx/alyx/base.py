@@ -295,7 +295,8 @@ def _get_category_list(app_list):
     extra_in_common = ["Adverse effects", "Cull subjects"]
     order_models = flatten([models for app, models in order])
     models_dict = {str(model["name"]): model for app in app_list for model in app["models"]}
-    model_to_app = {str(model["name"]): str(app["name"]) for app in app_list for model in app["models"]}
+    model_to_app = {str(model["name"]): str(app["name"])
+                    for app in app_list for model in app["models"]}
     category_list = [
         Bunch(
             name=name,
@@ -398,7 +399,8 @@ class BaseAdmin(VersionAdmin):
         category_list = _get_category_list(admin.site.get_app_list(request))
         extra_context = extra_context or {}
         extra_context["mininav"] = [("", "-- jump to --")]
-        extra_context["mininav"] += [(model["admin_url"], model["name"]) for model in category_list[0].models]
+        extra_context["mininav"] += [(model["admin_url"], model["name"])
+                                     for model in category_list[0].models]
         return super(BaseAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request, *args, **kwargs):
@@ -519,7 +521,8 @@ class BaseFilterSet(FilterSet):
         try:
             value = value_map[value.lower().strip()]
         except KeyError:
-            raise ValueError("Invalid" + name + ", choices are: " + ", ".join([ch[1] for ch in choices]))
+            raise ValueError("Invalid" + name + ", choices are: " +
+                             ", ".join([ch[1] for ch in choices]))
         return queryset.filter(**{name: value})
 
     @classmethod
@@ -683,7 +686,8 @@ class BaseSerializerEnumField(serializers.Field):
         status = [ch for ch in self.choices if ch[1] == str_rep]
         if len(status) == 0:
             raise serializers.ValidationError(
-                "Invalid " + self.field_name + ", choices are: " + ", ".join([ch[1] for ch in self.choices])
+                "Invalid " + self.field_name + ", choices are: " +
+                ", ".join([ch[1] for ch in self.choices])
             )
         return status[0][0]
 

@@ -38,3 +38,4 @@ alyx.log
 *secrets*
 alyx/jobs/test.log
 *password.txt
+.production/admins.ini

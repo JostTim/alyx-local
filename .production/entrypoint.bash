@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 DUMP_DIR="/data"
 
-echo -n "Django version installed :" && echo $(python -m django --version)
+echo -n "Django version:" && echo -n $(python -m django --version) && echo " is installed"
 
 echo "Applying database migrations..."
 python manage.py migrate --noinput 
@@ -43,6 +43,14 @@ if [ -n "$LATEST_DUMP_FILE" ]; then
     pg_restore --clean -h db -U postgres -d alyx < "$LATEST_DUMP_FILE" && echo "OK"
 else
     echo "No SQL dump file found in $DUMP_DIR. Skipping restore."
+    echo "As no user exists in the database, creating the 'admin' user with priviledges."
+    echo "The password for this user is 'admin'"
+    # echo "Using the password specified in the db_password.txt file"
+    echo "Use this account to access the web administration interface," 
+    echo "create you own account, then delete this one."
+    # ADMIN_PASSWORD=$(cat /run/secrets/db-password)
+
+    # echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@admin.django', '$ADMIN_PASSWORD')" | python /app/alyx/manage.py shell
 fi
 
 # Collect static files
@@ -50,7 +58,7 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear --verbosity 0
 
 # Start Gunicorn
-echo "Starting Gunicorn..."
+echo "Starting Gunicorn to serve django alyx..."
 exec gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000
 
 

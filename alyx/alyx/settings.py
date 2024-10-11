@@ -54,7 +54,8 @@ if "GITHUB_ACTIONS" in os.environ:
 elif IS_DOCKER:
     # settings.py
     DB_PASSWORD_FILE = "/run/secrets/db-password"
-    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if os.path.isfile(DB_PASSWORD_FILE) else "default_password"
+    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if os.path.isfile(
+        DB_PASSWORD_FILE) else "default_password"
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -151,12 +152,12 @@ DEBUG = False
 # (only, the middle man have to be IN pasteur's private network so it's much less likely and data is backuped regularly.
 if not DEBUG:
     pass
-    ##EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
     # CSRF_COOKIE_SECURE = False #previous value was True
 
     # X_FRAME_OPTIONS = 'DENY'
     # SESSION_COOKIE_SECURE = True
-    ##EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
     # SECURE_SSL_REDIRECT = False #previous value was True
     # SECURE_BROWSER_XSS_FILTER = True
     # SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -169,12 +170,12 @@ if not DEBUG:
 INSTALLED_APPS = (
     # 'dal',
     # 'dal_select2',
-    #'viewflow', #https://github.com/viewflow/viewflow
-    #'viewflow.workflow', may be interesting. Dropped it for now
-    #'material', #https://github.com/kmmbvnr/django-material
-    #'material.admin', Decided to remove it because it is less clear than the original theme
-    #'martor', #https://github.com/agusmakmun/django-markdown-editor #removed, not for admin page but for custom forms.
-    #'mdeditor', #https://pypi.org/project/django-mdeditor-widget/ # removed, simply doesn't work
+    # 'viewflow', #https://github.com/viewflow/viewflow
+    # 'viewflow.workflow', may be interesting. Dropped it for now
+    # 'material', #https://github.com/kmmbvnr/django-material
+    # 'material.admin', Decided to remove it because it is less clear than the original theme
+    # 'martor', #https://github.com/agusmakmun/django-markdown-editor #removed, not for admin page but for custom forms.
+    # 'mdeditor', #https://pypi.org/project/django-mdeditor-widget/ # removed, simply doesn't work
     "markdownx",  # https://github.com/neutronX/django-markdownx
     "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
     "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown

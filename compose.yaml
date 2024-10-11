@@ -12,7 +12,8 @@ services:
     build:
       context: .
     volumes :
-      - uploaded_volume:/app/uploaded
+      - tables_volume:/app/uploaded/tables
+      - log_volume:/app/uploaded/log
       - static_volume:/app/uploaded/static
       - media_volume:/app/uploaded/media
     secrets:
@@ -34,10 +35,8 @@ services:
     depends_on:
       - django_server
 
-
-
   db:
-    image: postgres
+    image: postgres:latest
     restart: always
     user: postgres
     secrets:
@@ -60,8 +59,8 @@ secrets:
     file: ./.production/db_password.txt
 
 volumes:
-  uploaded_volume:
   db-data:
   static_volume:
   media_volume:
-
+  tables_volume:
+  log_volume:
