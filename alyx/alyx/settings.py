@@ -28,7 +28,7 @@ except ImportError:
     from .settings_lab_template import *  # noqa
 
 
-def read_db_password(secret_file_path):
+def read_db_password(secret_file_path: Path | str):
     with open(secret_file_path) as f:
         return f.read().strip()
 
@@ -53,9 +53,8 @@ if "GITHUB_ACTIONS" in os.environ:
     }
 elif IS_DOCKER:
     # settings.py
-    DB_PASSWORD_FILE = "/run/secrets/db-password"
-    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if os.path.isfile(
-        DB_PASSWORD_FILE) else "default_password"
+    DB_PASSWORD_FILE = Path("/run/secrets/db-root-password")
+    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if DB_PASSWORD_FILE.is_file() else "default_password"
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -239,13 +238,15 @@ TEMPLATES = [
 ]
 
 TEMPLATE_LOADERS = (
-    (
-        "django.template.loaders.cached.Loader",
-        (
-            "django.template.loaders.filesystem.Loader",
-            "django.template.loaders.app_directories.Loader",
-        ),
-    ),
+    # (
+    # "django.template.loaders.cached.Loader",
+    # (
+    "alyx.alyx.base.LoggingFilesystemLoader",
+    "alyx.alyx.base.LoggingAppDirectoriesLoader",
+    # "django.template.loaders.filesystem.Loader",
+    # "django.template.loaders.app_directories.Loader",
+    # ),
+    # ),
 )
 
 TEMPLATE_DIRS = [

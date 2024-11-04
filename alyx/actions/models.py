@@ -22,6 +22,8 @@ from typing import Dict
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
 
+from markdownx.fields import MarkdownxFormField
+
 logger = structlog.get_logger("action.models")
 
 
@@ -163,7 +165,7 @@ class WaterAdministration(BaseModel):
 class SideBySideMarkdownWidget(AdminMarkdownxWidget):
     def __init__(self, attrs=None):
         super().__init__(attrs)
-        self.template_name = r"markdownx/widget.html"
+        self.template_name = "markdownx-side-by-side/widget.html"
 
 
 class SideBySideMarkdownxField(MarkdownxField):

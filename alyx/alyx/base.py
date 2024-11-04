@@ -27,6 +27,9 @@ from django_filters.rest_framework import FilterSet
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import ParseError
 
+from django.template.loaders.filesystem import Loader as FilesystemLoader
+from django.template.loaders.app_directories import Loader as AppDirectoriesLoader
+
 from rest_framework import permissions, generics
 from dateutil.parser import parse
 from reversion.admin import VersionAdmin
@@ -295,8 +298,7 @@ def _get_category_list(app_list):
     extra_in_common = ["Adverse effects", "Cull subjects"]
     order_models = flatten([models for app, models in order])
     models_dict = {str(model["name"]): model for app in app_list for model in app["models"]}
-    model_to_app = {str(model["name"]): str(app["name"])
-                    for app in app_list for model in app["models"]}
+    model_to_app = {str(model["name"]): str(app["name"]) for app in app_list for model in app["models"]}
     category_list = [
         Bunch(
             name=name,
@@ -399,8 +401,7 @@ class BaseAdmin(VersionAdmin):
         category_list = _get_category_list(admin.site.get_app_list(request))
         extra_context = extra_context or {}
         extra_context["mininav"] = [("", "-- jump to --")]
-        extra_context["mininav"] += [(model["admin_url"], model["name"])
-                                     for model in category_list[0].models]
+        extra_context["mininav"] += [(model["admin_url"], model["name"]) for model in category_list[0].models]
         return super(BaseAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def has_add_permission(self, request, *args, **kwargs):
@@ -521,8 +522,7 @@ class BaseFilterSet(FilterSet):
         try:
             value = value_map[value.lower().strip()]
         except KeyError:
-            raise ValueError("Invalid" + name + ", choices are: " +
-                             ", ".join([ch[1] for ch in choices]))
+            raise ValueError("Invalid" + name + ", choices are: " + ", ".join([ch[1] for ch in choices]))
         return queryset.filter(**{name: value})
 
     @classmethod
@@ -686,8 +686,7 @@ class BaseSerializerEnumField(serializers.Field):
         status = [ch for ch in self.choices if ch[1] == str_rep]
         if len(status) == 0:
             raise serializers.ValidationError(
-                "Invalid " + self.field_name + ", choices are: " +
-                ", ".join([ch[1] for ch in self.choices])
+                "Invalid " + self.field_name + ", choices are: " + ", ".join([ch[1] for ch in self.choices])
             )
         return status[0][0]
 
@@ -728,6 +727,22 @@ class BaseRestPublicPermission(permissions.BasePermission):
 def rest_permission_classes():
     permission_classes = (permissions.IsAuthenticated & BaseRestPublicPermission,)
     return permission_classes
+
+
+class LoggingFilesystemLoader(FilesystemLoader):
+    def get_template_sources(self, template_name):
+        sources = super().get_template_sources(template_name)
+        for source in sources:
+            logger.warning(f"FilesystemLoader checking: {source}")
+        return sources
+
+
+class LoggingAppDirectoriesLoader(AppDirectoriesLoader):
+    def get_template_sources(self, template_name):
+        sources = super().get_template_sources(template_name)
+        for source in sources:
+            logger.warning(f"AppDirectoriesLoader checking: {source}")
+        return sources
 
 
 mysite = MyAdminSite()

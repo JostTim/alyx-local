@@ -1,0 +1,8 @@
+FROM postgres:latest
+
+# Copy the password file if it exists, otherwise use a default password
+COPY ./docker/db_root_password.txt /run/secrets/db-root-password
+RUN if [ ! -f /run/secrets/db-root-password ]; then echo "you_have_2_change_this_password!" > /run/secrets/db-root-password; fi
+
+
+ENV POSTGRES_PASSWORD_FILE=/run/secrets/db-root-password

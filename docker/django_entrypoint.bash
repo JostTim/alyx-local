@@ -14,8 +14,8 @@ LATEST_DUMP_FILE=$(find "$DUMP_DIR" -maxdepth 1 -name '*.sql' -printf '%T+ %p\n'
 if [ -n "$LATEST_DUMP_FILE" ]; then
 
     # Read the database password from the secret file
-    DB_PASSWORD=$(cat /run/secrets/db-password)
-    export PGPASSWORD="$DB_PASSWORD"
+    PGPASSWORD=$(cat /run/secrets/db-root-password)
+    export PGPASSWORD="$PGPASSWORD"
 
     echo -n "Creating missing database roles..."
     psql -h db -U postgres -d alyx -c "DO \$\$

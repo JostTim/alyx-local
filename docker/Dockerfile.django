@@ -22,7 +22,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 
@@ -47,8 +46,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # get pg_restore and other database tools
 RUN apt-get update && apt-get install -y postgresql-client dos2unix
 
-# Copy the source code into the container.
-
+####################################
+## CREATE VOLUMES FOLDER IF EMPTY ##
 RUN mkdir -p /app/alyx/ && \
     chown ${APP_USER}:${APP_USER} /app/alyx/
 
@@ -64,17 +63,40 @@ RUN mkdir -p /app/uploaded/media && \
 RUN mkdir -p /app/uploaded/tables && \
 chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
 
+#################################################################
+## Copy the django application source code into the container. ##
 COPY ./alyx/ /app/alyx
-COPY ./.production/entrypoint.bash /app/alyx/entrypoint.bash
+
+####################################################
+## ENSURE WE COPY ALL DUMPS DATA IF THERE IS SOME ##
 COPY ./data/ /data
 
-# Ensure the entrypoint.bash file is LF ended, in place.
+################################
+## ENSURE WE COPY ALL SCRIPTS ##
+COPY ./scripts/ /app/alyx/scripts
+
+# we run chmod executeable, chown user, and we ensure scripts are LF ended with dos2unix
+RUN find /app/alyx/scripts -type f -name "*.sh" \
+    -exec dos2unix -o {} \; \ 
+    -exec chmod +x {} \; \
+    && \
+    chown -R ${APP_USER}:${APP_USER} /app/alyx/scripts
+
+
+################################################
+## ENSURE WE ACCESS THE ENTRYPOINT CORRECTLY  ##
+COPY ./docker/django_entrypoint.bash /app/alyx/entrypoint.bash
+
 RUN dos2unix -o /app/alyx/entrypoint.bash
 
 RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.bash
 RUN chmod +x /app/alyx/entrypoint.bash
 
+
+#######################################
+# ENSURING ALL FOLDERS ARE ACCESSIBLE #
 RUN chown -R ${APP_USER}:${APP_USER} /app/
+
 
 # Switch to the non-privileged user to run the application.
 USER ${APP_USER}
@@ -84,13 +106,10 @@ WORKDIR /app/alyx
 # Expose the port that the application listens on.
 EXPOSE 80
 
-RUN ls -l /app/alyx 
-RUN cat /app/alyx/entrypoint.bash
-
 RUN echo "Launching the entrypoint script..."
 
-# Run the Django application and Gunicorn to serve it.
+# Run the Django application through Gunicorn to serve it in a production ready way.
 # Nginx is launched via config file from compose.yaml file instructions
 # CMD ["/app/alyx/entrypoint.sh"]
+# CMD gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000
 CMD /bin/bash -c /app/alyx/entrypoint.bash
-#CMD gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000

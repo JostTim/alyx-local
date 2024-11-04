@@ -9,25 +9,28 @@ from rest_framework.authtoken import views as authv
 from rest_framework.documentation import include_docs_urls
 
 
-admin.site.site_header = 'Alyx'
+admin.site.site_header = "Alyx"
 
 urlpatterns = [
-    path('', include('misc.urls')),
-    path('', include('experiments.urls')),
-    path('', include('jobs.urls')),
-    path('', include('actions.urls')),
-    path('', include('data.urls')),
-    path('', include('subjects.urls')),
-    path('admin/doc/', include('django.contrib.admindocs.urls')),
-    path('admin/', admin.site.urls),
-    path('auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('auth-token', authv.obtain_auth_token),
-    path('docs/', include_docs_urls(title='Alyx REST API documentation')),
-    path('favicon.ico', RedirectView.as_view(url=staticfiles_storage.url('favicon.ico')))
+    path("", include("misc.urls")),
+    path("", include("experiments.urls")),
+    path("", include("jobs.urls")),
+    path("", include("actions.urls")),
+    path("", include("data.urls")),
+    path("", include("subjects.urls")),
+    path("admin/doc/", include("django.contrib.admindocs.urls")),
+    path("admin/", admin.site.urls),
+    path("auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("auth-token", authv.obtain_auth_token),
+    path("docs/", include_docs_urls(title="Alyx REST API documentation")),
+    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
+    path("markdownx/", include("markdownx.urls")),
 ]
 
 # this is an optional app
 try:
-    urlpatterns += [path('ibl_reports/', include('ibl_reports.urls')), ]
+    urlpatterns += [
+        path("ibl_reports/", include("ibl_reports.urls")),
+    ]
 except ModuleNotFoundError:
     pass
