@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "haiss-alyx"
+version = "2.1.0"
+description = "A brief description of your project"
+authors = [{ name = "JostTim", email = "timothe.jost-mousseau@pasteur.fr" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12.3"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.wheel]
+universal = true
+
+[tool.flake8]
+ignore = ["E117", "E265", "E731", "F403", "E741", "E722", "W504"]
+max-line-length = 99
+exclude = ["migrations"]
+
+[tool.coverage.run]
+branch = false
+source = ["alyx"]
+omit = []
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "pass",
+    "return$",
+]
+show_missing = true

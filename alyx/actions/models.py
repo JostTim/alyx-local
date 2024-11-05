@@ -163,15 +163,17 @@ class WaterAdministration(BaseModel):
 
 
 class SideBySideMarkdownWidget(AdminMarkdownxWidget):
-    def __init__(self, attrs=None):
-        super().__init__(attrs)
-        self.template_name = "markdownx-side-by-side/widget.html"
+    template_name = "markdownx-side-by-side/widget.html"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        full_path = os.path.abspath(self.template_name)
+        logger.warning(f"Using template: {full_path}")
 
 
 class SideBySideMarkdownxField(MarkdownxField):
     def formfield(self, **kwargs):
         kwargs["widget"] = SideBySideMarkdownWidget
-        logger.warning(str(kwargs["widget"]))
         return super().formfield(**kwargs)
 
 

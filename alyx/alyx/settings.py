@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 import structlog
 from django.conf.locale.en import formats as en_formats
+from tzlocal import get_localzone
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 try:
@@ -143,7 +145,7 @@ if "TRAVIS" in os.environ or "READTHEDOCS" in os.environ:
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 # Production settings. Used mainly for SSL security. As we go local, i deactiated them.
@@ -225,7 +227,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [str(BASE_DIR / "templates")],
-        "APP_DIRS": True,
+        "APP_DIRS": False,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -233,25 +235,17 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "loaders": [
+                # "django.template.loaders.cached.Loader",
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+                "alyx.base.LoggingFilesystemLoader",
+                "alyx.base.LoggingAppDirectoriesLoader",
+            ],
         },
     },
 ]
 
-TEMPLATE_LOADERS = (
-    # (
-    # "django.template.loaders.cached.Loader",
-    # (
-    "alyx.alyx.base.LoggingFilesystemLoader",
-    "alyx.alyx.base.LoggingAppDirectoriesLoader",
-    # "django.template.loaders.filesystem.Loader",
-    # "django.template.loaders.app_directories.Loader",
-    # ),
-    # ),
-)
-
-TEMPLATE_DIRS = [
-    str(BASE_DIR / "templates"),
-]
 
 WSGI_APPLICATION = "alyx.wsgi.application"
 
@@ -280,7 +274,7 @@ USE_L10N = False
 # ADDED BY TIMOTHE ON 28-11-2022 to avoid time issues :
 # USE_TZ was previously at False and TIME_ZONE variable did not exist
 USE_TZ = True
-TIME_ZONE = "Europe/Paris"
+TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/

@@ -33,3 +33,4 @@ pytz
 structlog>=21.5.0
 webdavclient3
 alyx-connector>=2.1.5
+tzlocal
