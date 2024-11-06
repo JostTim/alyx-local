@@ -1,11 +1,4 @@
 # syntax=docker/dockerfile:1
-
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
 ARG PYTHON_VERSION=3.12.3
 
 FROM python:${PYTHON_VERSION}-slim AS base
@@ -22,7 +15,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-# Create a non-root user to run the app
+#########################################
+# Create a non-root user to run the app #
 RUN adduser \
     --disabled-password \
     --gecos "" \
@@ -31,7 +25,8 @@ RUN adduser \
     --uid "${UID}" \
     ${APP_USER}
 
-# get pg_restore and other database tools
+
+# get pg_restore and other database tools #
 RUN apt-get update && \
     apt-get install -y \
     postgresql-client \
@@ -40,35 +35,18 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PDM
+########################################################
+# Install PDM that will manage the python dependancies #
 RUN pip install pdm
 
-####################################
-## CREATE VOLUMES FOLDER IF EMPTY ##
-# RUN mkdir -p /app/alyx/ && \
-#     mkdir -p /app/uploaded/log && \
-#     mkdir -p /app/uploaded/static && \
-#     mkdir -p /app/uploaded/media && \
-#     mkdir -p /app/uploaded/tables
-
+#########################################################################
+# CREATE VOLUMES FOLDER IF EMPTY AND SET PERMISSIONS ON THE APP FOLDER ##
 RUN mkdir -p /app/alyx/ && \
-    chown ${APP_USER}:${APP_USER} /app/alyx/
-
-RUN mkdir -p /app/uploaded/log && \
-    chown ${APP_USER}:${APP_USER} /app/uploaded/log/
-
-RUN mkdir -p /app/uploaded/static && \
-    chown ${APP_USER}:${APP_USER} /app/uploaded/static/
-
-RUN mkdir -p /app/uploaded/media && \
-    chown ${APP_USER}:${APP_USER} /app/uploaded/media/
-
-RUN mkdir -p /app/uploaded/tables && \
-    chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
-
-#####################################
-# SET PERMISSIONS ON THE APP FOLDER #
-RUN chown -R ${APP_USER}:${APP_USER} /app/
+    mkdir -p /app/uploaded/log && \
+    mkdir -p /app/uploaded/static && \
+    mkdir -p /app/uploaded/media && \
+    mkdir -p /app/uploaded/tables && \
+    chown -R ${APP_USER}:${APP_USER} /app/
 
 #################################################################
 ## Copy the django application source code into the container. ##
