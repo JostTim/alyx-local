@@ -2,10 +2,12 @@
 
 DUMP_DIR="/data"
 
-echo -n "Django version:" && echo -n $(python -m django --version) && echo " is installed"
+# source .venv/bin/activate
+
+echo -n "Django version:" && echo -n $(pdm run python -m django --version) && echo " is installed"
 
 echo "Applying database migrations..."
-python manage.py migrate --noinput 
+pdm run manage.py migrate --noinput 
 
 # Find the latest .sql file in the DUMP_DIR directory
 LATEST_DUMP_FILE=$(find "$DUMP_DIR" -maxdepth 1 -name '*.sql' -printf '%T+ %p\n' | sort -r | head -n1 | cut -d" " -f2)
@@ -55,10 +57,10 @@ fi
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear --verbosity 0
+pdm run manage.py collectstatic --noinput --clear --verbosity 0
 
 # Start Gunicorn
 echo "Starting Gunicorn to serve django alyx..."
-exec gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000
+exec pdm run gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000
 
 

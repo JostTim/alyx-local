@@ -22,9 +22,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
-
+# Create a non-root user to run the app
 RUN adduser \
     --disabled-password \
     --gecos "" \
@@ -33,21 +31,26 @@ RUN adduser \
     --uid "${UID}" \
     ${APP_USER}
 
-# WORKDIR /app
-
-# Download dependencies as a separate step to take advantage of Docker's caching.
-# Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
-# Leverage a bind mount to requirements.txt to avoid having to copy them into
-# into this layer.
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r requirements.txt
-
 # get pg_restore and other database tools
-RUN apt-get update && apt-get install -y postgresql-client dos2unix
+RUN apt-get update && \
+    apt-get install -y \
+    postgresql-client \
+    dos2unix \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PDM
+RUN pip install pdm
 
 ####################################
 ## CREATE VOLUMES FOLDER IF EMPTY ##
+# RUN mkdir -p /app/alyx/ && \
+#     mkdir -p /app/uploaded/log && \
+#     mkdir -p /app/uploaded/static && \
+#     mkdir -p /app/uploaded/media && \
+#     mkdir -p /app/uploaded/tables
+
 RUN mkdir -p /app/alyx/ && \
     chown ${APP_USER}:${APP_USER} /app/alyx/
 
@@ -61,18 +64,20 @@ RUN mkdir -p /app/uploaded/media && \
     chown ${APP_USER}:${APP_USER} /app/uploaded/media/
 
 RUN mkdir -p /app/uploaded/tables && \
-chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
+    chown ${APP_USER}:${APP_USER} /app/uploaded/tables/
+
+#####################################
+# SET PERMISSIONS ON THE APP FOLDER #
+RUN chown -R ${APP_USER}:${APP_USER} /app/
 
 #################################################################
 ## Copy the django application source code into the container. ##
 COPY ./alyx/ /app/alyx
+COPY ./pyproject.toml /app/pyproject.toml
+COPY ./pdm.lock /app/pdm.lock
 
-####################################################
-## ENSURE WE COPY ALL DUMPS DATA IF THERE IS SOME ##
-COPY ./data/ /data
-
-################################
-## ENSURE WE COPY ALL SCRIPTS ##
+#########################################################################
+## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE APP FOLDER FOLR LATER USE ##
 COPY ./scripts/ /app/alyx/scripts
 
 # we run chmod executeable, chown user, and we ensure scripts are LF ended with dos2unix
@@ -82,34 +87,31 @@ RUN find /app/alyx/scripts -type f -name "*.sh" \
     && \
     chown -R ${APP_USER}:${APP_USER} /app/alyx/scripts
 
+#####################################################
+## ENSURE WE COPY ALL DUMPS DATA IF THERE ARE SOME ##
+COPY ./data/ /data
 
 ################################################
 ## ENSURE WE ACCESS THE ENTRYPOINT CORRECTLY  ##
 COPY ./docker/django_entrypoint.bash /app/alyx/entrypoint.bash
 
 RUN dos2unix -o /app/alyx/entrypoint.bash
-
 RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.bash
 RUN chmod +x /app/alyx/entrypoint.bash
 
-
-#######################################
-# ENSURING ALL FOLDERS ARE ACCESSIBLE #
-RUN chown -R ${APP_USER}:${APP_USER} /app/
-
-
-# Switch to the non-privileged user to run the application.
+#############################################################
+# Switch to the non-privileged user to run the application. #
 USER ${APP_USER}
 
-WORKDIR /app/alyx
+WORKDIR /app
+
+# Install the application python dependancies packages
+RUN pdm install --prod --frozen-lockfile --no-editable
 
 # Expose the port that the application listens on.
 EXPOSE 80
 
-RUN echo "Launching the entrypoint script..."
+WORKDIR /app/alyx
 
-# Run the Django application through Gunicorn to serve it in a production ready way.
-# Nginx is launched via config file from compose.yaml file instructions
-# CMD ["/app/alyx/entrypoint.sh"]
-# CMD gunicorn 'alyx.wsgi' --bind=0.0.0.0:8000
-CMD /bin/bash -c /app/alyx/entrypoint.bash
+RUN echo "Launching the entrypoint script..."
+CMD ./entrypoint.bash

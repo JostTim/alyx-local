@@ -104,7 +104,7 @@ LOGGING = {
         "file": {
             "level": "WARNING",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "../uploaded/log/alyx_db.log",
+            "filename": "/app/uploaded/log/alyx_db.log",
             "maxBytes": 16777216,
             "backupCount": 5,
             "formatter": "simple",
@@ -113,7 +113,7 @@ LOGGING = {
         "json_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "../uploaded/log/alyx_db_json.log",
+            "filename": "/app/uploaded/log/alyx_db_json.log",
             "maxBytes": 16777216,
             "backupCount": 5,
             "formatter": "json_formatter",
