@@ -55,7 +55,7 @@ if "GITHUB_ACTIONS" in os.environ:
     }
 elif IS_DOCKER:
     # settings.py
-    DB_PASSWORD_FILE = Path("/run/secrets/db-root-password")
+    DB_PASSWORD_FILE = Path("/run/secrets/db-secure-password")
     DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if DB_PASSWORD_FILE.is_file() else "default_password"
     DATABASES = {
         "default": {

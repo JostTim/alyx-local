@@ -39,7 +39,8 @@ class Migration(migrations.Migration):
             name="reference_weight_pct",
             field=models.FloatField(
                 default=0.0,
-                help_text="The minimum mouse weight is a linear combination of the reference weight and the zscore weight.",
+                help_text="The minimum mouse weight is a linear combination of "
+                "the reference weight and the zscore weight.",
             ),
         ),
         migrations.AddField(
@@ -47,7 +48,8 @@ class Migration(migrations.Migration):
             name="zscore_weight_pct",
             field=models.FloatField(
                 default=0.0,
-                help_text="The minimum mouse weight is a linear combination of the reference weight and the zscore weight.",
+                help_text="The minimum mouse weight is a linear combination of "
+                "the reference weight and the zscore weight.",
             ),
         ),
         migrations.AddField(

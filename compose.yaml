@@ -8,10 +8,11 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
+
   django_server:
     build:
       context: .
-      dockerfile: ./docker/Dockerfile.django
+      dockerfile: ./docker/django/Dockerfile
     volumes :
       - tables_volume:/app/uploaded/tables
       - log_volume:/app/uploaded/log
@@ -31,14 +32,14 @@ services:
     volumes:
       - static_volume:/app/uploaded/static
       - media_volume:/app/uploaded/media
-      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - django_server
 
   db:
     build:
         context: .
-        dockerfile: ./docker/Dockerfile.postgres
+        dockerfile: ./docker/postgres/Dockerfile
     restart: always
     user: postgres
     volumes:
