@@ -92,22 +92,22 @@ WORKDIR /app
 RUN pdm install --prod --frozen-lockfile --no-editable
 
 # Intermediate stage to run the restore script
-FROM base AS restore-stage
+# FROM base AS restore-stage
 
 WORKDIR /app/alyx
 # Restore database from file if a file exists
-RUN ./restore.sh
+# RUN ./restore.sh
 
 # Final stage
-FROM base
+# FROM base
 
-WORKDIR /app/alyx
+# WORKDIR /app/alyx
 
 # Copy the restored data from the restore-stage
-COPY --from=restore-stage /app/alyx /app/alyx
+# COPY --from=restore-stage /app/alyx /app/alyx
 
 # Expose the port that the application listens on.
 EXPOSE 80
 
 RUN echo "Launching the entrypoint script..."
-CMD ./entrypoint.sh
+CMD ["./entrypoint.sh"]

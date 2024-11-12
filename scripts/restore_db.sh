@@ -59,3 +59,4 @@ if [ "$DATA_ONLY" = true ]; then
 else 
     pg_restore --clean --if-exists -h db -U postgres -d "$DB_NAME" < "$DUMP_FILE" && echo "OK"
 fi
+

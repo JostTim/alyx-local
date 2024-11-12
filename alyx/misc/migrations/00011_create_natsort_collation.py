@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             """
-            CREATE COLLATION natsort_collation (provider = icu, LOCALE = 'en@colNumeric=yes');
+            CREATE COLLATION IF NOT EXISTS natsort_collation (provider = icu, LOCALE = 'en@colNumeric=yes');
             ALTER COLLATION natsort_collation OWNER TO postgres;
             """
         ),
