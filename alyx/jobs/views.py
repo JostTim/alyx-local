@@ -48,7 +48,7 @@ class TasksStatusView(ListView):
         ls = Max("session__start_time", filter=Q(session__tasks__isnull=False))
         lj = Max("session__tasks__datetime")
         context["labs"] = Lab.objects.annotate(count_waiting=cw, last_session=ls, last_job=lj).order_by("name")
-        space = np.array(context["labs"].values_list("json__raid_available", flat=True), dtype=np.float)
+        space = np.array(context["labs"].values_list("json__raid_available", flat=True), dtype=float)
         context["space_left"] = np.round(space / 1000, decimals=1)
         context["ibllib_version"] = list(context["labs"].values_list("json__ibllib_version", flat=True))
         if graph:
@@ -357,7 +357,16 @@ class SessionTasksView(FormMixin, TemplateView):
             context["worker_status_color"] = "status-red"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "offline"  # or "online" or "all busy"
             context["available_workers"] = []
-        elif celery_app is not None and celery_app.is_hand_shaken():
+
+        refresh_pipeline = self.request.GET.get("refresh_pipeline", None)
+
+        if refresh_pipeline:
+            tasks_data = celery_app.get_celery_app_tasks(refresh=True, refresh_timeout=30)
+        else:
+            # it auto refreshes each 24 hours
+            tasks_data = celery_app.get_celery_app_tasks(refresh=False, auto_refresh=3600 * 24)
+
+        if celery_app.is_hand_shaken():
             context["worker_status_color"] = "status-green"  # or "status-green" or "status-orange"
             context["worker_status_description"] = "online and ready"  # or "online" or "all busy"
             context["available_workers"] = app_info["workers"]

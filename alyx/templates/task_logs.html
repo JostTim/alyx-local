@@ -104,6 +104,8 @@
     script.src = 'https://cdn.jsdelivr.net/npm/ansi_up@4.0.3';
     document.head.appendChild(script);
 
+    
+
     function parse_logs() {
         var ansi_up = new AnsiUp;
         var ansiElements = document.getElementsByClassName('ansi');
@@ -117,8 +119,21 @@
             ansiElements[i].textContent = '';
 
 
+            let exclude_tokens = ["celery.redirected",];
+            let exit = false;
             // Loop through each of the lines
             for (let j = 0; j < rawTextArr.length; j++) {
+                // filtering lines that contain one of the excluded_tokens
+                exit = false;
+                for (let k = 0; k < exclude_tokens.length; k++) {
+                    if (rawTextArr[j].includes(exclude_tokens[k])) {
+                        exit = true;
+                        break;
+                    }
+                }
+                if (exit) {
+                    continue;
+                }
 
                 // Create a new span for each line
                 let newSpan = document.createElement('p');

@@ -13,6 +13,7 @@ from datetime import datetime
 
 from django import forms
 from django.db import models
+from django.db.models import QuerySet
 from django.db import connection
 from django.conf import settings
 from django.contrib import admin
@@ -360,8 +361,7 @@ class JsonWidget(forms.Textarea):
 
     def format_value(self, value):
         out = super(JsonWidget, self).format_value(value)
-        out = json.loads(out)
-        if out and not isinstance(out, dict):
+        if out is not None and out and not isinstance(out, dict):
             out = json.loads(out)
         out = json.dumps(out, indent=1)
         return out
@@ -379,7 +379,7 @@ class BaseAdmin(VersionAdmin):
 
     def __init__(self, *args, **kwargs):
         if self.fields and "json" not in self.fields:
-            self.fields += ("json",)
+            self.fields += ("json",)  # type: ignore
         super(BaseAdmin, self).__init__(*args, **kwargs)
 
     def get_changeform_initial_data(self, request):
@@ -538,7 +538,7 @@ class BaseFilterSet(FilterSet):
         abstract = True
 
 
-def rich_json_filter(queryset, name, value):
+def rich_json_filter(queryset: QuerySet, name: str, value: str):
     """
     function that filters the queryset from a custom REST query. To be used directly as
     a method for a FilterSet object. For example:
@@ -568,10 +568,16 @@ def rich_json_filter(queryset, name, value):
         except json.JSONDecodeError:
             value = match["json_value"]
 
+        if "__not" in json_keys:
+            json_keys = json_keys.replace("__not", "")
+            method = "exclude"
+        else:
+            method = "filter"
+
         logger.warning(f"Filtering query with {name}__{json_keys}={value}")
 
         # Assumes that the left side is the "key" and the right side is the "value"
-        queryset = queryset.filter(**{f"{name}__{json_keys}": value})
+        queryset = getattr(queryset, method)(**{f"{name}__{json_keys}": value})
 
     return queryset
 
@@ -686,7 +692,7 @@ class BaseSerializerEnumField(serializers.Field):
         status = [ch for ch in self.choices if ch[1] == str_rep]
         if len(status) == 0:
             raise serializers.ValidationError(
-                "Invalid " + self.field_name + ", choices are: " + ", ".join([ch[1] for ch in self.choices])
+                f"Invalid {self.field_name}, choices are: " + ", ".join([ch[1] for ch in self.choices])
             )
         return status[0][0]
 

@@ -5,7 +5,8 @@ import structlog
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db.models import Case, When
+from django.db.models import Case, When, Q, Value, Func, F, CharField
+from django.db.models.functions import Concat
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 from django_admin_listfilter_dropdown.filters import (
@@ -138,10 +139,11 @@ class CreatedByListFilter(DefaultListFilter):
             return queryset.all()
 
 
-def _bring_to_front(ids, id):
+def _bring_to_front(ids: list, id: int):
     if id in ids:
         ids.remove(id)
-    return [id] + ids
+    ids.insert(0, id)
+    return ids
 
 
 # Admin
@@ -173,21 +175,31 @@ class BaseActionForm(forms.ModelForm):
 
         # restricts the subject choices only to managed subjects
         if "subject" in self.fields:  # and not (user.is_stock_manager or user.is_superuser):
-            inst = self.instance
-            queryset = Subject.objects.filter(cull__isnull=True).order_by("nickname")  # responsible_user=user
-            ids = [s.id for s in queryset]
 
-            # These ids first in the list of subjects.
-            if getattr(inst, "subject", None):
-                ids = _bring_to_front(ids, inst.subject.pk)
+            # prepare for a complex query with multiple or cases
+            query = Q(cull__isnull=True)
+
+            priority_order = []
+            # Check if the instance already has a subject selected
+            selected_subject = getattr(self.instance, "subject", None)
+            if selected_subject:
+                query |= Q(id=selected_subject.id)
+                priority_order.append(selected_subject.id)
+
+            # Check if there is a last subject for which we should make quick select available
             elif last_subject_id is not None:
-                ids = _bring_to_front(ids, last_subject_id)
+                query |= Q(id=last_subject_id)
+                priority_order.append(last_subject_id)
 
-            if ids:
-                preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(ids)])
-            else:
-                preserved = "nickname"
-            self.fields["subject"].queryset = queryset.order_by(preserved)
+            preserved_order = [When(id=id, then=pos) for pos, id in enumerate(priority_order)]
+
+            # default : makes all annotation one more than the priority orders max value.
+            queryset = Subject.objects.filter(query).annotate(
+                priority_order=Case(*preserved_order, default=len(priority_order))
+            )
+
+            # we order first on priority_order, wich is all 0 if no priority is set, then on nickname
+            self.fields["subject"].queryset = queryset.order_by("priority_order", "nickname")
 
     procedures = forms.ModelMultipleChoiceField(
         ProcedureType.objects,
@@ -657,7 +669,7 @@ class SurgeryAdmin(BaseActionAdmin):
     ]
     list_select_related = ("subject",)
 
-    fields = BaseActionAdmin.fields + ["outcome_type"]
+    fields = list(BaseActionAdmin.fields) + ["outcome_type"]
     list_display_links = ["date"]
     search_fields = ("subject__nickname", "subject__projects__name")
     list_filter = [
@@ -776,6 +788,16 @@ class DatasetTypeDropdownFilter(RelatedDropdownFilter):
         return list(choices)
 
 
+class FormatDate(Func):
+    function = "TO_CHAR"
+    template = "%(function)s(%(expressions)s, 'YYYY-MM-DD')"
+
+
+class ZFill(Func):
+    function = "LPAD"
+    template = "%(function)s(CAST(%(expressions)s AS TEXT), 3, '0')"
+
+
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
 
@@ -796,11 +818,11 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     list_display_links = ["alias_with_tooltip"]
     fields = None
     fieldsets = (
-        ("Mandatory", {"fields": BaseActionAdmin.fields[:2] + ["number"]}),
+        ("Mandatory", {"fields": list(BaseActionAdmin.fields[:2]) + ["number"]}),
         (
             "Main session infos",
             {
-                "fields": BaseActionAdmin.fields[2:-1]
+                "fields": list(BaseActionAdmin.fields[2:-1])
                 + ["projects"]
                 + [BaseActionAdmin.fields[-1]]  # removed 'repo_url' as we are not web based but samba based
             },
@@ -830,20 +852,67 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
         QCFilter,
     ]
-    search_fields = (
-        "subject__nickname",
-        "lab__name",
-        "projects__name",
-        "users__username",
-        "task_protocol",
-        "pk",
-    )
+
+    search_fields = ("subject__nickname",)
+
+    # search_fields = (
+    #     "subject__nickname",
+    #     "lab__name",
+    #     "projects__name",
+    #     "users__username",
+    #     "task_protocol",
+    #     "pk",
+    # )
     ordering = ("-start_time", "task_protocol", "lab")
     inlines = [WaterAdminInline, DatasetInline, NoteInline]
     readonly_fields = ["repo_url", "task_protocol", "weighing", "auto_datetime"]
     formfield_overrides = {
         JSONField: {"widget": JSONEditor},
     }
+
+    def get_search_results(self, request, queryset, search_term):
+
+        ## Just convert back slashes to forward slashes to make sure we search for the session.alias in the right way
+        # (unix style)
+        search_term = search_term.replace("\\", "/")
+
+        queryset = queryset.annotate(
+            formatted_datetime=FormatDate(F("start_time")),
+            formatted_number=ZFill(F("number")),
+            search_alias=Concat(
+                "subject__nickname",
+                Value("/"),
+                F("formatted_datetime"),
+                Value("/"),
+                F("formatted_number"),
+                output_field=CharField(),
+            ),
+            search_u_alias=Concat(
+                "subject__nickname",
+                Value("_"),
+                F("formatted_datetime"),
+                Value("_"),
+                F("formatted_number"),
+                output_field=CharField(),
+            ),
+        )
+        # queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        # Adding custom filtering for the alias
+        if search_term:
+            custom_filter = (
+                Q(search_alias__iexact=search_term)
+                | Q(search_u_alias__iexact=search_term)
+                | Q(formatted_number__iexact=search_term)
+                | Q(formatted_datetime__iexact=search_term)
+                | Q(subject__nickname__iexact=search_term)
+                | Q(users__username__iexact=search_term)
+                | Q(pk__iexact=search_term)
+                | Q(projects__name__iexact=search_term)
+            )
+            queryset = queryset.filter(custom_filter)
+
+        return queryset, True  # use_distinct
 
     def alias_with_tooltip(self, obj):
         return format_html(
@@ -885,7 +954,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         context = _pass_narrative_templates(context)
         context["show_button"] = False
         context["uuid"] = None
-        return super(SessionAdmin, self).add_view(request, extra_context=context)
+        return super(SessionAdmin, self).add_view(request, extra_context=context)  # type: ignore
 
     def procedures_(self, obj):
         return [getattr(p, "name", None) for p in obj.procedures.all()]
