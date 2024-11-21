@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from actions.models import Session
-from jobs.models import Task
-from data.models import DataRepository
-from alyx.base import BaseSerializerEnumField
+from ..actions.models import Session
+from ..jobs.models import Task
+from ..data.models import DataRepository
+from ..base.base import BaseSerializerEnumField
 
 
 class TaskListSerializer(serializers.ModelSerializer):

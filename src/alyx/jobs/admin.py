@@ -3,9 +3,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django_admin_listfilter_dropdown.filters import DropdownFilter, ChoiceDropdownFilter
 
-from jobs.models import Task
-from alyx.base import BaseAdmin, get_admin_url
-from actions.models import Session
+from ..jobs.models import Task
+from ..base.base import BaseAdmin, get_admin_url
+from ..actions.models import Session
 
 
 class TaskAdmin(BaseAdmin):

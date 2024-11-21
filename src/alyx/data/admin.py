@@ -21,7 +21,7 @@ from .models import (
     Revision,
     Tag,
 )
-from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
+from ..base.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
 
 # from natsort import natsorted
 

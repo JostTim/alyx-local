@@ -1,7 +1,7 @@
 from rest_framework import generics
 import django_filters
 
-from ..alyx.base import BaseFilterSet, rest_permission_classes
+from ..base.base import BaseFilterSet, rest_permission_classes
 from .models import Subject, Project
 from .serializers import (
     SubjectListSerializer,

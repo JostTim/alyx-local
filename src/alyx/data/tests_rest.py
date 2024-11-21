@@ -5,8 +5,8 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from alyx.base import BaseTests
-from data.models import Dataset, FileRecord, Download, Tag
+from ..base.base import BaseTests
+from ..data.models import Dataset, FileRecord, Download, Tag
 
 
 class APIDataTests(BaseTests):

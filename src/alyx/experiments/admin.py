@@ -6,7 +6,7 @@ from django.contrib.admin import TabularInline
 
 from mptt.admin import MPTTModelAdmin
 
-from experiments.models import (
+from ..experiments.models import (
     TrajectoryEstimate,
     ProbeInsertion,
     ProbeModel,
@@ -17,8 +17,8 @@ from experiments.models import (
     FOV,
     FOVLocation,
 )
-from misc.admin import NoteInline
-from alyx.base import BaseAdmin
+from ..misc.admin import NoteInline
+from ..base.base import BaseAdmin
 
 
 class TrajectoryEstimateInline(TabularInline):

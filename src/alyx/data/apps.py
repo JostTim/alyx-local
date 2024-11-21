@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class DataConfig(AppConfig):
-    name = 'data'
+    name = "alyx.data"
+    label = "data"

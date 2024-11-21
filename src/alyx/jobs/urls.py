@@ -1,5 +1,5 @@
 from django.urls import path
-from jobs import views as jv
+from ..jobs import views as jv
 
 urlpatterns = [
     path("tasks", jv.TaskListView.as_view(), name="tasks-list"),

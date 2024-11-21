@@ -362,7 +362,7 @@ class WaterControl(object):
             return format_html(f'<b><a href="{url}" style="color: {colour_code};">{pct_wei:2.1f}%</a></b>')
 
     def remaining_water_html(self, date=None):
-        from subjects.models import Subject
+        from ..subjects.models import Subject
 
         colour_code = PALETTE["green"]  # all is good, green
 

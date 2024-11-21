@@ -140,7 +140,7 @@ try:
     _system("python3 alyx/manage.py migrate")
 
     _system(
-        """echo "from misc.models import LabMember;"""
+        """echo "from alyx.misc.models import LabMember;"""
         '''LabMember.objects.create_superuser('admin', 'admin@example.com', 'admin')"'''
         """| python3 alyx/manage.py shell"""
     )

@@ -5,9 +5,9 @@ from django.core.exceptions import ValidationError
 
 from django.utils.functional import cached_property
 
-from alyx.settings import TIME_ZONE, AUTH_USER_MODEL
-from actions.models import Session
-from alyx.base import BaseModel, modify_fields, BaseManager, CharNullField
+from ..base.settings import TIME_ZONE, AUTH_USER_MODEL
+from ..actions.models import Session
+from ..base.base import BaseModel, modify_fields, BaseManager, CharNullField
 
 import os, re
 
@@ -632,7 +632,7 @@ class Dataset(BaseExperimentalData):
         # if self.collection is None:
         #    return
 
-        # from experiments.models import ProbeInsertion
+        # from ..experiments.models import ProbeInsertion
         # I guess this is weird things for electrophy probe insertion features. Need to check if we want to remove it
         # (still in the process of having a clean version without too much weird intricacies)
         # parts = self.collection.rsplit('/')

@@ -21,7 +21,7 @@ from rangefilter.filters import DateRangeFilter
 from django.utils import timezone
 from functools import partial
 
-from alyx.base import BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url
+from ..base.base import BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url
 from .models import (
     OtherAction,
     ProcedureType,
@@ -40,12 +40,13 @@ from .models import (
     CullMethod,
     ImagingSession,
 )
-from data.models import Dataset, FileRecord, DatasetType
-from misc.admin import NoteInline
-from misc.models import LabMember
-from subjects.models import Subject, Project
+from ..data.models import Dataset, FileRecord, DatasetType
+from ..misc.admin import NoteInline
+from ..misc.models import LabMember
+from ..subjects.models import Subject, Project
+from ..experiments.models import ProbeInsertion
 from .water_control import WaterControl
-from experiments.models import ProbeInsertion
+
 
 # https://github.com/nnseva/django-jsoneditor
 from jsoneditor.forms import JSONEditor
@@ -924,7 +925,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     alias_with_tooltip.short_description = "Session Name"
 
     # def get_form(self, request, obj=None, **kwargs):
-    #     from subjects.admin import Project
+    #     from ..subjects.admin import Project
     #     from django.db.models import Q
 
     #     form = super().get_form(request, obj, **kwargs)

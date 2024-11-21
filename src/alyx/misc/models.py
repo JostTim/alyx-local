@@ -15,8 +15,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
 
-from alyx.base import BaseModel, modify_fields
-from alyx.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_NAME
+from ..base.base import BaseModel, modify_fields
+from ..base.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_NAME
 
 
 def default_lab():
@@ -287,7 +287,7 @@ class Housing(BaseModel):
             HousingSubject.objects.create(subject=sub, housing=self, start_datetime=now)
 
     def subjects_current(self, datetime=None):
-        from subjects.models import Subject
+        from ..subjects.models import Subject
 
         if datetime:
             hs = self.housing_subjects.filter(end_datetime__gte=datetime)

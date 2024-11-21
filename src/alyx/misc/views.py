@@ -15,11 +15,11 @@ from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
 from rest_framework import generics
 
-from alyx.base import BaseFilterSet, rest_permission_classes
-from data.models import Tag
+from ..base.base import BaseFilterSet, rest_permission_classes
+from ..data.models import Tag
 from .serializers import UserSerializer, LabSerializer, NoteSerializer
 from .models import Lab, Note
-from alyx.settings import TABLES_ROOT, MEDIA_ROOT
+from ..base.settings import TABLES_ROOT, MEDIA_ROOT
 
 
 @api_view(["GET"])
@@ -172,7 +172,7 @@ def _get_cache_info(tag=None):
             cache_info["location"] = cache_root + "/cache.zip"
     elif scheme == "s3":
         # Use PyArrow to read file from s3
-        from misc.management.commands.one_cache import _s3_filesystem
+        from ..misc.management.commands.one_cache import _s3_filesystem
 
         s3 = _s3_filesystem()
         cache_root = parsed.netloc + "/" + parsed.path.strip("/") + (f"/{tag}" if tag else "")

@@ -15,19 +15,20 @@ from django.conf.locale.en import formats as en_formats
 from tzlocal import get_localzone
 
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-try:
-    from .settings_secret import *  # type: ignore
-except ImportError:
-    # We're probably autobuilding some documentation so let's just import something
-    # to keep Django happy...
-    from .settings_secret_template import *
-# Lab-specific settings
-try:
-    from .settings_lab import *  # type: ignore
-except ImportError:
-    from .settings_lab_template import *
+# # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+# try:
+#     from .settings_secret import *  # type: ignore
+# except ImportError:
+#     # We're probably autobuilding some documentation so let's just import something
+#     # to keep Django happy...
+#     from .settings_secret_template import *
+# # Lab-specific settings
+# try:
+#     from .settings_lab import *  # type: ignore
+# except ImportError:
+#     from .settings_lab_template import *
 
+DEFAULT_LAB_NAME = "defaultlab"
 
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
@@ -191,12 +192,12 @@ INSTALLED_APPS = (
     "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
     "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown
     # alyx-apps
-    "actions",
-    "data",
-    "misc",
-    "experiments",
-    "jobs",
-    "subjects",
+    "alyx.actions",
+    "alyx.data",
+    "alyx.misc",
+    "alyx.experiments",
+    "alyx.jobs",
+    "alyx.subjects",
     # needs to be last in the list
     "django_cleanup.apps.CleanupConfig",
 )
@@ -297,7 +298,7 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-WSGI_APPLICATION = "alyx.wsgi.application"
+WSGI_APPLICATION = "alyx.base.wsgi.application"
 
 
 # TODO use config file for that instead of hard coded text

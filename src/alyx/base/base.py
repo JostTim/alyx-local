@@ -34,7 +34,7 @@ from django.template.loaders.app_directories import Loader as AppDirectoriesLoad
 from rest_framework import permissions, generics
 from dateutil.parser import parse
 from reversion.admin import VersionAdmin
-from alyx import __version__ as version
+from .. import __version__ as version
 
 logger = structlog.get_logger(__name__)
 
@@ -386,7 +386,7 @@ class BaseAdmin(VersionAdmin):
         # The default start time, in the admin interface, should be in the timezone of the user.
         if not request.user.lab:
             return {}
-        from misc.models import Lab
+        from ..misc.models import Lab
 
         tz = pytz.timezone(Lab.objects.get(name=request.user.lab[0]).timezone)
         # assert (

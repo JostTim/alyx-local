@@ -1,6 +1,6 @@
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-from misc import views as mv
+from ..misc import views as mv
 from django.conf.urls import include
 
 

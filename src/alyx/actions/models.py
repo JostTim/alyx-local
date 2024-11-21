@@ -8,8 +8,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from alyx.base import BaseModel, modify_fields, alyx_mail, BaseManager
-from misc.models import Lab, LabLocation, LabMember, Note
+from ..base.base import BaseModel, modify_fields, alyx_mail, BaseManager
+from ..misc.models import Lab, LabLocation, LabMember, Note
 
 import os
 
@@ -85,7 +85,7 @@ class Weighing(BaseModel):
 
     def save(self, *args, **kwargs):
         super(Weighing, self).save(*args, **kwargs)
-        from actions.notifications import check_weighing as check_underweight
+        from ..actions.notifications import check_weighing as check_underweight
 
         check_underweight(self.subject)
 

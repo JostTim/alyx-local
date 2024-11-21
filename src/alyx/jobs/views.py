@@ -12,13 +12,13 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 import numpy as np
 
-from alyx.base import BaseFilterSet, rest_permission_classes
+from ..base.base import BaseFilterSet, rest_permission_classes
 import django_filters
 import structlog
-from misc.models import Lab
-from jobs.models import Task
-from jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
-from actions.models import Session
+from ..misc.models import Lab
+from ..jobs.models import Task
+from ..jobs.serializers import TaskListSerializer, TaskDetailsSeriaizer
+from ..actions.models import Session
 from pathlib import Path
 import os
 

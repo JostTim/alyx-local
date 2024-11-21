@@ -23,10 +23,10 @@ from django.db.models import Q, Exists, OuterRef
 from django.core.management.base import BaseCommand
 from django.contrib.postgres.aggregates import ArrayAgg
 
-from alyx.settings import TABLES_ROOT
-from actions.models import Session
-from data.models import Dataset, FileRecord
-from experiments.models import ProbeInsertion
+from alyx.base.settings import TABLES_ROOT
+from alyx.actions.models import Session
+from alyx.data.models import Dataset, FileRecord
+from alyx.experiments.models import ProbeInsertion
 
 from typing import Optional
 
@@ -57,7 +57,7 @@ def _s3_filesystem(**kwargs) -> pa.fs.S3FileSystem:
     :return: A FileSystem object with the given credentials
     """
     try:
-        from alyx.settings_secret import S3_ACCESS
+        from alyx.base.settings_secret import S3_ACCESS
     except ImportError:
         S3_ACCESS = {}
     S3_ACCESS.update(kwargs)

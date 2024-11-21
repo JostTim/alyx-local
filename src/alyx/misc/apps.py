@@ -1,5 +1,6 @@
 from django.apps import AppConfig
 
 
-class UsersConfig(AppConfig):
-    name = 'misc'
+class MiscConfig(AppConfig):
+    name = "alyx.misc"
+    label = "misc"

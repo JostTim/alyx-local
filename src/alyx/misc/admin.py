@@ -11,8 +11,8 @@ from django.utils.html import format_html, format_html_join
 
 from django.utils.safestring import mark_safe
 
-from misc.models import Note, Lab, LabMembership, LabLocation, CageType, Enrichment, Food, Housing, HousingSubject
-from alyx.base import BaseAdmin, DefaultListFilter, get_admin_url
+from ..misc.models import Note, Lab, LabMembership, LabLocation, CageType, Enrichment, Food, Housing, HousingSubject
+from ..base.base import BaseAdmin, DefaultListFilter, get_admin_url
 
 
 class LabForm(forms.ModelForm):

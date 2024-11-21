@@ -12,7 +12,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
-from ..alyx.base import BaseModel, alyx_mail, modify_fields
+from ..base.base import BaseModel, alyx_mail, modify_fields
 from ..actions.notifications import responsible_user_changed
 from ..actions.water_control import water_control
 from ..actions.models import Surgery, WaterAdministration
@@ -361,7 +361,7 @@ please use the Zygosities fields below, and the description field to put more de
         return Project.objects.filter(session__subject=self).distinct()
 
     def save(self, *args, **kwargs):
-        from actions.models import WaterRestriction, Cull, CullMethod
+        from ..actions.models import WaterRestriction, Cull, CullMethod
 
         # If the nickname is empty, use the autoname from the line.
         if self.line and self.nickname in (None, "", "-"):
@@ -522,7 +522,7 @@ def send_subject_responsible_user_mail_change(sender, instance=None, **kwargs):
     # Only continue if the responsible user has changed.
     if not _has_field_changed(instance, "responsible_user"):
         return
-    from misc.models import LabMember
+    from ..misc.models import LabMember
 
     old_user = LabMember.objects.get(pk=_get_old_field(instance, "responsible_user"))
     new_user = instance.responsible_user

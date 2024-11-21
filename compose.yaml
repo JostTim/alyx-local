@@ -14,11 +14,12 @@ services:
       context: .
       dockerfile: ./docker/django/Dockerfile
     volumes :
-      - tables_volume:/app/uploaded/tables
-      - log_volume:/app/uploaded/log
-      - static_volume:/app/uploaded/static
-      - media_volume:/app/uploaded/media
+      - uploaded_volume:/app/uploaded
       - secret_volume:/run/secrets
+      # - tables_volume:/app/uploaded/tables
+      # - log_volume:/app/uploaded/log
+      # - static_volume:/app/uploaded/static
+      # - media_volume:/app/uploaded/media
     expose:
       - 8000
     depends_on:
@@ -30,9 +31,10 @@ services:
     ports:
       - "80:80"
     volumes:
-      - static_volume:/app/uploaded/static
-      - media_volume:/app/uploaded/media
+      - uploaded_volume:/app/uploaded
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # - static_volume:/app/uploaded/static
+      # - media_volume:/app/uploaded/media
     depends_on:
       - django_server
 
@@ -57,8 +59,11 @@ services:
 
 volumes:
   db-data:
-  static_volume:
-  media_volume:
-  tables_volume:
+  uploaded_volume:
   secret_volume:
-  log_volume:
+  # static_volume:
+  # media_volume:
+  # tables_volume:
+  # log_volume:
+  
+  

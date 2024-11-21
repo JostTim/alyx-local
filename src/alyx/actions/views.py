@@ -18,15 +18,15 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from alyx.base import (
+from ..base.base import (
     base_json_filter,
     rich_json_filter,
     BaseFilterSet,
     rest_permission_classes,
 )
 
-from subjects.models import Subject
-from experiments.views import _filter_qs_with_brain_regions
+from ..subjects.models import Subject
+from ..experiments.views import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
 from .training_control import training_control
 from .models import (

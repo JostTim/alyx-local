@@ -8,15 +8,17 @@ from pathlib import Path
 from fnmatch import fnmatch
 
 from django.db.models import Case, When, Count, Q, F
+from rest_framework.response import Response
+
 import globus_sdk
 import numpy as np
 from one.alf.files import filename_parts, add_uuid_string
 from one.alf.spec import is_valid
 
-from alyx import settings
-from data.models import FileRecord, Dataset, DatasetType, DataFormat, DataRepository
-from rest_framework.response import Response
-from actions.models import Session
+from ..base import settings
+from ..data.models import FileRecord, Dataset, DatasetType, DataFormat, DataRepository
+from ..actions.models import Session
+
 
 logger = structlog.get_logger(__name__)
 
@@ -24,8 +26,8 @@ logger = structlog.get_logger(__name__)
 # ------------------------------------------------------------------------------------------------
 
 
-def get_config_path(path=''):
-    path = op.expanduser(op.join('~/.alyx', path))
+def get_config_path(path=""):
+    path = op.expanduser(op.join("~/.alyx", path))
     os.makedirs(op.dirname(path), exist_ok=True)
     return path
 
@@ -38,31 +40,32 @@ def create_globus_client():
 
 def create_globus_token():
     client = create_globus_client()
-    print('Please go to this URL and login: {0}'
-          .format(client.oauth2_get_authorize_url()))
-    get_input = getattr(__builtins__, 'raw_input', input)
-    auth_code = get_input('Please enter the code here: ').strip()
+    print("Please go to this URL and login: {0}".format(client.oauth2_get_authorize_url()))
+    get_input = getattr(__builtins__, "raw_input", input)
+    auth_code = get_input("Please enter the code here: ").strip()
     token_response = client.oauth2_exchange_code_for_tokens(auth_code)
-    globus_transfer_data = token_response.by_resource_server['transfer.api.globus.org']
+    globus_transfer_data = token_response.by_resource_server["transfer.api.globus.org"]
 
-    data = dict(transfer_rt=globus_transfer_data['refresh_token'],
-                transfer_at=globus_transfer_data['access_token'],
-                expires_at_s=globus_transfer_data['expires_at_seconds'],
-                )
-    path = get_config_path('globus-token.json')
-    with open(path, 'w') as f:
+    data = dict(
+        transfer_rt=globus_transfer_data["refresh_token"],
+        transfer_at=globus_transfer_data["access_token"],
+        expires_at_s=globus_transfer_data["expires_at_seconds"],
+    )
+    path = get_config_path("globus-token.json")
+    with open(path, "w") as f:
         json.dump(data, f, indent=2, sort_keys=True)
 
 
 # Data transfer
 # ------------------------------------------------------------------------------------------------
 
+
 def get_globus_transfer_rt():
-    path = get_config_path('globus-token.json')
+    path = get_config_path("globus-token.json")
     if not op.exists(path):
         return
-    with open(path, 'r') as f:
-        return json.load(f).get('transfer_rt', None)
+    with open(path, "r") as f:
+        return json.load(f).get("transfer_rt", None)
 
 
 def globus_transfer_client():
@@ -77,17 +80,17 @@ def globus_transfer_client():
 
 
 def _escape_label(label):
-    return re.sub(r'[^a-zA-Z0-9 \-]', '-', label)
+    return re.sub(r"[^a-zA-Z0-9 \-]", "-", label)
 
 
 def _get_absolute_path(file_record):
     path1 = file_record.data_repository.globus_path
     path2 = file_record.relative_path
-    path2 = path2.replace('\\', '/')
+    path2 = path2.replace("\\", "/")
     # HACK
-    if path2.startswith('Data2/'):
+    if path2.startswith("Data2/"):
         path2 = path2[6:]
-    if path2.startswith('/'):
+    if path2.startswith("/"):
         path2 = path2[1:]
     path = op.join(path1, path2)
     return path
@@ -102,7 +105,9 @@ def _incomplete_dataset_ids():
     noremote = Dataset.objects.filter(q1)
     q2 = Q(file_records__exists=True) & Q(file_records__data_repository__globus_is_personal=True)
     nolocal = Dataset.objects.annotate(numok=Count(Case(When(q2, then=1)))).filter(numok=0)
-    return nolocal.values_list('id').union(noremote.values_list('id')).distinct()
+    return nolocal.values_list("id").union(noremote.values_list("id")).distinct()
+
+
 #    return FileRecord.objects.filter(exists=False).values_list('dataset', flat=True).distinct()
 
 
@@ -123,30 +128,38 @@ def start_globus_transfer(source_file_id, destination_file_id, dry_run=False):
     # Add dataset UUID.
     destination_path = add_uuid_string(destination_path, source_fr.dataset.pk).as_posix()
 
-    label = 'Transfer %s from %s to %s' % (
+    label = "Transfer %s from %s to %s" % (
         _escape_label(op.basename(destination_path)),
         source_fr.data_repository.name,
         destination_fr.data_repository.name,
     )
     tc = globus_transfer_client()
     tdata = globus_sdk.TransferData(
-        tc, source_id, destination_id, verify_checksum=True, sync_level='checksum',
-        label=label[0: min(len(label), 128)],
+        tc,
+        source_id,
+        destination_id,
+        verify_checksum=True,
+        sync_level="checksum",
+        label=label[0 : min(len(label), 128)],
     )
     tdata.add_item(source_path, destination_path)
 
-    logger.info("Transfer from %s <%s> to %s <%s>%s.",
-                source_fr.data_repository.name, source_path,
-                destination_fr.data_repository.name, destination_path,
-                ' (dry)' if dry_run else '')
+    logger.info(
+        "Transfer from %s <%s> to %s <%s>%s.",
+        source_fr.data_repository.name,
+        source_path,
+        destination_fr.data_repository.name,
+        destination_path,
+        " (dry)" if dry_run else "",
+    )
 
     if dry_run:
         return
 
     response = tc.submit_transfer(tdata)
 
-    task_id = response.get('task_id', None)
-    message = response.get('message', None)
+    task_id = response.get("task_id", None)
+    message = response.get("message", None)
     # code = response.get('code', None)
 
     logger.info("%s (task UUID: %s)", message, task_id)
@@ -165,7 +178,7 @@ def globus_file_exists(file_record):
         logger.warning(e)
         return False
     for existing_file in existing:
-        if existing_file['name'] in (name, name_uuid) and existing_file['size'] > 0:
+        if existing_file["name"] in (name, name_uuid) and existing_file["size"] > 0:
             return True
     return False
 
@@ -178,7 +191,7 @@ def get_dataset_type(filename, qs=None):
             # If the filename pattern is null, check whether the filename object.attribute matches
             # the dataset type name.
             if is_valid(filename):
-                obj_attr = '.'.join(filename_parts(filename)[1:3])
+                obj_attr = ".".join(filename_parts(filename)[1:3])
             else:  # will match name against filename sans extension
                 obj_attr = op.splitext(filename)[0]
             if dt.name == obj_attr:
@@ -190,8 +203,10 @@ def get_dataset_type(filename, qs=None):
     if n == 0:
         raise ValueError("No dataset type found for filename `%s`" % filename)
     elif n >= 2:
-        raise ValueError("Multiple matching dataset types found for filename `%s`: %s" % (
-            filename, ', '.join(map(str, dataset_types))))
+        raise ValueError(
+            "Multiple matching dataset types found for filename `%s`: %s"
+            % (filename, ", ".join(map(str, dataset_types)))
+        )
     return dataset_types[0]
 
 
@@ -218,65 +233,73 @@ def _get_name_collection_revision(file, rel_dir_path, subject, date):
     # Get collections/revisions for each file
     fullpath = Path(rel_dir_path).joinpath(file).as_posix()
     # Index of relative path (stuff after session path)
-    i = re.search(f'{subject}/{date}/' + r'\d{1,3}', fullpath).end()
-    subdirs = list(Path(fullpath[i:].strip('/')).parent.parts)
+    i = re.search(f"{subject}/{date}/" + r"\d{1,3}", fullpath).end()
+    subdirs = list(Path(fullpath[i:].strip("/")).parent.parts)
     # Check for revisions (folders beginning and ending with '#')
     # Fringe cases:
     #   '#' is a collection
     #   '##' is an empty revision
     #   '##blah#5#' is a revision named '#blah#5'
-    is_rev = [len(x) >= 2 and x[0] + x[-1] == '##' for x in subdirs]
+    is_rev = [len(x) >= 2 and x[0] + x[-1] == "##" for x in subdirs]
     if any(is_rev):
         # There may be only 1 revision and it cannot contain sub folders
         if is_rev.index(True) != len(is_rev) - 1:
-            data = {'status_code': 400,
-                    'detail': 'Revision folders cannot contain sub folders'}
+            data = {"status_code": 400, "detail": "Revision folders cannot contain sub folders"}
             return None, Response(data=data, status=400)
         revision = subdirs.pop()[1:-1]
     else:
         revision = None
 
     info = dict()
-    info['full_path'] = fullpath
-    info['filename'] = Path(file).name
-    info['collection'] = '/'.join(subdirs)
-    info['revision'] = revision
-    info['rel_dir_path'] = fullpath[:i]
+    info["full_path"] = fullpath
+    info["filename"] = Path(file).name
+    info["collection"] = "/".join(subdirs)
+    info["revision"] = revision
+    info["rel_dir_path"] = fullpath[:i]
 
     return info, None
 
 
 def _change_default_dataset(session, collection, dataset_type):
-    """Resets all datasets for same session, collection and dataset_type to False, to be able to set one True then (outside the scope of this function)
-    """
-    dataset = Dataset.objects.filter(session=session, collection=collection, dataset_type=dataset_type,
-                                     default_dataset=True)
+    """Resets all datasets for same session, collection and dataset_type to False, to be able to set one True then (outside the scope of this function)"""
+    dataset = Dataset.objects.filter(
+        session=session, collection=collection, dataset_type=dataset_type, default_dataset=True
+    )
     if dataset.count() > 0:
         dataset.update(default_dataset=False)
 
 
 def _check_dataset_protected(session, collection, filename):
     # Order datasets by the latest revision with the original one last
-    dataset = Dataset.objects.filter(session=session, collection=collection,
-                                     name=filename).order_by(
-        F('revision__created_datetime').desc(nulls_last=True))
+    dataset = Dataset.objects.filter(session=session, collection=collection, name=filename).order_by(
+        F("revision__created_datetime").desc(nulls_last=True)
+    )
     if dataset.count() == 0:
         return False, []
     else:
         protected = any([d.is_protected for d in dataset])
-        protected_info = [{d.revision.name if d.revision else '': d.is_protected}
-                          for d in dataset]
+        protected_info = [{d.revision.name if d.revision else "": d.is_protected} for d in dataset]
         return protected, protected_info
 
 
 def _create_dataset_file_records(
-        rel_dir_path=None, filename=None, session=None, user=None,
-        repositories=None, exists_in=None, collection=None, hash=None,
-        file_size=None, version=None, revision=None, default=None):
+    rel_dir_path=None,
+    filename=None,
+    session=None,
+    user=None,
+    repositories=None,
+    exists_in=None,
+    collection=None,
+    hash=None,
+    file_size=None,
+    version=None,
+    revision=None,
+    default=None,
+):
 
     assert session is not None
-    revision_name = f'#{revision.name}#' if revision else ''
-    relative_path = op.join(rel_dir_path, collection or '', revision_name, filename)
+    revision_name = f"#{revision.name}#" if revision else ""
+    relative_path = op.join(rel_dir_path, collection or "", revision_name, filename)
     dataset_type = get_dataset_type(filename)
     data_format = get_data_format(filename)
     assert dataset_type
@@ -289,8 +312,13 @@ def _create_dataset_file_records(
 
     # Get or create the dataset.
     dataset, is_new = Dataset.objects.get_or_create(
-        collection=collection, name=filename, session=session,
-        dataset_type=dataset_type, data_format=data_format, revision=revision)
+        collection=collection,
+        name=filename,
+        session=session,
+        dataset_type=dataset_type,
+        data_format=data_format,
+        revision=revision,
+    )
     dataset.default_dataset = default is True
     dataset.save()
 
@@ -299,8 +327,7 @@ def _create_dataset_file_records(
         protected_tag = dataset.tags.filter(protected=True).count()
         if protected_tag > 0:
             # Raise an error indicating dataset cannot be overwritten
-            data = {'status_code': 403,
-                    'detail': 'Dataset ' + str(dataset.pk) + ' is protected, cannot patch'}
+            data = {"status_code": 403, "detail": "Dataset " + str(dataset.pk) + " is protected, cannot patch"}
             return None, Response(data=data, status=403)
 
     # The user doesn't have to be the same when getting an existing dataset, but we still
@@ -331,7 +358,8 @@ def _create_dataset_file_records(
         exists = repo in exists_in
         # Do not create a new file record if it already exists.
         fr, is_new = FileRecord.objects.get_or_create(
-            dataset=dataset, data_repository=repo, relative_path=relative_path)
+            dataset=dataset, data_repository=repo, relative_path=relative_path
+        )
         if is_new or is_patched:
             fr.exists = exists
             fr.json = None  # this is important if a dataset is patched during an ongoing transfer
@@ -353,17 +381,16 @@ def iter_registered_directories(data_repository=None, tc=None, path=None):
     except globus_sdk.TransferAPIError as e:
         logger.warning(e)
         return
-    contents = contents['DATA']
-    subdirs = [file['name'] for file in contents if file['type'] == 'dir']
-    files = [file['name'] for file in contents if file['type'] == 'file']
+    contents = contents["DATA"]
+    subdirs = [file["name"] for file in contents if file["type"] == "dir"]
+    files = [file["name"] for file in contents if file["type"] == "file"]
     # Yield the list of files if there is a session.metadata.json file.
-    if 'session.metadata.json' in files:
+    if "session.metadata.json" in files:
         yield path, files
     # Recursively call the function in the subdirectories.
     for subdir in subdirs:
         subdir_path = op.join(path, subdir)
-        yield from iter_registered_directories(
-            tc=tc, data_repository=data_repository, path=subdir_path)
+        yield from iter_registered_directories(tc=tc, data_repository=data_repository, path=subdir_path)
 
 
 def update_file_exists(dataset):
@@ -373,24 +400,19 @@ def update_file_exists(dataset):
         file_exists_db = file.exists
         file_exists_globus = globus_file_exists(file)
         if file_exists_db and file_exists_globus:
-            logger.info(
-                "File %s exists on %s.", file.relative_path, file.data_repository.name)
+            logger.info("File %s exists on %s.", file.relative_path, file.data_repository.name)
         elif file_exists_db and not file_exists_globus:
             logger.warning(
-                "File %s exists on %s in the database but not in globus.",
-                file.relative_path, file.data_repository.name)
+                "File %s exists on %s in the database but not in globus.", file.relative_path, file.data_repository.name
+            )
             file.exists = False
             file.save()
         elif not file_exists_db and file_exists_globus:
-            logger.info(
-                "File %s exists on %s, updating the database.",
-                file.relative_path, file.data_repository.name)
+            logger.info("File %s exists on %s, updating the database.", file.relative_path, file.data_repository.name)
             file.exists = True
             file.save()
         elif not file_exists_db and not file_exists_globus:
-            logger.info(
-                "File %s does not exist on %s.",
-                file.relative_path, file.data_repository.name)
+            logger.info("File %s does not exist on %s.", file.relative_path, file.data_repository.name)
 
 
 def transfers_required(dataset):
@@ -399,10 +421,10 @@ def transfers_required(dataset):
     # Choose a file record that exists and, if possible, is not stored on a Globus personal
     # endpoint.
     existing_file = FileRecord.objects.filter(
-        dataset=dataset, exists=True, data_repository__globus_is_personal=False).first()
+        dataset=dataset, exists=True, data_repository__globus_is_personal=False
+    ).first()
     if not existing_file:
-        existing_file = FileRecord.objects.filter(
-            dataset=dataset, exists=True).first()
+        existing_file = FileRecord.objects.filter(dataset=dataset, exists=True).first()
     if not existing_file:
         logger.debug("No file exists on any data repository for dataset %s.", dataset.pk)
         return
@@ -414,16 +436,15 @@ def transfers_required(dataset):
         assert not missing_file.exists
         # WARNING: we should check that the destination data_repository is not personal if
         # the source repository is personal.
-        if (missing_file.data_repository.globus_is_personal and
-                existing_file.data_repository.globus_is_personal):
+        if missing_file.data_repository.globus_is_personal and existing_file.data_repository.globus_is_personal:
             continue
         yield {
-            'source_data_repository': existing_file.data_repository.name,
-            'destination_data_repository': missing_file.data_repository.name,
-            'source_path': _get_absolute_path(existing_file),
-            'destination_path': _get_absolute_path(missing_file),
-            'source_file_record': str(existing_file.pk),
-            'destination_file_record': str(missing_file.pk),
+            "source_data_repository": existing_file.data_repository.name,
+            "destination_data_repository": missing_file.data_repository.name,
+            "source_path": _get_absolute_path(existing_file),
+            "destination_path": _get_absolute_path(missing_file),
+            "source_file_record": str(existing_file.pk),
+            "destination_file_record": str(missing_file.pk),
         }
 
 
@@ -447,32 +468,29 @@ def bulk_sync(dry_run=False, lab=None, gc=None, check_mismatch=False):
     """
     if check_mismatch:
         dfs = FileRecord.objects.filter(
-            Q(exists=False, data_repository__globus_is_personal=False,
-              data_repository__name__icontains='flatiron') |
-            Q(json__has_key="mismatch_hash"))
+            Q(exists=False, data_repository__globus_is_personal=False, data_repository__name__icontains="flatiron")
+            | Q(json__has_key="mismatch_hash")
+        )
     else:
         dfs = FileRecord.objects.filter(
-            Q(exists=False, data_repository__globus_is_personal=False,
-              data_repository__name__icontains='flatiron'))
+            Q(exists=False, data_repository__globus_is_personal=False, data_repository__name__icontains="flatiron")
+        )
     if lab:
         dfs = dfs.filter(data_repository__lab__name=lab)
     # get all the datasets concerned and then back down to get all files for all those datasets
-    dsets = Dataset.objects.filter(pk__in=dfs.values_list('dataset').distinct())
-    all_files = FileRecord.objects.filter(
-        dataset__in=dsets).order_by('-dataset__created_datetime')
+    dsets = Dataset.objects.filter(pk__in=dfs.values_list("dataset").distinct())
+    all_files = FileRecord.objects.filter(dataset__in=dsets).order_by("-dataset__created_datetime")
     # checks all local files by default, and only transfer pending files for the server
-    all_files = all_files.filter(
-        Q(data_repository__globus_is_personal=True) |
-        Q(json__has_key="transfer_pending"))
+    all_files = all_files.filter(Q(data_repository__globus_is_personal=True) | Q(json__has_key="transfer_pending"))
     if dry_run:
-        fvals = all_files.values_list('relative_path', flat=True).distinct()
+        fvals = all_files.values_list("relative_path", flat=True).distinct()
         for fval in list(fvals):
             print(fval)
         return fvals
 
     gc = gc or globus_transfer_client()
     # loop over all files concerned by a transfer and update the exists and filesize fields
-    files_to_ls = all_files.order_by('data_repository__globus_endpoint_id', 'relative_path')
+    files_to_ls = all_files.order_by("data_repository__globus_endpoint_id", "relative_path")
     _last_ep = None
     _last_path = None
     nfiles = files_to_ls.count()
@@ -485,9 +503,10 @@ def bulk_sync(dry_run=False, lab=None, gc=None, check_mismatch=False):
             ep_info = gc.get_endpoint(_last_ep)
         # if the endpoint is not connected skip
         # NB: the non-personal endpoints have a None so need to explicitly test for False
-        if ep_info['gcp_connected'] is False:
-            logger.warning('UNREACHABLE Endpoint "' + ep_info['display_name'] +
-                           '" (' + str(_last_ep) + ') ' + qf.relative_path)
+        if ep_info["gcp_connected"] is False:
+            logger.warning(
+                'UNREACHABLE Endpoint "' + ep_info["display_name"] + '" (' + str(_last_ep) + ") " + qf.relative_path
+            )
             continue
         # if we already listed the current path of the endpoint, do not repeat the rest ls command
         cpath, fil = os.path.split(qf.relative_path)
@@ -496,17 +515,17 @@ def bulk_sync(dry_run=False, lab=None, gc=None, check_mismatch=False):
         if _last_path != cpath:
             _last_path = cpath
             try:
-                print(str(c) + '/' + str(nfiles) + ' ls ' + cpath + ' on ' + str(_last_ep))
+                print(str(c) + "/" + str(nfiles) + " ls " + cpath + " on " + str(_last_ep))
                 ls_result = gc.operation_ls(_last_ep, path=_last_path)
             except globus_sdk.TransferAPIError:
                 ls_result = []
         # compare the current file against the ls list, update the file_size if necessary
         exists = False
         for ind, gfil in enumerate(ls_result):
-            if gfil['name'] in (fil_uuid, fil):
+            if gfil["name"] in (fil_uuid, fil):
                 exists = True
-                if qf.dataset.file_size != gfil['size']:
-                    qf.dataset.file_size = gfil['size']
+                if qf.dataset.file_size != gfil["size"]:
+                    qf.dataset.file_size = gfil["size"]
                     qf.dataset.save()
                 break
         # update the filerecord exists field if needed
@@ -516,8 +535,18 @@ def bulk_sync(dry_run=False, lab=None, gc=None, check_mismatch=False):
             # sets the json field to None so that the transfer pending flag is nulled
             if exists:
                 qf.dataset.file_records.update(json=None)
-            print(str(c) + '/' + str(nfiles) + ' ' + str(qf.data_repository.name) + ':' +
-                  qf.relative_path + ' exist set to ' + str(exists) + ' in Alyx')
+            print(
+                str(c)
+                + "/"
+                + str(nfiles)
+                + " "
+                + str(qf.data_repository.name)
+                + ":"
+                + qf.relative_path
+                + " exist set to "
+                + str(exists)
+                + " in Alyx"
+            )
 
 
 def _filename_from_file_record(fr, add_uuid=False):
@@ -535,8 +564,8 @@ def bulk_transfer(dry_run=False, lab=None, gc=None):
     """
     # splits the jobs in one for small files and another for big files so that big raw
     # ephys files don't hold the transfer of small behaviour/training files
-    _bulk_transfer(dry_run=dry_run, lab=lab, maxsize=1024 ** 3, gc=gc)
-    _bulk_transfer(dry_run=dry_run, lab=lab, minsize=1024 ** 3, gc=gc)
+    _bulk_transfer(dry_run=dry_run, lab=lab, maxsize=1024**3, gc=gc)
+    _bulk_transfer(dry_run=dry_run, lab=lab, minsize=1024**3, gc=gc)
 
 
 def _bulk_transfer(dry_run=False, lab=None, maxsize=None, minsize=None, gc=None):
@@ -552,10 +581,11 @@ def _bulk_transfer(dry_run=False, lab=None, maxsize=None, minsize=None, gc=None)
     :return: globus_client, transfer_matrix (an array of transfer objects)
     """
     dfs = FileRecord.objects.filter(
-        (Q(exists=False, data_repository__globus_is_personal=False,
-           data_repository__name__icontains='flatiron') |
-         Q(json__has_key="mismatch_hash")) &
-        ~Q(json__has_key="transfer_pending")
+        (
+            Q(exists=False, data_repository__globus_is_personal=False, data_repository__name__icontains="flatiron")
+            | Q(json__has_key="mismatch_hash")
+        )
+        & ~Q(json__has_key="transfer_pending")
     )
     if minsize:
         dfs = dfs.filter(dataset__file_size__gt=minsize)
@@ -580,8 +610,8 @@ def _globus_transfer_filerecords(dfs, dry=True, gc=None):
     :return: globus_client, transfer_matrix (an array of transfer objects)
     """
     gc = None if dry else gc or globus_transfer_client()
-    dfs = dfs.order_by('data_repository__globus_endpoint_id', 'relative_path')
-    pri_repos = DataRepository.objects.filter(globus_is_personal=False, name__icontains='flatiron')
+    dfs = dfs.order_by("data_repository__globus_endpoint_id", "relative_path")
+    pri_repos = DataRepository.objects.filter(globus_is_personal=False, name__icontains="flatiron")
     sec_repos = DataRepository.objects.filter(globus_is_personal=True)
     tm = np.zeros([pri_repos.count(), sec_repos.count()], dtype=object)
     nfiles = dfs.count()
@@ -590,36 +620,42 @@ def _globus_transfer_filerecords(dfs, dry=True, gc=None):
     for ds in dfs:
         c += 1
         ipri = [ind for ind, cr in enumerate(pri_repos) if cr == ds.data_repository][0]
-        src_file = ds.dataset.file_records.filter(~Q(data_repository__name__icontains='aws'),
-                                                  exists=True).first()
+        src_file = ds.dataset.file_records.filter(~Q(data_repository__name__icontains="aws"), exists=True).first()
         if not src_file:
-            logger.warning(str(ds.data_repository.name) + ':' + ds.relative_path +
-                           ' is nowhere to ' + 'be found in local AND remote repositories')
-            ds.json = {'local_missing': True}
+            logger.warning(
+                str(ds.data_repository.name)
+                + ":"
+                + ds.relative_path
+                + " is nowhere to "
+                + "be found in local AND remote repositories"
+            )
+            ds.json = {"local_missing": True}
             ds.save()
             continue
-        isec = next((ind for ind, cr in enumerate(sec_repos) if cr == src_file.data_repository),
-                    None)
+        isec = next((ind for ind, cr in enumerate(sec_repos) if cr == src_file.data_repository), None)
         if isec is None:
             print("no _isec")
             continue
         # if the transfer doesn't exist, create it:
         if tm[ipri][isec] == 0:
-            label = sec_repos[isec].name + ' to ' + pri_repos[ipri].name
+            label = sec_repos[isec].name + " to " + pri_repos[ipri].name
             if not dry:
                 tm[ipri][isec] = globus_sdk.TransferData(
                     gc,
                     source_endpoint=sec_repos[isec].globus_endpoint_id,
                     destination_endpoint=pri_repos[ipri].globus_endpoint_id,
                     verify_checksum=True,
-                    sync_level='checksum',
-                    label=label)
+                    sync_level="checksum",
+                    label=label,
+                )
             # If dry make a fake transfer client dict
             else:
-                tm[ipri][isec] = {'source_endpoint': sec_repos[isec].globus_endpoint_id,
-                                  'destination_endpoint': pri_repos[ipri].globus_endpoint_id,
-                                  'label': label,
-                                  'DATA': []}
+                tm[ipri][isec] = {
+                    "source_endpoint": sec_repos[isec].globus_endpoint_id,
+                    "destination_endpoint": pri_repos[ipri].globus_endpoint_id,
+                    "label": label,
+                    "DATA": [],
+                }
 
         # add the transfer to the current task
         destination_file = _filename_from_file_record(ds, add_uuid=True)
@@ -627,10 +663,9 @@ def _globus_transfer_filerecords(dfs, dry=True, gc=None):
         if not dry:
             tm[ipri][isec].add_item(source_path=source_file, destination_path=destination_file)
         else:
-            tm[ipri][isec]['DATA'].append({'source_path': source_file,
-                                           'destination_path': destination_file})
+            tm[ipri][isec]["DATA"].append({"source_path": source_file, "destination_path": destination_file})
 
-        print(str(c) + '/' + str(nfiles) + ' ' + source_file + ' to ' + destination_file)
+        print(str(c) + "/" + str(nfiles) + " " + source_file + " to " + destination_file)
     # launch the transfer tasks
     if dry:
         return None, tm
@@ -638,7 +673,7 @@ def _globus_transfer_filerecords(dfs, dry=True, gc=None):
         if t == 0:
             continue
         gc.submit_transfer(t)
-    dfs.exclude(json__has_key="local_missing").update(json={'transfer_pending': True})
+    dfs.exclude(json__has_key="local_missing").update(json={"transfer_pending": True})
     return gc, tm
 
 
@@ -647,8 +682,7 @@ def _get_session(subject=None, date=None, number=None, user=None):
     if not subject or not date:
         return None
     # If a base session for that subject and date already exists, use it;
-    base = Session.objects.filter(
-        subject=subject, start_time__date=date, parent_session__isnull=True).first()
+    base = Session.objects.filter(subject=subject, start_time__date=date, parent_session__isnull=True).first()
     # Ensure a base session for that subject and date exists.
     if not base:
         raise ValueError("A base session for %s on %s does not exist" % (subject, date))
@@ -656,8 +690,7 @@ def _get_session(subject=None, date=None, number=None, user=None):
         base.users.add(user.pk)
         base.save()
     # If a subsession for that subject, date, and expNum already exists, use it;
-    session = Session.objects.filter(
-        subject=subject, start_time__date=date, number=number).first()
+    session = Session.objects.filter(subject=subject, start_time__date=date, number=number).first()
     # Ensure the subsession exists.
     if not session:
         raise ValueError("A session for %s/%d on %s does not exist" % (subject, number, date))
@@ -692,42 +725,40 @@ def globus_delete_local_datasets(datasets, dry=True, gc=None):
     """
     # first get the list of Globus endpoints concerned
     file_records = FileRecord.objects.filter(dataset__in=datasets)
-    globus_endpoints = file_records.values_list('data_repository__globus_endpoint_id',
-                                                flat=True).distinct()
+    globus_endpoints = file_records.values_list("data_repository__globus_endpoint_id", flat=True).distinct()
     # create a globus delete_client for each globus endpoint
     gtc = gc or globus_transfer_client()
     delete_clients = []
     for ge in globus_endpoints:
-        delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=''))
+        delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=""))
 
     def _ls_globus(file_record, add_uuid=False):
         N_RETRIES = 3
         for ntry in range(3):
             try:
                 path = Path(_filename_from_file_record(file_record, add_uuid=add_uuid))
-                ls_obj = gtc.operation_ls(file_record.data_repository.globus_endpoint_id,
-                                          path=path.parent)
+                ls_obj = gtc.operation_ls(file_record.data_repository.globus_endpoint_id, path=path.parent)
             except globus_sdk.TransferAPIError as err:
-                logger.warning('Globus error trial %i/%i', ntry + 1, N_RETRIES, exc_info=err)
-                if 'ClientError.NotFound' in str(err):
+                logger.warning("Globus error trial %i/%i", ntry + 1, N_RETRIES, exc_info=err)
+                if "ClientError.NotFound" in str(err):
                     return
                 elif ntry == N_RETRIES - 1:
                     raise
                 time.sleep(2)
                 continue
             break
-        return [ls for ls in ls_obj['DATA'] if ls['name'] == path.name]
+        return [ls for ls in ls_obj["DATA"] if ls["name"] == path.name]
+
     # appends each file for deletion
     fr2delete = []
     del_client = []
     for ds in datasets:
         # check the existence of the server file
-        fr_server = ds.file_records.filter(exists=True,
-                                           data_repository__globus_is_personal=False,
-                                           data_repository__name__icontains='flatiron').first()
+        fr_server = ds.file_records.filter(
+            exists=True, data_repository__globus_is_personal=False, data_repository__name__icontains="flatiron"
+        ).first()
         if fr_server is None:
-            logger.warning(str(ds.session) + '/' + ds.collection +
-                           '/' + ds.name + " doesnt exist on server - skipping")
+            logger.warning(str(ds.session) + "/" + ds.collection + "/" + ds.name + " doesnt exist on server - skipping")
             continue
         ls_server = _ls_globus(fr_server, add_uuid=True)
         # if the file is not found on the remote server, do nothing
@@ -739,31 +770,31 @@ def globus_delete_local_datasets(datasets, dry=True, gc=None):
             ls_local = _ls_globus(frloc)
             # if the data is not found on the local server, remove the file record from database
             if ls_local == [] or ls_local is None:
-                logger.info('NO FILE ON LOCAL, SKIP: ' + _filename_from_file_record(frloc))
+                logger.info("NO FILE ON LOCAL, SKIP: " + _filename_from_file_record(frloc))
                 fr2delete.append(frloc.id)
                 continue
             # if the file sizes don't match throw a warning and continue
-            if not ls_local[0]['size'] == ls_server[0]['size']:
+            if not ls_local[0]["size"] == ls_server[0]["size"]:
                 logger.warning(frloc.relative_path + " sizes don't check out, skipping")
                 continue
             # the files exist local and remote,
             fr2delete.append(frloc.id)
             file2del = _filename_from_file_record(frloc)
-            del_client = [dc for dc in delete_clients if dc['endpoint'] ==
-                          str(frloc.data_repository.globus_endpoint_id)][0]
+            del_client = [
+                dc for dc in delete_clients if dc["endpoint"] == str(frloc.data_repository.globus_endpoint_id)
+            ][0]
             del_client.add_item(file2del)
-            logger.info('DELETE: ' + _filename_from_file_record(frloc))
+            logger.info("DELETE: " + _filename_from_file_record(frloc))
     # launch the deletion jobs and remove records from the database
     if dry:
         return del_client
     for dc in delete_clients:
         # submitting a deletion without data will create an error
-        if dc['DATA'] == []:
+        if dc["DATA"] == []:
             continue
         gtc.submit_delete(dc)
     # remove file records
-    frecs = FileRecord.objects.filter(id__in=fr2delete).exclude(
-        data_repository__globus_is_personal=False)
+    frecs = FileRecord.objects.filter(id__in=fr2delete).exclude(data_repository__globus_is_personal=False)
     frecs.delete()
 
 
@@ -780,11 +811,10 @@ def globus_delete_datasets(datasets, dry=True, local_only=False, gc=None):
     :return:
     """
     # first get the list of Globus endpoints concerned
-    file_records = FileRecord.objects.filter(~Q(data_repository__name__icontains='aws'),
-                                             dataset__in=datasets)
+    file_records = FileRecord.objects.filter(~Q(data_repository__name__icontains="aws"), dataset__in=datasets)
     if local_only:
         file_records = file_records.filter(data_repository__globus_is_personal=True)
-        file_records = file_records.exclude(data_repository__name__icontains='flatiron')
+        file_records = file_records.exclude(data_repository__name__icontains="flatiron")
     file2del = globus_delete_file_records(file_records, dry=dry, gc=gc)
 
     if dry or local_only:
@@ -804,9 +834,8 @@ def globus_delete_file_records(file_records, dry=True, gc=None):
     :return:
     """
     # first get the list of Globus endpoints concerned
-    globus_endpoints = file_records.values_list(
-        'data_repository__globus_endpoint_id', flat=True).distinct()
-    related_datasets = file_records.values_list('dataset', flat=True).distinct()
+    globus_endpoints = file_records.values_list("data_repository__globus_endpoint_id", flat=True).distinct()
+    related_datasets = file_records.values_list("dataset", flat=True).distinct()
 
     # create a globus delete_client for each globus endpoint
     gtc = gc or globus_transfer_client()
@@ -814,23 +843,24 @@ def globus_delete_file_records(file_records, dry=True, gc=None):
     if not dry:
         # delete_clients = []
         for ge in globus_endpoints:
-            delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=''))
+            delete_clients.append(globus_sdk.DeleteData(gtc, ge, label=""))
     # appends each file for deletion
     for i, ge in enumerate(globus_endpoints):
         current_path = None
         # get endpoint status before continuing
         endpoint_info = gtc.get_endpoint(ge)
         # if the endpoint is not globus_connect (ie. not personal) this returns None
-        endpoint_connected = endpoint_info.data['gcp_connected'] is not False
+        endpoint_connected = endpoint_info.data["gcp_connected"] is not False
         # if the endpoint is offline skip
         if not endpoint_connected:
-            logger.warning(endpoint_info.data['display_name'] + 'is offline. SKIPPING.')
+            logger.warning(endpoint_info.data["display_name"] + "is offline. SKIPPING.")
             continue
         frs = FileRecord.objects.filter(
-            ~Q(data_repository__name__icontains='aws'),
+            ~Q(data_repository__name__icontains="aws"),
             dataset__in=related_datasets,
-            data_repository__globus_endpoint_id=ge).order_by('relative_path')
-        logger.info(str(frs.count()) + ' files to delete on ' + endpoint_info.data['display_name'])
+            data_repository__globus_endpoint_id=ge,
+        ).order_by("relative_path")
+        logger.info(str(frs.count()) + " files to delete on " + endpoint_info.data["display_name"])
         for fr in frs:
             add_uuid = not fr.data_repository.globus_is_personal
             file2del = _filename_from_file_record(fr, add_uuid=add_uuid)
@@ -841,32 +871,28 @@ def globus_delete_file_records(file_records, dry=True, gc=None):
                 if current_path != Path(file2del).parent:
                     current_path = Path(file2del).parent
                     try:
-                        ls_current_path = [f['name'] for f in
-                                           gtc.operation_ls(ge, path=current_path)]
+                        ls_current_path = [f["name"] for f in gtc.operation_ls(ge, path=current_path)]
                     except globus_sdk.TransferAPIError as err:
-                        if 'ClientError.NotFound' in str(err):
-                            logger.warning('DIR NOT FOUND: ' + file2del + ' on ' +
-                                           str(fr.data_repository.name))
+                        if "ClientError.NotFound" in str(err):
+                            logger.warning("DIR NOT FOUND: " + file2del + " on " + str(fr.data_repository.name))
                             ls_current_path = []
                         else:
                             raise err
                 if Path(file2del).name in ls_current_path:
-                    logger.warning(
-                        'DELETE: ' + file2del + ' on ' + str(fr.data_repository.name))
+                    logger.warning("DELETE: " + file2del + " on " + str(fr.data_repository.name))
                     delete_clients[i].add_item(file2del)
                 else:
-                    logger.warning(
-                        'FILE NOT FOUND: ' + file2del + ' on ' + str(fr.data_repository.name))
+                    logger.warning("FILE NOT FOUND: " + file2del + " on " + str(fr.data_repository.name))
     # launch the deletion jobs and remove records from the database
     if dry:
         return delete_clients
     # launch the deletion jobs and remove records from the database
     for dc in delete_clients:
         # submitting a deletion without data will create an error
-        if dc['DATA'] == []:
-            logger.warning('SUBMIT DELETE SKIPPED AS NO DATA: ' + str(dc))
+        if dc["DATA"] == []:
+            logger.warning("SUBMIT DELETE SKIPPED AS NO DATA: " + str(dc))
             continue
-        logger.warning('SUBMIT DELETE: ' + str(dc))
+        logger.warning("SUBMIT DELETE: " + str(dc))
         gtc.submit_delete(dc)
     # ideally here we would make some synchronous process and some error handling
     file_records.delete()

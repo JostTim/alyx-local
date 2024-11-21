@@ -1,1 +1,1 @@
-default_app_config = 'subjects.apps.SubjectsConfig'
+default_app_config = "alyx.subjects.apps.SubjectsConfig"

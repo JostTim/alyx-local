@@ -1,5 +1,5 @@
 from django.urls import path
-from experiments import views as ev
+from ..experiments import views as ev
 
 urlpatterns = [
     path('insertions', ev.ProbeInsertionList.as_view(), name="probeinsertion-list"),

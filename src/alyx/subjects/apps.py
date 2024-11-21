@@ -2,5 +2,6 @@ from django.apps import AppConfig
 
 
 class SubjectsConfig(AppConfig):
-    name = 'subjects'
-    verbose_name = 'Subject admin'
+    name = "alyx.subjects"
+    verbose_name = "Subject admin"
+    label = "subjects"

@@ -3,7 +3,7 @@ from textwrap import dedent
 
 from django.utils import timezone
 
-from actions.models import create_notification
+from ..actions.models import create_notification
 
 
 logger = structlog.get_logger(__name__)
@@ -16,9 +16,7 @@ def responsible_user_changed(subject, old_user, new_user):
         old_user.username,
         new_user.username,
     )
-    create_notification(
-        "responsible_user_change", msg, subject, users=[old_user, new_user]
-    )
+    create_notification("responsible_user_change", msg, subject, users=[old_user, new_user])
 
 
 def check_weighing(subject, date=None):

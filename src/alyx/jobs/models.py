@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 
-from actions.models import Session
+from ..actions.models import Session
 
 
 class Task(models.Model):

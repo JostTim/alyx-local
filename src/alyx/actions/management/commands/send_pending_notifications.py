@@ -1,5 +1,5 @@
 from django.core.management import BaseCommand
-from actions.models import send_pending_emails
+from alyx.actions.models import send_pending_emails
 
 
 class Command(BaseCommand):

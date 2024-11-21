@@ -7,7 +7,7 @@ from rest_framework import generics, viewsets, mixins, serializers
 from rest_framework.response import Response
 import django_filters
 import os
-from ..alyx.base import BaseFilterSet, rest_permission_classes
+from ..base.base import BaseFilterSet, rest_permission_classes
 from ..subjects.models import Subject, Project
 from ..experiments.models import ProbeInsertion
 from ..misc.models import Lab

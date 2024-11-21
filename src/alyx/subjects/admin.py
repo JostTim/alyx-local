@@ -12,7 +12,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
 
-from alyx.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url, _iter_history_changes
+from ..base.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url, _iter_history_changes
 from .models import (
     Allele,
     BreedingPair,
@@ -29,9 +29,9 @@ from .models import (
     ZygosityRule,
     Project,
 )
-from actions.models import Surgery, Session, OtherAction, WaterAdministration, WaterRestriction, Weighing
-from misc.models import LabMember, Housing
-from misc.admin import NoteInline
+from ..actions.models import Surgery, Session, OtherAction, WaterAdministration, WaterRestriction, Weighing
+from ..misc.models import LabMember, Housing
+from ..misc.admin import NoteInline
 
 
 # Utility functions
