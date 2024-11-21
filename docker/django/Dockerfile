@@ -41,29 +41,23 @@ RUN pip install pdm
 
 #########################################################################
 # CREATE VOLUMES FOLDER IF EMPTY AND SET PERMISSIONS ON THE APP FOLDER ##
-RUN mkdir -p /app/alyx/ && \
-    mkdir -p /app/uploaded/log && \
-    mkdir -p /app/uploaded/static && \
-    mkdir -p /app/uploaded/media && \
-    mkdir -p /app/uploaded/tables && \
-    chown -R ${APP_USER}:${APP_USER} /app/
+# RUN mkdir -p /app/alyx/ && \
+#     mkdir -p /app/uploaded/log && \
+#     mkdir -p /app/uploaded/static && \
+#     mkdir -p /app/uploaded/media && \
+#     mkdir -p /app/uploaded/tables && \
+#     chown -R ${APP_USER}:${APP_USER} /app/
 
 #################################################################
 ## Copy the django application source code into the container. ##
-COPY ./alyx/ /app/alyx
+COPY ./src/ /app/
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./pdm.lock /app/pdm.lock
+COPY ./docker/install_config /app/alyx/config/
 
-#########################################################################
-## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE APP FOLDER FOLR LATER USE ##
+########################################################################
+## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE APP FOLDER FOR LATER USE ##
 COPY ./scripts/ /app/alyx/scripts
-
-# we run chmod executeable, chown user, and we ensure scripts are LF ended with dos2unix
-RUN find /app/alyx/scripts -type f -name "*.sh" \
-    -exec dos2unix -o {} \; \ 
-    -exec chmod +x {} \; \
-    && \
-    chown -R ${APP_USER}:${APP_USER} /app/alyx/scripts
 
 #####################################################
 ## ENSURE WE COPY ALL DUMPS DATA IF THERE ARE SOME ##
@@ -71,16 +65,19 @@ COPY ./data/ /data
 
 ################################################
 ## ENSURE WE ACCESS THE ENTRYPOINT CORRECTLY  ##
-COPY ./docker/django/entrypoint.sh /app/alyx/entrypoint.sh
-COPY ./docker/django/restore.sh /app/alyx/restore.sh
+COPY ./docker/django/entrypoint.sh /app/entrypoint.sh
+COPY ./docker/django/restore_on_run.sh /app/alyx/scripts/restore_on_run.sh
 
-RUN dos2unix -o /app/alyx/entrypoint.sh
-RUN chown ${APP_USER}:${APP_USER} /app/alyx/entrypoint.sh
-RUN chmod +x /app/alyx/entrypoint.sh
+RUN dos2unix -o /app/entrypoint.sh
+RUN chown ${APP_USER}:${APP_USER} /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-RUN dos2unix -o /app/alyx/restore.sh
-RUN chown ${APP_USER}:${APP_USER} /app/alyx/restore.sh
-RUN chmod +x /app/alyx/restore.sh
+# we run chmod executeable, chown user, and we ensure scripts are LF ended with dos2unix
+RUN find /app/alyx/scripts -type f -name "*.sh" \
+    -exec dos2unix -o {} \; \ 
+    -exec chmod +x {} \; \
+    && \
+    chown -R ${APP_USER}:${APP_USER} /app/alyx/scripts
 
 #############################################################
 # Switch to the non-privileged user to run the application. #
@@ -90,21 +87,6 @@ WORKDIR /app
 
 # Install the application python dependancies packages
 RUN pdm install --prod --frozen-lockfile --no-editable
-
-# Intermediate stage to run the restore script
-# FROM base AS restore-stage
-
-WORKDIR /app/alyx
-# Restore database from file if a file exists
-# RUN ./restore.sh
-
-# Final stage
-# FROM base
-
-# WORKDIR /app/alyx
-
-# Copy the restored data from the restore-stage
-# COPY --from=restore-stage /app/alyx /app/alyx
 
 # Expose the port that the application listens on.
 EXPOSE 80

@@ -1,7 +1,7 @@
 #!/bin/bash
 echo -n "Django version:" && echo -n $(pdm run python -m django --version) && echo " is installed"
 
-./restore.sh
+/app/alyx/scripts/restore_on_run.sh
 
 echo "Applying database migrations..."
 pdm run manage.py migrate --noinput 
