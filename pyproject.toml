@@ -54,7 +54,7 @@ exclude = ["migrations"]
 
 [tool.coverage.run]
 branch = false
-source = ["alyx"]
+source = ["src/alyx"]
 omit = []
 
 [tool.coverage.report]
