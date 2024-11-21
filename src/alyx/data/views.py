@@ -7,10 +7,11 @@ from rest_framework import generics, viewsets, mixins, serializers
 from rest_framework.response import Response
 import django_filters
 import os
-from alyx.base import BaseFilterSet, rest_permission_classes
-from subjects.models import Subject, Project
-from experiments.models import ProbeInsertion
-from misc.models import Lab
+from ..alyx.base import BaseFilterSet, rest_permission_classes
+from ..subjects.models import Subject, Project
+from ..experiments.models import ProbeInsertion
+from ..misc.models import Lab
+
 from .models import (
     DataRepositoryType,
     DataRepository,
@@ -175,12 +176,8 @@ class DatasetFilter(BaseFilterSet):
     created_by = django_filters.CharFilter("created_by__username")
     dataset_type = django_filters.CharFilter("dataset_type__name")
     experiment_number = django_filters.CharFilter("session__number")
-    created_date_gte = django_filters.DateTimeFilter(
-        "created_datetime__date", lookup_expr="gte"
-    )
-    created_date_lte = django_filters.DateTimeFilter(
-        "created_datetime__date", lookup_expr="lte"
-    )
+    created_date_gte = django_filters.DateTimeFilter("created_datetime__date", lookup_expr="gte")
+    created_date_lte = django_filters.DateTimeFilter("created_datetime__date", lookup_expr="lte")
     exists = django_filters.BooleanFilter(method="filter_exists")
     probe_insertion = django_filters.UUIDFilter(method="probe_insertion_filter")
     public = django_filters.BooleanFilter(method="filter_public")
@@ -199,9 +196,7 @@ class DatasetFilter(BaseFilterSet):
         Only if the database has any globus non-personal repositories (ie. servers)
         """
         if len(DataRepository.objects.filter(globus_is_personal=False)) > 0:
-            frs = FileRecord.objects.filter(
-                pk__in=dsets.values_list("file_records", flat=True)
-            )
+            frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
             pkd = frs.filter(exists=value).values_list("dataset", flat=True)
             dsets = dsets.filter(pk__in=pkd)
         return dsets
@@ -266,9 +261,7 @@ class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
 class FileRecordFilter(BaseFilterSet):
     lab = django_filters.CharFilter("dataset__session__lab__name")
 
-    data_repository = django_filters.CharFilter(
-        field_name="dataset__data_repository__name"
-    )
+    data_repository = django_filters.CharFilter(field_name="dataset__data_repository__name")
 
     class Meta:
         model = FileRecord
@@ -472,9 +465,7 @@ class RegisterFileViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         labs = request.data.get("projects", "") + request.data.get("labs", "")
         labs = labs.split(",")
         labs = [Lab.objects.get(name=lab) for lab in labs if lab]
-        repositories = _get_repositories_for_labs(
-            labs or [subject.lab], server_only=server_only
-        )
+        repositories = _get_repositories_for_labs(labs or [subject.lab], server_only=server_only)
         if repo and repo not in repositories:
             repositories += [repo]
         if server_only:
@@ -488,9 +479,7 @@ class RegisterFileViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         if not exists:
             exists_in = (None,)
 
-        session = _get_session(
-            subject=subject, date=date, number=session_number, user=user
-        )
+        session = _get_session(subject=subject, date=date, number=session_number, user=user)
         assert session
 
         # If the check protected flag is True, loop through the files to see if any are protected
@@ -498,21 +487,15 @@ class RegisterFileViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             prot_response = []
             protected = []
             for file in filenames:
-                info, resp = _get_name_collection_revision(
-                    file, rel_dir_path, subject, date
-                )
+                info, resp = _get_name_collection_revision(file, rel_dir_path, subject, date)
 
                 if resp:
                     return resp
 
                 if info is None:
-                    raise ValueError(
-                        f"info is none in RegisterFileViewSet.create for file {file}. Aborting"
-                    )
+                    raise ValueError(f"info is none in RegisterFileViewSet.create for file {file}. Aborting")
 
-                prot, prot_info = _check_dataset_protected(
-                    session, info["collection"], info["filename"]
-                )
+                prot, prot_info = _check_dataset_protected(session, info["collection"], info["filename"])
                 protected.append(prot)
                 prot_response.append({file: prot_info})
 
@@ -525,22 +508,16 @@ class RegisterFileViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 return Response(data=data, status=403)
 
         response = []
-        for filename, hash, fsize, version in zip(
-            filenames, hashes, filesizes, versions
-        ):
+        for filename, hash, fsize, version in zip(filenames, hashes, filesizes, versions):
             if not filename:
                 continue
-            info, resp = _get_name_collection_revision(
-                filename, rel_dir_path, subject, date
-            )
+            info, resp = _get_name_collection_revision(filename, rel_dir_path, subject, date)
 
             if resp:
                 return resp
 
             if info is None:
-                raise ValueError(
-                    f"info is none in RegisterFileViewSet.create for file {filename}. Aborting"
-                )
+                raise ValueError(f"info is none in RegisterFileViewSet.create for file {filename}. Aborting")
 
             if info["revision"] is not None:
                 revision, _ = Revision.objects.get_or_create(name=info["revision"])
@@ -609,9 +586,7 @@ class DownloadViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         projects = request.data.get("projects", ())
         if isinstance(projects, str):
             projects = projects.split(",")
-        projects = [
-            Project.objects.get(name=project) for project in projects if project
-        ]
+        projects = [Project.objects.get(name=project) for project in projects if project]
 
         # loop over datasets
         dpk = []
@@ -638,9 +613,7 @@ class DownloadFilter(BaseFilterSet):
     json = django_filters.CharFilter(field_name="json", lookup_expr=("icontains"))
     dataset = django_filters.CharFilter("dataset__name")
     user = django_filters.CharFilter("user__username")
-    dataset_type = django_filters.CharFilter(
-        field_name="dataset__dataset_type__name", lookup_expr=("icontains")
-    )
+    dataset_type = django_filters.CharFilter(field_name="dataset__dataset_type__name", lookup_expr=("icontains"))
 
     class Meta:
         model = Download

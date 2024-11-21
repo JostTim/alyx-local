@@ -12,14 +12,13 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
-from alyx.base import BaseModel, alyx_mail, modify_fields
-from actions.notifications import responsible_user_changed
-from actions.water_control import water_control
-from actions.models import Surgery, WaterAdministration
-from misc.models import Lab, default_lab, Housing
+from ..alyx.base import BaseModel, alyx_mail, modify_fields
+from ..actions.notifications import responsible_user_changed
+from ..actions.water_control import water_control
+from ..actions.models import Surgery, WaterAdministration
+from ..misc.models import Lab, default_lab, Housing
 
 logger = structlog.get_logger("subjects.models")
-
 
 # Zygosity constants
 # ------------------------------------------------------------------------------------------------

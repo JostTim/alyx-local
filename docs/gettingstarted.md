@@ -205,3 +205,17 @@ print(local_files)
 We went straight to the point here, which was to create a session and register data, to go further consult the [One documentation](https://int-brain-lab.github.io/ONE/), in the section "Using one in Alyx".
 
 
+
+# Developping Alyx
+
+## Usefull documentation links 
+
+### Internationalization
+https://docs.djangoproject.com/en/5.1/topics/i18n/
+
+### Static files (CSS, JavaScript, Images)
+https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+### Deployment for production
+https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+

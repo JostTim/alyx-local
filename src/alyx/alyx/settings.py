@@ -17,28 +17,26 @@ from tzlocal import get_localzone
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 try:
-    from .settings_secret import *  # noqa
+    from .settings_secret import *  # type: ignore
 except ImportError:
     # We're probably autobuilding some documentation so let's just import something
     # to keep Django happy...
-    from .settings_secret_template import *  # noqa
-
+    from .settings_secret_template import *
 # Lab-specific settings
 try:
-    from .settings_lab import *  # noqa
+    from .settings_lab import *  # type: ignore
 except ImportError:
-    from .settings_lab_template import *  # noqa
-
-
-def read_db_password(secret_file_path: Path | str):
-    with open(secret_file_path) as f:
-        return f.read().strip()
+    from .settings_lab_template import *
 
 
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
+
 # changes by timothe on 28-11-2022 to try to fix "time offset" issues
 USE_DEPRECATED_PYTZ = True  # Support for using pytz will be removed in Django 5.0
+
+USE_TZ = True
+TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
 IS_DOCKER = os.path.exists("/.dockerenv")
 
@@ -53,16 +51,25 @@ if "GITHUB_ACTIONS" in os.environ:
             "PORT": "5432",
         }
     }
+
 elif IS_DOCKER:
-    # settings.py
+
+    def read_db_password(secret_file_path: Path | str):
+        with open(secret_file_path) as f:
+            return f.read().strip()
+
     DB_PASSWORD_FILE = Path("/run/secrets/db-secure-password")
-    DB_PASSWORD = read_db_password(DB_PASSWORD_FILE) if DB_PASSWORD_FILE.is_file() else "default_password"
+    if not DB_PASSWORD_FILE.is_file():
+        raise IOError(
+            "No 'db-secure-password' file was found. "
+            "You should provide one under the path ./docker/postgres/db-secure-password"
+        )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "alyx",  # Your database name
-            "USER": "postgres",  # Your database user
-            "PASSWORD": DB_PASSWORD,  # Your database password
+            "NAME": "alyx",  # The database name
+            "USER": "postgres",  # The database user
+            "PASSWORD": read_db_password(DB_PASSWORD_FILE),  # The database password
             "HOST": "db",  # Name of the service defined in docker-compose.yml
             "PORT": "5432",  # The default port for PostgreSQL
         }
@@ -73,8 +80,6 @@ elif IS_DOCKER:
 AUTH_USER_MODEL = "misc.LabMember"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -109,7 +114,7 @@ LOGGING = {
             "backupCount": 5,
             "formatter": "simple",
         },
-        "console": {"level": "WARNING", "class": "logging.StreamHandler", "formatter": "simple"},
+        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"},
         "json_file": {
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
@@ -140,10 +145,6 @@ LOGGING = {
 if "TRAVIS" in os.environ or "READTHEDOCS" in os.environ:
     LOGGING["handlers"]["file"]["filename"] = "alyx.log"
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -169,17 +170,6 @@ if not DEBUG:
 # Application definition
 
 INSTALLED_APPS = (
-    # 'dal',
-    # 'dal_select2',
-    # 'viewflow', #https://github.com/viewflow/viewflow
-    # 'viewflow.workflow', may be interesting. Dropped it for now
-    # 'material', #https://github.com/kmmbvnr/django-material
-    # 'material.admin', Decided to remove it because it is less clear than the original theme
-    # 'martor', #https://github.com/agusmakmun/django-markdown-editor #removed, not for admin page but for custom forms.
-    # 'mdeditor', #https://pypi.org/project/django-mdeditor-widget/ # removed, simply doesn't work
-    "markdownx",  # https://github.com/neutronX/django-markdownx
-    "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
-    "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown
     "django_filters",
     "django.contrib.admin",
     "django.contrib.admindocs",
@@ -196,6 +186,10 @@ INSTALLED_APPS = (
     "rest_framework_docs",
     "reversion",
     "test_without_migrations",
+    # UI add-ons
+    "markdownx",  # https://github.com/neutronX/django-markdownx
+    "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
+    "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown
     # alyx-apps
     "actions",
     "data",
@@ -203,7 +197,8 @@ INSTALLED_APPS = (
     "experiments",
     "jobs",
     "subjects",
-    "django_cleanup.apps.CleanupConfig",  # needs to be last in the list
+    # needs to be last in the list
+    "django_cleanup.apps.CleanupConfig",
 )
 
 JSON_EDITOR_JS = "https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/9.10.2/jsoneditor.js"
@@ -247,8 +242,6 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = "alyx.wsgi.application"
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.SessionAuthentication",
@@ -266,32 +259,19 @@ REST_FRAMEWORK = {
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/1.8/topics/i18n/
-
-
 USE_I18N = False
 USE_L10N = False
-# ADDED BY TIMOTHE ON 28-11-2022 to avoid time issues :
-# USE_TZ was previously at False and TIME_ZONE variable did not exist
-USE_TZ = True
-TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.8/howto/static-files/
-
-# this is where the collected static assets will be copied
-STATIC_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "static")
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = (
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    # this is from where we collect static assets
-    str(BASE_DIR / "static"),
-)
+# this is where the static assets will be collected to be copied to serving location
+STATICFILES_DIRS = (str(BASE_DIR / "static"),)
 
-MEDIA_ROOT = str(BASE_DIR.parent / "uploaded" / "media")
-# MEDIA_ROOT = "/backups/uploaded/"
+# this is where the collected static assets will be copied and served
+STATIC_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "static")
+
+
+MEDIA_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "media")
 MEDIA_URL = "/media/"
 
 # The location for saving and/or serving the cache tables.
@@ -317,5 +297,8 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-# ADDED BY TIMOTHE ON 13/04/2023 TO CONNECT FROM VARIOUS LOCATIONS IN THE LAB
+WSGI_APPLICATION = "alyx.wsgi.application"
+
+
+# TODO use config file for that instead of hard coded text
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "157.99.138.172", "haiss-alyx", "haiss-alyx.local"]

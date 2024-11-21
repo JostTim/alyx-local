@@ -15,7 +15,8 @@ import pyarrow.parquet as pq
 import pyarrow as pa
 from iblutil.io.parquet import uuid2np
 from one.alf.cache import _metadata
-from one.remote.aws import get_s3_virtual_host
+
+# from one.remote.aws import get_s3_virtual_host
 
 from django.db import connection
 from django.db.models import Q, Exists, OuterRef
@@ -26,6 +27,8 @@ from alyx.settings import TABLES_ROOT
 from actions.models import Session
 from data.models import Dataset, FileRecord
 from experiments.models import ProbeInsertion
+
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 ONE_API_VERSION = "1.13.0"  # Minimum compatible ONE api version
@@ -61,7 +64,7 @@ def _s3_filesystem(**kwargs) -> pa.fs.S3FileSystem:
     return pa.fs.S3FileSystem(**S3_ACCESS)
 
 
-def _save(filename: str, df: pd.DataFrame, metadata: dict = None, dry=False) -> pa.Table:
+def _save(filename: str, df: pd.DataFrame, metadata: Optional[dict] = None, dry=False) -> pa.Table:
     """
     Save pandas dataframe to parquet.
 
@@ -102,10 +105,10 @@ class Command(BaseCommand):
     """
 
     help = "Generate ONE cache tables"
-    dst_dir = None
+    dst_dir: str
     tables = None
     metadata = None
-    compress = None
+    compress: Optional[bool]
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -127,12 +130,12 @@ class Command(BaseCommand):
             logger.setLevel(logging.WARNING)
         if options["verbosity"] > 1:
             logger.setLevel(logging.DEBUG)
-        self.dst_dir = options.get("destination")  # TABLES_ROOT folder
+        self.dst_dir = options.get("destination")  # type: ignore default is TABLES_ROOT folder
         self.compress = options.get("compress")
         tables, int_id, qc = options.get("tables"), options.get("int_id"), options.get("qc")
         self.generate_tables(tables, int_id=int_id, export_qc=qc, tags=options.get("tag"))
 
-    def generate_tables(self, tables, export_qc=False, **kwargs) -> list:
+    def generate_tables(self, tables, export_qc: Optional[bool] = False, **kwargs) -> list:
         """
         Generate and save a list of tables.  Supported tables include 'sessions' and 'datasets'.
         :param tables: A tuple of table names.
@@ -189,7 +192,7 @@ class Command(BaseCommand):
         return pa_table, str(filename)
 
     @measure_time
-    def _save_qc(self, dry=False, tags=None):
+    def _save_qc(self, dry: Optional[bool] = False, tags=None):
         sessions = Session.objects.all()
         if tags:
             if not isinstance(tags, str):
@@ -265,23 +268,23 @@ class Command(BaseCommand):
             zip.writestr(META_NAME, json.dumps(metadata, indent=1))  # Compress cache info
 
         logger.info("Writing to file...")
-        parsed = urllib.parse.urlparse(self.dst_dir)
-        scheme = parsed.scheme or "file"
+        # parsed = urllib.parse.urlparse(self.dst_dir)
+        scheme = "file"
         try:
-            if scheme == "s3":
-                zip_file = f'{parsed.netloc}/{parsed.path.strip("/")}/{ZIP_NAME}'
-                tag_file = f'{parsed.netloc}/{parsed.path.strip("/")}/{META_NAME}'
-                s3 = _s3_filesystem()
-                metadata["location"] = get_s3_virtual_host(zip_file, s3.region)  # Add URL
-                # Write cache info json to s3
-                logger.debug(f"Opening output stream to {tag_file}")
-                with s3.open_output_stream(tag_file) as stream:
-                    stream.write(json.dumps(metadata, indent=1).encode())
-                # Write zip file to s3
-                logger.debug(f"Opening output stream to {zip_file}")
-                with s3.open_output_stream(zip_file) as stream:
-                    stream.write(zip_buffer.getbuffer())
-            elif scheme == "file":
+            # if scheme == "s3":
+            #     zip_file = f'{parsed.netloc}/{parsed.path.strip("/")}/{ZIP_NAME}'
+            #     tag_file = f'{parsed.netloc}/{parsed.path.strip("/")}/{META_NAME}'
+            #     s3 = _s3_filesystem()
+            #     metadata["location"] = get_s3_virtual_host(zip_file, s3.region)  # Add URL
+            #     # Write cache info json to s3
+            #     logger.debug(f"Opening output stream to {tag_file}")
+            #     with s3.open_output_stream(tag_file) as stream:
+            #         stream.write(json.dumps(metadata, indent=1).encode())
+            #     # Write zip file to s3
+            #     logger.debug(f"Opening output stream to {zip_file}")
+            #     with s3.open_output_stream(zip_file) as stream:
+            #         stream.write(zip_buffer.getbuffer())
+            if scheme == "file":
                 # creates a json file containing metadata and add it to the zip file
                 tag_file = Path(self.dst_dir) / META_NAME
                 zip_file = Path(self.dst_dir) / ZIP_NAME
