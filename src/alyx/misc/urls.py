@@ -1,23 +1,23 @@
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-from ..misc import views as mv
+from . import views as misc_views
 from django.conf.urls import include
 
 
-user_list = mv.UserViewSet.as_view({"get": "list"})
-user_detail = mv.UserViewSet.as_view({"get": "retrieve"})
+user_list = misc_views.UserViewSet.as_view({"get": "list"})
+user_detail = misc_views.UserViewSet.as_view({"get": "retrieve"})
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/admin")),  # redirect the page to admin interface
-    path("labs", mv.LabList.as_view(), name="lab-list"),
-    path("labs/<str:name>", mv.LabDetail.as_view(), name="lab-detail"),
-    path("notes", mv.NoteList.as_view(), name="note-list"),
-    path("notes/<uuid:pk>", mv.NoteDetail.as_view(), name="note-detail"),
+    path("labs", misc_views.LabList.as_view(), name="lab-list"),
+    path("labs/<str:name>", misc_views.LabDetail.as_view(), name="lab-detail"),
+    path("notes", misc_views.NoteList.as_view(), name="note-list"),
+    path("notes/<uuid:pk>", misc_views.NoteDetail.as_view(), name="note-detail"),
     path("users/<str:username>", user_detail, name="user-detail"),
     path("users", user_list, name="user-list"),
-    re_path("^media/(?P<img_url>.*)", mv.MediaView.as_view(), name="media"),
-    path("cache.zip", mv.CacheDownloadView.as_view(), name="cache-download"),
-    re_path(r"^cache/info(?:/(?P<tag>\w+))?/$", mv.CacheVersionView.as_view(), name="cache-info"),
+    re_path("^media/(?P<img_url>.*)", misc_views.MediaView.as_view(), name="media"),
+    path("cache.zip", misc_views.CacheDownloadView.as_view(), name="cache-download"),
+    re_path(r"^cache/info(?:/(?P<tag>\w+))?/$", misc_views.CacheVersionView.as_view(), name="cache-info"),
 ]
 
 try:

@@ -12,11 +12,13 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
-from ..base.base import BaseModel, alyx_mail, modify_fields
+from ..base.base import BaseModel, BaseManager, alyx_mail, modify_fields
 from ..actions.notifications import responsible_user_changed
 from ..actions.water_control import water_control
 from ..actions.models import Surgery, WaterAdministration
 from ..misc.models import Lab, default_lab, Housing
+
+from typing import List
 
 logger = structlog.get_logger("subjects.models")
 
@@ -130,7 +132,7 @@ class Project(BaseModel):
 class Subject(BaseModel):
     """Metadata about an experimental subject (animal or human)."""
 
-    water_administrations: WaterAdministration.objects
+    water_administrations: List[WaterAdministration]
 
     SEXES = (("M", "Male"), ("F", "Female"), ("U", "Unknown"))
     SEVERITY_CHOICES = (

@@ -29,6 +29,9 @@ from tzlocal import get_localzone
 #     from .settings_lab_template import *
 
 DEFAULT_LAB_NAME = "defaultlab"
+DEFAULT_PROTOCOL = "1"
+
+AUTH_USER_MODEL = "misc.LabMember"
 
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
@@ -213,11 +216,11 @@ MIDDLEWARE = (
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "alyx.base.QueryPrintingMiddleware",
+    "alyx.base.base.QueryPrintingMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
 )
 
-ROOT_URLCONF = "alyx.urls"
+ROOT_URLCONF = "alyx.base.urls"
 
 TEMPLATES = [
     {
@@ -254,7 +257,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_RENDERER_CLASSES': (
     #     'rest_framework.renderers.JSONRenderer',
     # ),
-    "EXCEPTION_HANDLER": "alyx.base.rest_filters_exception_handler",
+    "EXCEPTION_HANDLER": "alyx.base.base.rest_filters_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
     "PAGE_SIZE": 250,
 }

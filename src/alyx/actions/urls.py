@@ -1,78 +1,78 @@
 from django.urls import path
 from django.conf.urls import include
-import actions.views as av
+from . import views as action_views
 
 from markdownx import urls as markdownx
 
 urlpatterns = [
     path(
         "admin-actions/weighing-plot/<uuid:subject_id>",
-        av.weighing_plot,
+        action_views.weighing_plot,
         name="weighing-plot",
     ),
     path(
         "admin-actions/training-perf-plot/<uuid:subject_id>",
-        av.training_perf_plot,
+        action_views.training_perf_plot,
         name="training-perf-plot",
     ),
     path(
         "admin-actions/water-history/<uuid:subject_id>",
-        av.WaterHistoryListView.as_view(),
+        action_views.WaterHistoryListView.as_view(),
         name="water-history",
     ),
     path(
         "admin-actions/training-history/<uuid:subject_id>",
-        av.TrainingHistoryListView.as_view(),
+        action_views.TrainingHistoryListView.as_view(),
         name="training-history",
     ),
     path(
         "admin-actions/training/",
-        av.TrainingListView.as_view(),
+        action_views.TrainingListView.as_view(),
         name="training",
     ),
     path(
         "admin-actions/training/<date>",
-        av.TrainingListView.as_view(),
+        action_views.TrainingListView.as_view(),
         name="training",
     ),
     path(
         "admin-actions/subject-history/<uuid:subject_id>",
-        av.SubjectHistoryListView.as_view(),
+        action_views.SubjectHistoryListView.as_view(),
         name="subject-history",
     ),
-    path("locations", av.LabLocationList.as_view(), name="location-list"),
+    path("locations", action_views.LabLocationList.as_view(), name="location-list"),
     path(
         "locations/<str:name>",
-        av.LabLocationAPIDetails.as_view(),
+        action_views.LabLocationAPIDetails.as_view(),
         name="location-detail",
     ),
-    path("procedures", av.ProcedureTypeList.as_view(), name="procedures-list"),
-    path("sessions", av.SessionAPIList.as_view(), name="session-list"),
-    path("sessions/<uuid:pk>", av.SessionAPIDetail.as_view(), name="session-detail"),
-    path("surgeries", av.SurgeriesList.as_view(), name="surgeries-list"),
+    path("procedures", action_views.ProcedureTypeList.as_view(), name="procedures-list"),
+    path("sessions", action_views.SessionAPIList.as_view(), name="session-list"),
+    path("sessions/<uuid:pk>", action_views.SessionAPIDetail.as_view(), name="session-detail"),
+    path("surgeries", action_views.SurgeriesList.as_view(), name="surgeries-list"),
     path(
         "water-administrations",
-        av.WaterAdministrationAPIListCreate.as_view(),
+        action_views.WaterAdministrationAPIListCreate.as_view(),
         name="water-administration-create",
     ),
     path(
         "water-administrations/<uuid:pk>",
-        av.WaterAdministrationAPIDetail.as_view(),
+        action_views.WaterAdministrationAPIDetail.as_view(),
         name="water-administration-detail",
     ),
     path(
         "water-requirement/<str:nickname>",
-        av.WaterRequirement.as_view(),
+        action_views.WaterRequirement.as_view(),
         name="water-requirement",
     ),
     path(
         "water-restriction",
-        av.WaterRestrictionList.as_view(),
+        action_views.WaterRestrictionList.as_view(),
         name="water-restriction-list",
     ),
-    path("water-type", av.WaterTypeList.as_view(), name="watertype-list"),
-    path("water-type/<str:name>", av.WaterTypeList.as_view(), name="watertype-detail"),
-    path("weighings", av.WeighingAPIListCreate.as_view(), name="weighing-create"),
-    path("weighings/<uuid:pk>", av.WeighingAPIDetail.as_view(), name="weighing-detail"),
+    path("water-type", action_views.WaterTypeList.as_view(), name="watertype-list"),
+    path("water-type/<str:name>", action_views.WaterTypeList.as_view(), name="watertype-detail"),
+    path("weighings", action_views.WeighingAPIListCreate.as_view(), name="weighing-create"),
+    path("weighings/<uuid:pk>", action_views.WeighingAPIDetail.as_view(), name="weighing-detail"),
     path("markdownx/", include(markdownx)),
 ]

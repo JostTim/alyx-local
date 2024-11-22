@@ -12,12 +12,12 @@ from rest_framework.documentation import include_docs_urls
 admin.site.site_header = "Alyx"
 
 urlpatterns = [
-    path("", include("misc.urls")),
-    path("", include("experiments.urls")),
-    path("", include("jobs.urls")),
-    path("", include("actions.urls")),
-    path("", include("data.urls")),
-    path("", include("subjects.urls")),
+    path("", include("alyx.misc.urls")),
+    path("", include("alyx.experiments.urls")),
+    path("", include("alyx.jobs.urls")),
+    path("", include("alyx.actions.urls")),
+    path("", include("alyx.data.urls")),
+    path("", include("alyx.subjects.urls")),
     path("admin/doc/", include("django.contrib.admindocs.urls")),
     path("admin/", admin.site.urls),
     path("auth/", include("rest_framework.urls", namespace="rest_framework")),
