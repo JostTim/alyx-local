@@ -6,17 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jobs', '0008_task_data_repository'),
+        ("jobs", "0008_task_data_repository"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='task',
-            name='unique_name_arguments_per_session',
+            model_name="task",
+            name="unique_name_arguments_per_session",
         ),
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.IntegerField(choices=[(20, 'Created'), (25, 'Waiting'), (30, 'Started'), (35, 'No_Info'), (40, 'Warnings'), (45, 'Errors'), (50, 'Critical'), (55, 'Failed'), (60, 'Uncatched_Fail'), (100, 'Complete')], default=20, help_text='20: Created / 25: Waiting / 30: Started / 35: No_Info / 40: Warnings / 45: Errors / 50: Critical / 55: Failed / 60: Uncatched_Fail / 100: Complete'),
+            model_name="task",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (20, "Created"),
+                    (25, "Waiting"),
+                    (30, "Started"),
+                    (35, "No_Info"),
+                    (40, "Warnings"),
+                    (45, "Errors"),
+                    (50, "Critical"),
+                    (55, "Failed"),
+                    (60, "Uncatched_Fail"),
+                    (100, "Complete"),
+                ],
+                default=20,
+                help_text="20: Created / 25: Waiting / 30: Started / 35: No_Info / "
+                "40: Warnings / 45: Errors / 50: Critical / 55: Failed / 60: Uncatched_Fail / 100: Complete",
+            ),
         ),
     ]

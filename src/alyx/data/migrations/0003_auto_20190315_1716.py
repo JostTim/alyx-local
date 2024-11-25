@@ -10,32 +10,37 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0003_auto_20190124_1025'),
+        ("subjects", "0003_auto_20190124_1025"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('data', '0002_auto_20181015_0914'),
+        ("data", "0002_auto_20181015_0914"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Download',
+            name="Download",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('first_download', models.DateTimeField(auto_now_add=True)),
-                ('last_download', models.DateTimeField(auto_now=True)),
-                ('count', models.IntegerField(default=0)),
-                ('dataset', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data.Dataset')),
-                ('projects', models.ManyToManyField(blank=True, to='subjects.Project')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    django.contrib.postgres.fields.jsonb.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                ("first_download", models.DateTimeField(auto_now_add=True)),
+                ("last_download", models.DateTimeField(auto_now=True)),
+                ("count", models.IntegerField(default=0)),
+                ("dataset", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="data.Dataset")),
+                ("projects", models.ManyToManyField(blank=True, to="subjects.Project")),
+                ("user", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='filerecord',
-            unique_together={('data_repository', 'relative_path')},
+            name="filerecord",
+            unique_together={("data_repository", "relative_path")},
         ),
         migrations.AlterUniqueTogether(
-            name='download',
-            unique_together={('user', 'dataset')},
+            name="download",
+            unique_together={("user", "dataset")},
         ),
     ]

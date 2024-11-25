@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0006_dataset_hash_version'),
+        ("data", "0006_dataset_hash_version"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dataset',
-            name='auto_datetime',
-            field=models.DateTimeField(auto_now=True, null=True, verbose_name='last updated'),
+            model_name="dataset",
+            name="auto_datetime",
+            field=models.DateTimeField(auto_now=True, null=True, verbose_name="last updated"),
         ),
     ]

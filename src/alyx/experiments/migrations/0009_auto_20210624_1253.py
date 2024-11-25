@@ -6,33 +6,33 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('experiments', '0008_probeinsertion_datasets'),
+        ("experiments", "0008_probeinsertion_datasets"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='channel',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="channel",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='coordinatesystem',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="coordinatesystem",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='probeinsertion',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="probeinsertion",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='probemodel',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="probemodel",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='trajectoryestimate',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="trajectoryestimate",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
     ]

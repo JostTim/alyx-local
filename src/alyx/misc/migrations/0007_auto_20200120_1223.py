@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('misc', '0006_labmember_allowed_users'),
+        ("misc", "0006_labmember_allowed_users"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='labmember',
-            name='allowed_users',
+            model_name="labmember",
+            name="allowed_users",
             field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
         ),
     ]

@@ -7,18 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('experiments', '0002_channels_20200402'),
+        ("experiments", "0002_channels_20200402"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='probeinsertion',
-            name='serial',
-            field=models.CharField(blank=True, help_text='Probe serial number', max_length=255),
+            model_name="probeinsertion",
+            name="serial",
+            field=models.CharField(blank=True, help_text="Probe serial number", max_length=255),
         ),
         migrations.AlterField(
-            model_name='trajectoryestimate',
-            name='phi',
-            field=models.FloatField(help_text='Azimuth from right (degrees), anti-clockwise, [0-360]', null=True, validators=[django.core.validators.MinValueValidator(-180), django.core.validators.MaxValueValidator(360)]),
+            model_name="trajectoryestimate",
+            name="phi",
+            field=models.FloatField(
+                help_text="Azimuth from right (degrees), anti-clockwise, [0-360]",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(-180),
+                    django.core.validators.MaxValueValidator(360),
+                ],
+            ),
         ),
     ]

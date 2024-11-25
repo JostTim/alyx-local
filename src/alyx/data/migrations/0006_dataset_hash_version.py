@@ -6,18 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0005_dataset_collection'),
+        ("data", "0005_dataset_collection"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dataset',
-            name='hash',
-            field=models.CharField(blank=True, help_text='Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars', max_length=64, null=True),
+            model_name="dataset",
+            name="hash",
+            field=models.CharField(
+                blank=True,
+                help_text="Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars",
+                max_length=64,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='dataset',
-            name='version',
-            field=models.CharField(blank=True, help_text='version of the algorithm generating the file', max_length=64, null=True),
+            model_name="dataset",
+            name="version",
+            field=models.CharField(
+                blank=True, help_text="version of the algorithm generating the file", max_length=64, null=True
+            ),
         ),
     ]

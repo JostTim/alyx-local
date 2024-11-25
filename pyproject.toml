@@ -38,19 +38,38 @@ dependencies = [
     "alyx-connector>=2.1.10",
     "setuptools>=75.3.0",
     "coreapi>=2.3.3",
+    "rich>=13.9.4",
 ]
 dynamic = ["version"]
-
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.txt"] }
 
 [tool.wheel]
 universal = true
 
 [tool.flake8]
-ignore = ["E117", "E265", "E731", "F403", "E741", "E722", "W504"]
+ignore = [
+    "E203",
+    "E117",
+    "E265",
+    "E266",
+    "E401",
+    "E704",
+    "E712",
+    "E731",
+    "E741",
+    "E722",
+    "F401",
+    "F403",
+    "F841",
+    "W504",
+    "W503",
+    "W605",
+]
 max-line-length = 99
 exclude = ["migrations"]
+
+[tool.black]
+preview = true
+line-length = 99
 
 [tool.coverage.run]
 branch = false
@@ -72,3 +91,6 @@ show_missing = true
 [tool.pdm.version]
 source = "file"
 path = "src/alyx/__init__.py"
+
+[tool.pdm.scripts]
+install_docker_alyx = { call = "alyx:install_docker_alyx" }

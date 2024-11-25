@@ -7,13 +7,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0010_auto_20210624_1253'),
+        ("subjects", "0010_auto_20210624_1253"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='subject',
-            name='nickname',
-            field=models.CharField(default='-', help_text='Please follow the standard format : \nTwo or three initials of the person in charge + number of the animal for that person, in chronological order. \ne.g. wm25 => Wilson Mena mouse n°25. \nFor following the identity of the mouses in term of genotype/injected viruses and the correspunding number in mayakind, \nplease use the Zygosities fields below, and the description field to put more details that you want to remember.', max_length=64, validators=[django.core.validators.RegexValidator('^[-._~\\+\\*\\w]+$', 'Nicknames must only contain letters, numbers, or any of -._~.')]),
+            model_name="subject",
+            name="nickname",
+            field=models.CharField(
+                default="-",
+                help_text="Please follow the standard format : \nTwo or three initials of "
+                "the person in charge + number of the animal for that person, in chronological order. "
+                "\ne.g. wm25 => Wilson Mena mouse n°25. \nFor following the identity of the mouses in "
+                "term of genotype/injected viruses and the correspunding number in mayakind, \nplease "
+                "use the Zygosities fields below, and the description field to put more details "
+                "that you want to remember.",
+                max_length=64,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[-._~\\+\\*\\w]+$", "Nicknames must only contain letters, numbers, or any of -._~."
+                    )
+                ],
+            ),
         ),
     ]

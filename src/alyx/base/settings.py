@@ -31,8 +31,6 @@ from tzlocal import get_localzone
 DEFAULT_LAB_NAME = "defaultlab"
 DEFAULT_PROTOCOL = "1"
 
-AUTH_USER_MODEL = "misc.LabMember"
-
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
 
@@ -42,9 +40,12 @@ USE_DEPRECATED_PYTZ = True  # Support for using pytz will be removed in Django 5
 USE_TZ = True
 TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
+# IN WHAT ENVIRONMENT DO WE RUN ?
 IS_DOCKER = os.path.exists("/.dockerenv")
+IS_GITHUB_ACTION = "GITHUB_ACTIONS" in os.environ
 
-if "GITHUB_ACTIONS" in os.environ:
+
+if IS_GITHUB_ACTION:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -303,6 +304,7 @@ structlog.configure(
 
 WSGI_APPLICATION = "alyx.base.wsgi.application"
 
-
-# TODO use config file for that instead of hard coded text
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "157.99.138.172", "haiss-alyx", "haiss-alyx.local"]
+try:
+    from .settings_lab import *  # type: ignore
+except (ImportError, ModuleNotFoundError):
+    from .settings_lab_template import *

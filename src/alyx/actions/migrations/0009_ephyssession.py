@@ -6,19 +6,18 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0008_alter_session_qc'),
+        ("actions", "0008_alter_session_qc"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='EphysSession',
-            fields=[
-            ],
+            name="EphysSession",
+            fields=[],
             options={
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('actions.session',),
+            bases=("actions.session",),
         ),
     ]

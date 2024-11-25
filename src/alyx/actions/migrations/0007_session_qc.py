@@ -7,13 +7,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0006_cull_cullmethod_cullreason'),
+        ("actions", "0006_cull_cullmethod_cullreason"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='session',
-            name='qc',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Quality control JSON field', null=True),
+            model_name="session",
+            name="qc",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, help_text="Quality control JSON field", null=True
+            ),
         ),
     ]

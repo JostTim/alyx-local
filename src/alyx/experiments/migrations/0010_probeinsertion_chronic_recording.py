@@ -7,14 +7,20 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0016_chronicrecording'),
-        ('experiments', '0009_auto_20210624_1253'),
+        ("actions", "0016_chronicrecording"),
+        ("experiments", "0009_auto_20210624_1253"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='probeinsertion',
-            name='chronic_recording',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='probe_insertion', to='actions.chronicrecording'),
+            model_name="probeinsertion",
+            name="chronic_recording",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="probe_insertion",
+                to="actions.chronicrecording",
+            ),
         ),
     ]

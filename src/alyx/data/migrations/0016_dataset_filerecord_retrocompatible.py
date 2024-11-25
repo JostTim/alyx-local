@@ -7,28 +7,45 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0015_data_unique_obj_attr'),
+        ("data", "0015_data_unique_obj_attr"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='dataset',
-            name='data_repository',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='data.datarepository'),
+            model_name="dataset",
+            name="data_repository",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="data.datarepository"),
         ),
         migrations.AddField(
-            model_name='dataset',
-            name='extras_description',
-            field=models.CharField(blank=True, help_text='Description of what the extras refer to for all the files in this dataset. Should be null or one description ', max_length=512, null=True),
+            model_name="dataset",
+            name="extras_description",
+            field=models.CharField(
+                blank=True,
+                help_text="Description of what the extras refer to for all the files in this dataset. "
+                "Should be null or one description ",
+                max_length=512,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='datasettype',
-            name='extras_description',
-            field=models.CharField(blank=True, help_text='Description of what the extras refer to for all the files in this dataset. Should be null or one description ', max_length=512, null=True),
+            model_name="datasettype",
+            name="extras_description",
+            field=models.CharField(
+                blank=True,
+                help_text="Description of what the extras refer to for all the files in this dataset. "
+                "Should be null or one description ",
+                max_length=512,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='filerecord',
-            name='extras',
-            field=models.CharField(blank=True, help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001", max_length=255, null=True),
+            model_name="filerecord",
+            name="extras",
+            field=models.CharField(
+                blank=True,
+                help_text="extras of the file, separated by '.' or null if no extra. Example : pupil.00001",
+                max_length=255,
+                null=True,
+            ),
         ),
     ]

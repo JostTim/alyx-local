@@ -12,75 +12,112 @@ def sync_cull(apps, scheme):
     Cull = apps.get_model("actions", "Cull")
 
     subs = Subject.objects.filter(death_date__isnull=False)
-    Cull.objects.bulk_create(
-        [Cull(subject=sub, date=sub.death_date, user=sub.responsible_user) for sub in subs])
+    Cull.objects.bulk_create([Cull(subject=sub, date=sub.death_date, user=sub.responsible_user) for sub in subs])
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('subjects', '0004_remove_project_repositories'),
-        ('actions', '0005_auto_20190124_1025'),
+        ("subjects", "0004_remove_project_repositories"),
+        ("actions", "0005_auto_20190124_1025"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Cull',
+            name="Cull",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('date', models.DateField()),
-                ('description', models.TextField(blank=True, max_length=255, help_text='Narrative/Details')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    django.contrib.postgres.fields.jsonb.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("description", models.TextField(blank=True, max_length=255, help_text="Narrative/Details")),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='CullReason',
+            name="CullReason",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('description', models.TextField(blank=True, max_length=255)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    django.contrib.postgres.fields.jsonb.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                ("description", models.TextField(blank=True, max_length=255)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='CullMethod',
+            name="CullMethod",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('description', models.TextField(blank=True, max_length=255)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    django.contrib.postgres.fields.jsonb.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                ("description", models.TextField(blank=True, max_length=255)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddField(
-            model_name='cull',
-            name='cull_reason',
-            field=models.ForeignKey(blank=True, help_text='Reason for culling the subject', null=True, on_delete=django.db.models.deletion.SET_NULL, to='actions.CullReason'),
+            model_name="cull",
+            name="cull_reason",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Reason for culling the subject",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="actions.CullReason",
+            ),
         ),
         migrations.AddField(
-            model_name='cull',
-            name='cull_method',
-            field=models.ForeignKey(blank=True, help_text='How the subject was culled', null=True, on_delete=django.db.models.deletion.SET_NULL, to='actions.CullMethod'),
+            model_name="cull",
+            name="cull_method",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="How the subject was culled",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="actions.CullMethod",
+            ),
         ),
         migrations.AddField(
-            model_name='cull',
-            name='subject',
-            field=models.OneToOneField(help_text='The culled subject', on_delete=django.db.models.deletion.CASCADE, related_name='cull', to='subjects.Subject'),
+            model_name="cull",
+            name="subject",
+            field=models.OneToOneField(
+                help_text="The culled subject",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="cull",
+                to="subjects.Subject",
+            ),
         ),
         migrations.AddField(
-            model_name='cull',
-            name='user',
-            field=models.ForeignKey(blank=True, help_text='The user who culled the subject', null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL),
+            model_name="cull",
+            name="user",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="The user who culled the subject",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.RunPython(sync_cull),
     ]

@@ -6,58 +6,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('misc', '0007_auto_20200120_1223'),
+        ("misc", "0007_auto_20200120_1223"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='cagetype',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="cagetype",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='enrichment',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="enrichment",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='food',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="food",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='housing',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="housing",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='housingsubject',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="housingsubject",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='lab',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="lab",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='lablocation',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="lablocation",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='labmember',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=150, verbose_name='first name'),
+            model_name="labmember",
+            name="first_name",
+            field=models.CharField(blank=True, max_length=150, verbose_name="first name"),
         ),
         migrations.AlterField(
-            model_name='labmembership',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="labmembership",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='note',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="note",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
     ]

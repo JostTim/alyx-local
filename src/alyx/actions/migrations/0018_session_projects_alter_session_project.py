@@ -7,9 +7,9 @@ import django.db.models.deletion
 def labelprojm2m(apps, schema_editor):
     # We can't import the Session model directly as it may be a newer
     # version than this migration expects. We use the historical version.
-    Session = apps.get_model('actions', 'Session')
+    Session = apps.get_model("actions", "Session")
     # if the deprecated project field doesn't exist anymore, return
-    if not 'project' in [f.name for f in Session._meta.fields]:
+    if "project" not in [f.name for f in Session._meta.fields]:
         return
     for session in Session.objects.filter(project__isnull=False):
         session.projects.set([session.project])
@@ -19,20 +19,27 @@ def labelprojm2m(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0010_auto_20210624_1253'),
-        ('actions', '0017_alter_chronicrecording_subject_and_more'),
+        ("subjects", "0010_auto_20210624_1253"),
+        ("actions", "0017_alter_chronicrecording_subject_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='session',
-            name='projects',
-            field=models.ManyToManyField(blank=True, to='subjects.project', verbose_name='Session Projects'),
+            model_name="session",
+            name="projects",
+            field=models.ManyToManyField(blank=True, to="subjects.project", verbose_name="Session Projects"),
         ),
         migrations.AlterField(
-            model_name='session',
-            name='project',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='oldproject', to='subjects.project', verbose_name='Session Project'),
+            model_name="session",
+            name="project",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="oldproject",
+                to="subjects.project",
+                verbose_name="Session Project",
+            ),
         ),
         migrations.RunPython(labelprojm2m),
     ]

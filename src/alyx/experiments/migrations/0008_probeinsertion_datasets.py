@@ -6,14 +6,14 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0007_dataset_auto_datetime'),
-        ('experiments', '0007_probeinsertion_auto_datetime'),
+        ("data", "0007_dataset_auto_datetime"),
+        ("experiments", "0007_probeinsertion_auto_datetime"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='probeinsertion',
-            name='datasets',
-            field=models.ManyToManyField(blank=True, related_name='probe_insertion', to='data.Dataset'),
+            model_name="probeinsertion",
+            name="datasets",
+            field=models.ManyToManyField(blank=True, related_name="probe_insertion", to="data.Dataset"),
         ),
     ]

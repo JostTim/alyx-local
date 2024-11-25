@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0023_collection_empty_string'),
+        ("data", "0023_collection_empty_string"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='filerecord',
-            name='relative_path',
-            field=models.CharField(blank=True, default='', help_text='path name within repository', max_length=1000),
+            model_name="filerecord",
+            name="relative_path",
+            field=models.CharField(blank=True, default="", help_text="path name within repository", max_length=1000),
         ),
     ]

@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0020_removing_data_repository_from_filerecords'),
+        ("data", "0020_removing_data_repository_from_filerecords"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='filerecord',
-            name='hash',
-            field=models.CharField(blank=True, help_text='Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars', max_length=64, null=True),
+            model_name="filerecord",
+            name="hash",
+            field=models.CharField(
+                blank=True,
+                help_text="Hash of the data buffer, SHA-1 is 40 hex chars, while md5is 32 hex chars",
+                max_length=64,
+                null=True,
+            ),
         ),
     ]

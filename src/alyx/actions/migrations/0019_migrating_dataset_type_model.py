@@ -7,43 +7,45 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0018_session_projects_alter_session_project'),
+        ("actions", "0018_session_projects_alter_session_project"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='chronicrecording',
-            name='start_time',
+            model_name="chronicrecording",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
         migrations.AlterField(
-            model_name='otheraction',
-            name='start_time',
+            model_name="otheraction",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
         migrations.AlterField(
-            model_name='session',
-            name='number',
-            field=models.IntegerField(help_text='Necessary session number for this subject, this day. Must be unique', null=True),
+            model_name="session",
+            name="number",
+            field=models.IntegerField(
+                help_text="Necessary session number for this subject, this day. Must be unique", null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='session',
-            name='start_time',
+            model_name="session",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
         migrations.AlterField(
-            model_name='surgery',
-            name='start_time',
+            model_name="surgery",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
         migrations.AlterField(
-            model_name='virusinjection',
-            name='start_time',
+            model_name="virusinjection",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
         migrations.AlterField(
-            model_name='waterrestriction',
-            name='start_time',
+            model_name="waterrestriction",
+            name="start_time",
             field=models.DateTimeField(default=django.utils.timezone.now, null=True),
         ),
     ]

@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0012_change_qc_enum'),
+        ("actions", "0012_change_qc_enum"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='session',
-            name='qc',
-            field=models.IntegerField(choices=[(50, 'CRITICAL'), (40, 'FAIL'), (30, 'WARNING'), (0, 'NOT_SET'), (10, 'PASS')], default=0, help_text='50: CRITICAL / 40: FAIL / 30: WARNING / 0: NOT_SET / 10: PASS'),
+            model_name="session",
+            name="qc",
+            field=models.IntegerField(
+                choices=[(50, "CRITICAL"), (40, "FAIL"), (30, "WARNING"), (0, "NOT_SET"), (10, "PASS")],
+                default=0,
+                help_text="50: CRITICAL / 40: FAIL / 30: WARNING / 0: NOT_SET / 10: PASS",
+            ),
         ),
     ]

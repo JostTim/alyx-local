@@ -6,36 +6,34 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0004_remove_project_repositories'),
+        ("subjects", "0004_remove_project_repositories"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='Adverse effect',
+            name="Adverse effect",
         ),
         migrations.DeleteModel(
-            name='Cull subject',
+            name="Cull subject",
         ),
         migrations.CreateModel(
-            name='Adverse_effect',
-            fields=[
-            ],
+            name="Adverse_effect",
+            fields=[],
             options={
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('subjects.subject',),
+            bases=("subjects.subject",),
         ),
         migrations.CreateModel(
-            name='Cull_subject',
-            fields=[
-            ],
+            name="Cull_subject",
+            fields=[],
             options={
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('subjects.subject',),
+            bases=("subjects.subject",),
         ),
     ]

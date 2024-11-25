@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0008_auto_20201015_1320'),
+        ("subjects", "0008_auto_20201015_1320"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='subject',
-            name='implant_weight',
-            field=models.FloatField(blank=True, help_text='Implant weight in grams', null=True),
+            model_name="subject",
+            name="implant_weight",
+            field=models.FloatField(blank=True, help_text="Implant weight in grams", null=True),
         ),
     ]

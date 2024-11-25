@@ -63,7 +63,10 @@ COPY ./data/ /data
 COPY ./docker/django/entrypoint.sh /app/entrypoint.sh
 COPY ./docker/django/restore_on_run.sh /app/alyx/scripts/restore_on_run.sh
 
-
+#############################################################################
+## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
+COPY .config/db-secure-password /run/secrets/db-secure-password
+COPY .config/custom_settings.py /app/src/alyx/base/custom_settings.py
 
 ############################################
 ## SET USER PERMISSIONS ON THE APP FOLDER ##

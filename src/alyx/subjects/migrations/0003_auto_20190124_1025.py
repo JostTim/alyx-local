@@ -2,33 +2,37 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import misc.models
+from alyx.misc import models as misc_models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('misc', '0003_auto_20190124_1025'),
-        ('subjects', '0002_auto_20181015_1026'),
+        ("misc", "0003_auto_20190124_1025"),
+        ("subjects", "0002_auto_20181015_1026"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='line',
-            name='lab',
-            field=models.ForeignKey(default=misc.models.default_lab, on_delete=django.db.models.deletion.CASCADE, to='misc.Lab'),
+            model_name="line",
+            name="lab",
+            field=models.ForeignKey(
+                default=misc_models.default_lab, on_delete=django.db.models.deletion.CASCADE, to="misc.Lab"
+            ),
         ),
         migrations.AlterField(
-            model_name='subject',
-            name='lab',
-            field=models.ForeignKey(default=misc.models.default_lab, on_delete=django.db.models.deletion.CASCADE, to='misc.Lab'),
+            model_name="subject",
+            name="lab",
+            field=models.ForeignKey(
+                default=misc_models.default_lab, on_delete=django.db.models.deletion.CASCADE, to="misc.Lab"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='line',
-            unique_together={('nickname', 'lab')},
+            name="line",
+            unique_together={("nickname", "lab")},
         ),
         migrations.AlterUniqueTogether(
-            name='litter',
-            unique_together={('name',)},
+            name="litter",
+            unique_together={("name",)},
         ),
     ]

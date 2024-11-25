@@ -7,23 +7,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('experiments', '0003_probe_insertion_serial_20200504_1132'),
+        ("experiments", "0003_probe_insertion_serial_20200504_1132"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='brainregion',
-            name='description',
+            model_name="brainregion",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='brainregion',
-            name='ontology',
+            model_name="brainregion",
+            name="ontology",
             field=models.CharField(blank=True, max_length=64, null=True),
         ),
         migrations.AddField(
-            model_name='trajectoryestimate',
-            name='json',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="trajectoryestimate",
+            name="json",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+            ),
         ),
     ]

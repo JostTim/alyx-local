@@ -5,13 +5,15 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
+from django.db.migrations.state import StateApps
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 import django.db.models.deletion
 import django.utils.timezone
-import misc.models
+from alyx.misc import models as misc_models
 import uuid
 
 
-def create_default_lab(apps, schema_editor):
+def create_default_lab(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor):
     Lab = apps.get_model("misc", "Lab")
     Lab.objects.get_or_create(name=settings.DEFAULT_LAB_NAME)
 
@@ -65,7 +67,8 @@ class Migration(migrations.Migration):
                     "is_active",
                     models.BooleanField(
                         default=True,
-                        help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
+                        help_text="Designates whether this user should be treated as active. "
+                        "Unselect this instead of deleting accounts.",
                         verbose_name="active",
                     ),
                 ),
@@ -77,7 +80,8 @@ class Migration(migrations.Migration):
                     "groups",
                     models.ManyToManyField(
                         blank=True,
-                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each "
+                        "of their groups.",
                         related_name="user_set",
                         related_query_name="user",
                         to="auth.Group",
@@ -121,7 +125,8 @@ class Migration(migrations.Migration):
                     models.CharField(
                         blank=True,
                         default="GB",
-                        help_text="Timezone of the server (see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
+                        help_text="Timezone of the server "
+                        "(see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)",
                         max_length=64,
                     ),
                 ),
@@ -186,7 +191,7 @@ class Migration(migrations.Migration):
                 ),
                 ("date_time", models.DateTimeField(default=django.utils.timezone.now)),
                 ("text", models.TextField(blank=True)),
-                ("image", models.ImageField(blank=True, null=True, upload_to=misc.models.get_image_path)),
+                ("image", models.ImageField(blank=True, null=True, upload_to=misc_models.get_image_path)),
                 ("object_id", models.UUIDField()),
                 (
                     "content_type",

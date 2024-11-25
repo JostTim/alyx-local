@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jobs', '0002_auto_20200629_0935'),
+        ("jobs", "0002_auto_20200629_0935"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.IntegerField(choices=[(20, 'Waiting'), (25, 'Held'), (30, 'Started'), (40, 'Errored'), (50, 'Empty'), (60, 'Complete')], default=10),
+            model_name="task",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (20, "Waiting"),
+                    (25, "Held"),
+                    (30, "Started"),
+                    (40, "Errored"),
+                    (50, "Empty"),
+                    (60, "Complete"),
+                ],
+                default=10,
+            ),
         ),
     ]

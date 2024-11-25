@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import misc.models
+from alyx.misc import models as misc_models
 
 
 class Migration(migrations.Migration):
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             model_name="lablocation",
             name="lab",
             field=models.ForeignKey(
-                default=misc.models.default_lab, on_delete=django.db.models.deletion.CASCADE, to="misc.Lab"
+                default=misc_models.default_lab, on_delete=django.db.models.deletion.CASCADE, to="misc.Lab"
             ),
         ),
     ]

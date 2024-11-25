@@ -6,23 +6,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0018_name_extras_to_extra_step1'),
+        ("data", "0018_name_extras_to_extra_step1"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='filerecord',
-            old_name='extras',
-            new_name='extra',
+            model_name="filerecord",
+            old_name="extras",
+            new_name="extra",
         ),
         migrations.AlterField(
-            model_name='dataset',
-            name='extras_description',
-            field=models.CharField(blank=True, help_text='Description of what the extra refer to for all the files in this dataset. Should be null or one description ', max_length=512, null=True),
+            model_name="dataset",
+            name="extras_description",
+            field=models.CharField(
+                blank=True,
+                help_text="Description of what the extra refer to for all the files in this dataset. "
+                "Should be null or one description ",
+                max_length=512,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='datasettype',
-            name='extras_description',
-            field=models.CharField(blank=True, help_text='Description of what the extra refer to for all the files in this dataset. Should be null or one description ', max_length=512, null=True),
+            model_name="datasettype",
+            name="extras_description",
+            field=models.CharField(
+                blank=True,
+                help_text="Description of what the extra refer to for all the files in this dataset. "
+                "Should be null or one description ",
+                max_length=512,
+                null=True,
+            ),
         ),
     ]

@@ -6,21 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0019_name_extras_to_extra_step2'),
+        ("data", "0019_name_extras_to_extra_step2"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='filerecord',
+            name="filerecord",
             unique_together=set(),
         ),
         migrations.AlterField(
-            model_name='filerecord',
-            name='extra',
-            field=models.CharField(blank=True, db_column='extras', help_text="extra of the file, separated by '.' or null if no extra. Example : pupil.00001. Null will be converted to '' internally", max_length=255, null=True),
+            model_name="filerecord",
+            name="extra",
+            field=models.CharField(
+                blank=True,
+                db_column="extras",
+                help_text="extra of the file, separated by '.' or null if no extra. "
+                "Example : pupil.00001. Null will be converted to '' internally",
+                max_length=255,
+                null=True,
+            ),
         ),
         migrations.RemoveField(
-            model_name='filerecord',
-            name='data_repository',
+            model_name="filerecord",
+            name="data_repository",
         ),
     ]

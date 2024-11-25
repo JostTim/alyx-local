@@ -6,58 +6,63 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0008_dataset_revision_tag'),
+        ("data", "0008_dataset_revision_tag"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataformat',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="dataformat",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='datarepository',
-            name='globus_is_personal',
-            field=models.BooleanField(blank=True, help_text='whether the Globus endpoint is personal or not. By default, Globus cannot transfer a file between two personal endpoints.', null=True),
+            model_name="datarepository",
+            name="globus_is_personal",
+            field=models.BooleanField(
+                blank=True,
+                help_text="whether the Globus endpoint is personal or not. By default, Globus cannot transfer a file "
+                "between two personal endpoints.",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='datarepository',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="datarepository",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='datarepositorytype',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="datarepositorytype",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='dataset',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="dataset",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='datasettype',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="datasettype",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='download',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="download",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='filerecord',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="filerecord",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='revision',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="revision",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
         migrations.AlterField(
-            model_name='tag',
-            name='json',
-            field=models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True),
+            model_name="tag",
+            name="json",
+            field=models.JSONField(blank=True, help_text="Structured data, formatted in a user-defined way", null=True),
         ),
     ]

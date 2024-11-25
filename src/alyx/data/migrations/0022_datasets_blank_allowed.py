@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0021_adding_hash_to_file_records'),
+        ("data", "0021_adding_hash_to_file_records"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataset',
-            name='name',
-            field=models.CharField(blank=True, help_text='Long name', max_length=255),
+            model_name="dataset",
+            name="name",
+            field=models.CharField(blank=True, help_text="Long name", max_length=255),
         ),
     ]

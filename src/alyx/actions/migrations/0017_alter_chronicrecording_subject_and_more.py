@@ -7,39 +7,69 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('subjects', '0010_auto_20210624_1253'),
-        ('actions', '0016_chronicrecording'),
+        ("subjects", "0010_auto_20210624_1253"),
+        ("actions", "0016_chronicrecording"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='chronicrecording',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="chronicrecording",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='otheraction',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="otheraction",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='session',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="session",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='surgery',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="surgery",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='virusinjection',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="virusinjection",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
         migrations.AlterField(
-            model_name='waterrestriction',
-            name='subject',
-            field=models.ForeignKey(help_text='The subject on which this action was performed', on_delete=django.db.models.deletion.CASCADE, related_name='%(app_label)s_%(class)ss', to='subjects.subject'),
+            model_name="waterrestriction",
+            name="subject",
+            field=models.ForeignKey(
+                help_text="The subject on which this action was performed",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="%(app_label)s_%(class)ss",
+                to="subjects.subject",
+            ),
         ),
     ]

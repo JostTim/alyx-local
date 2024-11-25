@@ -6,13 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('jobs', '0005_auto_20201119_0953'),
+        ("jobs", "0005_auto_20201119_0953"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.IntegerField(choices=[(20, 'Waiting'), (25, 'Held'), (30, 'Started'), (40, 'Errored'), (45, 'Abandoned'), (50, 'Empty'), (55, 'Incomplete'), (60, 'Complete')], default=10, help_text='20: Waiting / 25: Held / 30: Started / 40: Errored / 45: Abandoned / 50: Empty / 55: Incomplete / 60: Complete'),
+            model_name="task",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (20, "Waiting"),
+                    (25, "Held"),
+                    (30, "Started"),
+                    (40, "Errored"),
+                    (45, "Abandoned"),
+                    (50, "Empty"),
+                    (55, "Incomplete"),
+                    (60, "Complete"),
+                ],
+                default=10,
+                help_text="20: Waiting / 25: Held / 30: Started / 40: Errored / "
+                "45: Abandoned / 50: Empty / 55: Incomplete / 60: Complete",
+            ),
         ),
     ]

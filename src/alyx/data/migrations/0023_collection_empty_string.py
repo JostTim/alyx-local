@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data', '0022_datasets_blank_allowed'),
+        ("data", "0022_datasets_blank_allowed"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='dataset',
-            name='collection',
-            field=models.CharField(blank=True, default='', help_text='file subcollection or subfolder', max_length=255),
+            model_name="dataset",
+            name="collection",
+            field=models.CharField(blank=True, default="", help_text="file subcollection or subfolder", max_length=255),
         ),
     ]
