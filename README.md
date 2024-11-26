@@ -20,8 +20,13 @@ It has not been tested for a raw run on linux.
 - Now that the venv and dependancies are installed on your machine, create the final config files necessary four your alyx installation on docker, with the command : `pdm run install_docker_alyx`
 - Follow the instructions, and enter a password for the database (press enter if the randomly generated one is okay) It will be saved in a file as advertized so don't worry to copy it elsewhere.
 - now that everything should be ready, run : `docker compose up --build`
-- If the creating of the container(s) worked fine, you should see : `Starting Gunicorn to serve django alyx...` `Starting gunicorn 23.0.0` `Listening at: http://0.0.0.0:8000 (111)` `Using worker: sync` `Booting worker with pid: 112`
-- Open a browser tab at `http://localhost/admin` to see alyx's graphical interface.
+- If the creating of the container(s) worked fine, you should see :  
+`Starting Gunicorn to serve django alyx...`  
+`Starting gunicorn 23.0.0`  
+`Listening at: http://0.0.0.0:8000 (111)`  
+`Using worker: sync`  
+`Booting worker with pid: 112`   
+- Open a browser tab at http://localhost/admin to see alyx's graphical interface.
 - If this is your first connection and you didn't had a backup restored upon build, you can first conenct with user : admin , passowrd : admin. Otherwise, use your regular credential from the backup image.
 - Done, you may now proceed to more adwanced steps (such as interfacing your alyx docker setver with python) following other links.
 
