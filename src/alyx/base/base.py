@@ -5,7 +5,8 @@ import os.path as op
 import re
 from polymorphic.models import PolymorphicModel
 import sys
-import pytz
+
+from zoneinfo import ZoneInfo
 import uuid
 from collections import OrderedDict
 from rest_framework import serializers
@@ -14,6 +15,7 @@ from datetime import datetime
 from django import forms
 from django.db import models
 from django.db.models import QuerySet
+from django.db.models.base import Model
 from django.db import connection
 from django.conf import settings
 from django.contrib import admin
@@ -25,6 +27,7 @@ from django.utils import termcolors, timezone
 from django.test import TestCase
 from django_filters import CharFilter
 from django_filters.rest_framework import FilterSet
+from django.core.handlers.wsgi import WSGIRequest
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import ParseError
 
@@ -34,6 +37,9 @@ from django.template.loaders.app_directories import Loader as AppDirectoriesLoad
 from rest_framework import permissions, generics
 from dateutil.parser import parse
 from reversion.admin import VersionAdmin
+
+from typing import List, Dict, Any, Optional, Iterator, Literal
+
 from .. import __version__ as version
 
 logger = structlog.get_logger(__name__)
@@ -274,6 +280,52 @@ class Bunch(dict):
         self.__dict__ = self
 
 
+class ModelDict(Bunch):
+    admin_url: str
+    add_url: str
+    name: str
+    perms: dict
+    object_name: str = ""
+
+
+class Category(Bunch):
+    models: List[ModelDict]
+    name: str
+    collapsed: Literal["", "collapsed"]
+    app_label: str
+
+
+class CategoryList(list):
+    def __init__(self, categories: Optional[List[Category]] = None):
+        if categories is None:
+            categories = []
+        super().__init__(categories)
+
+    def append(self, category: Category) -> None:
+        if not isinstance(category, Category):
+            raise TypeError("Only Category instances can be added to CategoryList")
+        super().append(category)
+
+    def extend(self, categories: List[Category]) -> None:
+        if not all(isinstance(category, Category) for category in categories):
+            raise TypeError("All elements must be Category instances")
+        super().extend(categories)
+
+    def insert(self, index: int, category: Category) -> None:
+        if not isinstance(category, Category):
+            raise TypeError("Only Category instances can be inserted into CategoryList")
+        super().insert(index, category)
+
+    def __getitem__(self, index) -> Category:
+        return super().__getitem__(index)
+
+    def __iter__(self) -> Iterator[Category]:
+        return super().__iter__()
+
+    def named(self, name: str) -> Category:
+        return self[[cat.name for cat in self].index(name)]
+
+
 def flatten(list_like):
     return [item for sublist in list_like for item in sublist]
 
@@ -294,46 +346,40 @@ def _iter_history_changes(obj, field):
         yield _show_change(d["date_time"], d["value"], current)
 
 
-def _get_category_list(app_list):
+def _get_category_list(app_list: List[Dict[str, Any]]):
     order = ADMIN_PAGES
     extra_in_common = ["Adverse effects", "Cull subjects"]
-    order_models = flatten([models for app, models in order])
+
     models_dict = {str(model["name"]): model for app in app_list for model in app["models"]}
     model_to_app = {str(model["name"]): str(app["name"]) for app in app_list for model in app["models"]}
-    category_list = [
-        Bunch(
-            name=name,
-            models=[models_dict[m] for m in model_names if m in models_dict],
-            collapsed="" if name == "Common" else "collapsed",
-        )
-        for name, model_names in order
-    ]
+    category_list = CategoryList(
+        [
+            Category(
+                name=name,
+                models=[ModelDict(models_dict[name]) for name in model_names if name in models_dict.keys()],
+                collapsed="" if name == "Common" else "collapsed",
+                app_label=name,
+            )
+            for name, model_names in order
+        ]
+    )
+    models_in_order = flatten([models for app, models in order])
     for model_name, app_name in model_to_app.items():
-        if model_name in order_models:
+        if model_name in models_in_order:
             continue
         if model_name.startswith("Subject") or model_name in extra_in_common:
-            category_list[0].models.append(models_dict[model_name])
+            category_list.named("Common").models.append(models_dict[model_name])
         else:
-            category_list[3].models.append(models_dict[model_name])
+            category_list.named("Other").models.append(models_dict[model_name])
+
     # Add link to training view in 'Common' panel.
-    category_list[0].models.extend(
-        [
-            {
-                "admin_url": reverse("training"),
-                "name": "Training view",
-                "perms": {},
-            },
-            # {
-            #     "admin_url": reverse("training"),
-            #     "name": "Training view",
-            #     "perms": {},
-            # }
-        ]
+    category_list.named("Common").models.append(
+        ModelDict({"admin_url": reverse("training"), "name": "Training view", "perms": {}, "add_url": ""})
     )
     return category_list
 
 
-def get_admin_url(obj):
+def get_admin_url(obj: Model):
     if not obj:
         return "#"
     info = (obj._meta.app_label, obj._meta.model_name)
@@ -341,15 +387,16 @@ def get_admin_url(obj):
 
 
 class MyAdminSite(admin.AdminSite):
-    def index(self, request, extra_context=None):
+    def index(self, request: WSGIRequest, extra_context=None):
         category_list = _get_category_list(self.get_app_list(request))
         context = dict(
             self.each_context(request),
             title=self.index_title,
             app_list=category_list,
         )
+        context["subtitle"] = ""
         context.update(extra_context or {})
-        request.current_app = self.name
+        request.current_app = self.name  # type: ignore
 
         return TemplateResponse(request, self.index_template or "admin/index.html", context)
 
@@ -388,13 +435,11 @@ class BaseAdmin(VersionAdmin):
             return {}
         from ..misc.models import Lab
 
-        tz = pytz.timezone(Lab.objects.get(name=request.user.lab[0]).timezone)
-        # assert (
-        #    settings.USE_TZ is False
-        # )  # timezone.now() is expected to be a naive datetime
-        server_tz = pytz.timezone(settings.TIME_ZONE)  # server timezone
+        lab_tz = ZoneInfo(Lab.objects.get(name=request.user.lab[0]).timezone)
+
+        server_tz = ZoneInfo(settings.TIME_ZONE)  # server timezone
         now = datetime.now(tz=server_tz)  # convert datetime from naive to server timezone
-        now = now.astimezone(tz)  # convert to the lab timezone
+        now = now.astimezone(lab_tz)  # convert to the lab timezone
         return {"start_time": now, "created_at": now, "date_time": now}
 
     def changelist_view(self, request, extra_context=None):

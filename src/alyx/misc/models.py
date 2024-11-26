@@ -3,7 +3,7 @@ from io import BytesIO
 import os.path as op
 import uuid
 import sys
-import pytz
+from zoneinfo import ZoneInfo
 
 from PIL import Image
 
@@ -275,12 +275,13 @@ class Housing(BaseModel):
         self.pk = None
         self.save(force_insert=True)
         subs = old.subjects_current()
-        if not subs:
+        if not subs or not (first_subject := subs.first()):
             return
+
         # 1) update of the old model(s), setting the end time
         now = datetime.now(tz=timezone.get_current_timezone())
-        if subs.first().lab:
-            now = now.astimezone(pytz.timezone(subs.first().lab.timezone))
+        if first_subject.lab:
+            now = now.astimezone(ZoneInfo(first_subject.lab.timezone))
         old.housing_subjects.all().update(end_datetime=now)
         # 2) update of the current model and create start time
         for sub in subs:

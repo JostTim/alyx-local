@@ -18,7 +18,6 @@ from django.contrib.admin import site, SimpleListFilter, TabularInline
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models.functions import Collate
 from rangefilter.filters import DateRangeFilter
-from django.utils import timezone
 from functools import partial
 
 from ..base.base import BaseAdmin, DefaultListFilter, BaseInlineAdmin, get_admin_url

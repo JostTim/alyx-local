@@ -196,7 +196,11 @@ class SessionDetailSerializer(BaseActionSerializer):
     qc = BaseSerializerEnumField(required=False)
 
     default_data_repository_pk = serializers.PrimaryKeyRelatedField(
-        read_only=False, required=False, queryset=DataRepository.objects.all(), source="default_data_repository"
+        read_only=False,
+        required=False,
+        queryset=DataRepository.objects.all(),
+        source="default_data_repository",
+        style={"allow_blank": False, "hide_label": False},
     )
 
     default_data_repository_path = serializers.SlugRelatedField(

@@ -14,28 +14,13 @@ import structlog
 from django.conf.locale.en import formats as en_formats
 from tzlocal import get_localzone
 
-
-# # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-# try:
-#     from .settings_secret import *  # type: ignore
-# except ImportError:
-#     # We're probably autobuilding some documentation so let's just import something
-#     # to keep Django happy...
-#     from .settings_secret_template import *
-# # Lab-specific settings
-# try:
-#     from .settings_lab import *  # type: ignore
-# except ImportError:
-#     from .settings_lab_template import *
+DEBUG = True
 
 DEFAULT_LAB_NAME = "defaultlab"
 DEFAULT_PROTOCOL = "1"
 
 en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
-
-# changes by timothe on 28-11-2022 to try to fix "time offset" issues
-USE_DEPRECATED_PYTZ = True  # Support for using pytz will be removed in Django 5.0
 
 USE_TZ = True
 TIME_ZONE = get_localzone().key  # "Europe/Paris"
@@ -89,6 +74,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
+# SECURITY WARNING: don't run with debug turned on in production!
+
+
+# Production settings. Used mainly for SSL security. As we go local, i deactiated them.
+# There is still authentification, but "risk" for man in the middle attack
+# (only, the middle man have to be IN pasteur's private network so it's much less likely and data is backuped regularly.
+if not DEBUG:
+    pass
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # CSRF_COOKIE_SECURE = False #previous value was True
+
+    # X_FRAME_OPTIONS = 'DENY'
+    # SESSION_COOKIE_SECURE = True
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # SECURE_SSL_REDIRECT = False #previous value was True
+    # SECURE_BROWSER_XSS_FILTER = True
+    # SECURE_CONTENT_TYPE_NOSNIFF = True
+    # SECURE_HSTS_SECONDS = 30
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
+    LOG_LEVEL = "WARNING"
+else:
+    LOG_LEVEL = "DEBUG"
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -112,16 +122,16 @@ LOGGING = {
     },
     "handlers": {
         "file": {
-            "level": "WARNING",
+            "level": f"{LOG_LEVEL}",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "/app/uploaded/log/alyx_db.log",
             "maxBytes": 16777216,
             "backupCount": 5,
             "formatter": "simple",
         },
-        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "simple"},
+        "console": {"level": f"{LOG_LEVEL}", "class": "logging.StreamHandler", "formatter": "simple"},
         "json_file": {
-            "level": "DEBUG",
+            "level": f"{LOG_LEVEL}",
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "/app/uploaded/log/alyx_db_json.log",
             "maxBytes": 16777216,
@@ -132,17 +142,17 @@ LOGGING = {
     "loggers": {
         "django": {
             "handlers": ["file"],
-            "level": "WARNING",
+            "level": f"{LOG_LEVEL}",
             "propagate": True,
         },
         "django_structlog": {
             "handlers": ["json_file"],
-            "level": "INFO",
+            "level": f"{LOG_LEVEL}",
         },
     },
     "root": {
         "handlers": ["file", "console"],
-        "level": "WARNING",
+        "level": f"{LOG_LEVEL}",
         "propagate": True,
     },
 }
@@ -150,27 +160,6 @@ LOGGING = {
 if "TRAVIS" in os.environ or "READTHEDOCS" in os.environ:
     LOGGING["handlers"]["file"]["filename"] = "alyx.log"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-
-# Production settings. Used mainly for SSL security. As we go local, i deactiated them.
-# There is still authentification, but "risk" for man in the middle attack
-# (only, the middle man have to be IN pasteur's private network so it's much less likely and data is backuped regularly.
-if not DEBUG:
-    pass
-    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
-    # CSRF_COOKIE_SECURE = False #previous value was True
-
-    # X_FRAME_OPTIONS = 'DENY'
-    # SESSION_COOKIE_SECURE = True
-    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
-    # SECURE_SSL_REDIRECT = False #previous value was True
-    # SECURE_BROWSER_XSS_FILTER = True
-    # SECURE_CONTENT_TYPE_NOSNIFF = True
-    # SECURE_HSTS_SECONDS = 30
-    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    # SECURE_HSTS_PRELOAD = True
 
 # Application definition
 
@@ -186,16 +175,19 @@ INSTALLED_APPS = (
     "mptt",
     "polymorphic",
     "rangefilter",
+    #### rest_framework
     "rest_framework",
     "rest_framework.authtoken",
-    "rest_framework_docs",
+    # "rest_framework_docs",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     "reversion",
     "test_without_migrations",
-    # UI add-ons
+    ### UI add-ons
     "markdownx",  # https://github.com/neutronX/django-markdownx
     "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
     "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown
-    # alyx-apps
+    ### alyx-apps
     "alyx.actions",
     "alyx.data",
     "alyx.misc",
@@ -216,6 +208,7 @@ MIDDLEWARE = (
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.admindocs.middleware.XViewMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "alyx.base.base.QueryPrintingMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
@@ -259,8 +252,15 @@ REST_FRAMEWORK = {
     #     'rest_framework.renderers.JSONRenderer',
     # ),
     "EXCEPTION_HANDLER": "alyx.base.base.rest_filters_exception_handler",
-    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.coreapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "PAGE_SIZE": 250,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "alyx-api",
+    "DESCRIPTION": "Alyx neurophysiological database",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 # Internationalization
@@ -305,6 +305,6 @@ structlog.configure(
 WSGI_APPLICATION = "alyx.base.wsgi.application"
 
 try:
-    from .settings_lab import *  # type: ignore
+    from .custom_settings import *  # type: ignore
 except (ImportError, ModuleNotFoundError):
-    from .settings_lab_template import *
+    raise ImportError("The custom_settings.py file is missing. Cannot proceed")

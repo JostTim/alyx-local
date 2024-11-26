@@ -1,4 +1,4 @@
-from pytz import all_timezones
+from zoneinfo import available_timezones
 
 from django import forms
 from django.db import models
@@ -46,7 +46,7 @@ class LabForm(forms.ModelForm):
 
     def clean_timezone(self):
         ref = self.cleaned_data["timezone"]
-        if ref not in all_timezones:
+        if ref not in available_timezones():
             raise forms.ValidationError(
                 (
                     "Time Zone is incorrect here is the list (column TZ Database Name):  "

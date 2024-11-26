@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone as datetimezone
 import structlog
 from operator import attrgetter
 import urllib
 
-import pytz
+from zoneinfo import ZoneInfo
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core import validators
@@ -62,7 +62,7 @@ def init_old_fields(obj, fields):
 
 
 def save_old_fields(obj, fields):
-    date_time = datetime.now(timezone.utc).isoformat()
+    date_time = datetime.now(tz=datetimezone.utc).isoformat()
     d = (getattr(obj, "json", None) or {}).get("history", {})
     for field in fields:
         v = _get_current_field(obj, field)
@@ -271,7 +271,9 @@ please use the Zygosities fields below, and the description field to put more de
     def light_cycle(self):
         if self.housing:
             if self.housing.light_cycle:
-                return self.housing._meta.get_field("light_cycle").choices[self.housing.light_cycle][1]
+                choices = self.housing._meta.get_field("light_cycle").choices
+                test = choices.get(self.housing.light_cycle, None)
+                return test[1] if test else None
 
     @property
     def enrichment(self):
@@ -299,7 +301,7 @@ please use the Zygosities fields below, and the description field to put more de
     def age_days(self):
         if self.death_date is None and self.birth_date is not None:
             # subject still alive
-            age = datetime.now(timezone.utc).date() - self.birth_date
+            age = datetime.now(tz=datetimezone.utc).date() - self.birth_date
         elif self.death_date is not None and self.birth_date is not None:
             # subject is dead
             age = self.death_date - self.birth_date
@@ -326,10 +328,10 @@ please use the Zygosities fields below, and the description field to put more de
             return timezone.get_default_timezone()
         else:
             try:
-                tz = pytz.timezone(self.lab.timezone)
+                tz = ZoneInfo(self.lab.timezone)
             except Exception:
                 logger.warning("Incorrect TZ format. Assuming UTC instead of " + self.lab.timezone)
-                tz = pytz.timezone("Europe/London")
+                tz = ZoneInfo("Europe/London")
             return tz
 
     def reinit_water_control(self):

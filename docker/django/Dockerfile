@@ -48,8 +48,6 @@ COPY ./pyproject.toml /app/pyproject.toml
 COPY ./src/alyx/__init__.py /app/src/alyx/__init__.py
 
 COPY ./pdm.lock /app/pdm.lock
-COPY ./docker/install_config /app/alyx/config/
-
 #########################################################################
 ## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE ALYX FOLDER FOR LATER USE ##
 COPY ./scripts/ /app/alyx/scripts
@@ -65,8 +63,8 @@ COPY ./docker/django/restore_on_run.sh /app/alyx/scripts/restore_on_run.sh
 
 #############################################################################
 ## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
-COPY .config/db-secure-password /run/secrets/db-secure-password
-COPY .config/custom_settings.py /app/src/alyx/base/custom_settings.py
+COPY ./config/db-secure-password /run/secrets/db-secure-password
+COPY ./config/custom_settings.py /app/alyx/base/custom_settings.py
 
 ############################################
 ## SET USER PERMISSIONS ON THE APP FOLDER ##

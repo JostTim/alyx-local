@@ -4,10 +4,8 @@ from django.contrib import admin
 from django.views.generic.base import RedirectView
 from django.contrib.staticfiles.storage import staticfiles_storage
 
-
 from rest_framework.authtoken import views as authv
-from rest_framework.documentation import include_docs_urls
-
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 admin.site.site_header = "Alyx"
 
@@ -22,15 +20,16 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("auth-token", authv.obtain_auth_token),
-    path("docs/", include_docs_urls(title="Alyx REST API documentation")),
-    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("markdownx/", include("markdownx.urls")),
+    path("favicon.ico", RedirectView.as_view(url=staticfiles_storage.url("favicon.ico"))),
 ]
 
-# this is an optional app
-try:
-    urlpatterns += [
-        path("ibl_reports/", include("ibl_reports.urls")),
-    ]
-except ModuleNotFoundError:
-    pass
+# # this is an optional app
+# try:
+#     urlpatterns += [
+#         path("ibl_reports/", include("ibl_reports.urls")),
+#     ]
+# except ModuleNotFoundError:
+#     pass

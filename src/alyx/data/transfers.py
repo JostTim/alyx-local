@@ -10,7 +10,7 @@ from fnmatch import fnmatch
 from django.db.models import Case, When, Count, Q, F
 from rest_framework.response import Response
 
-import globus_sdk
+# import globus_sdk
 import numpy as np
 from one.alf.files import filename_parts, add_uuid_string
 from one.alf.spec import is_valid
