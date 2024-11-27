@@ -46,8 +46,8 @@ COPY ./pyproject.toml /app/pyproject.toml
 
 # this is just a crappy fix for pdm to find the version
 COPY ./src/alyx/__init__.py /app/src/alyx/__init__.py
-
 COPY ./pdm.lock /app/pdm.lock
+
 #########################################################################
 ## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE ALYX FOLDER FOR LATER USE ##
 COPY ./scripts/ /app/alyx/scripts

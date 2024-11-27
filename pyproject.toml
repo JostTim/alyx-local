@@ -90,4 +90,7 @@ source = "file"
 path = "src/alyx/__init__.py"
 
 [tool.pdm.scripts]
-install_docker_alyx = { call = "alyx:install_docker_alyx" }
+build_container = { shell = "docker compose up --build" }
+install_config = { call = "alyx:install_docker_alyx" }
+start = { shell = "docker compose up" }
+interactive-manage = { shell = "docker exec -it haiss-alyx-django_server-1 bash" }

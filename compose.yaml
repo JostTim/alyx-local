@@ -15,6 +15,10 @@ services:
       dockerfile: ./docker/django/Dockerfile
     volumes :
       - uploaded_volume:/app/uploaded
+      - ./config/db-secure-password:/run/secrets/db-secure-password:ro
+    environment : 
+      - POSTGRES_DB=alyx
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
     expose:
       - 8000
     depends_on:
