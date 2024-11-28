@@ -10,6 +10,7 @@
 .vscode/
 .DS_Store
 .pdm-python
+.pdm-build/
 
 alyx/data/management/commands/*ibl*
 alyx/templates/ibl_reports
@@ -18,6 +19,6 @@ alyx/alyx/settings_lab.py
 
 config
 src/uploaded
-
+legacy/
 
 *secrets*
