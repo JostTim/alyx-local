@@ -28,8 +28,16 @@ RUN adduser \
 
 # get pg_restore and other database tools #
 RUN apt-get update && \
+    apt-get install -y wget gnupg2 lsb-release && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+RUN apt-get update && \
     apt-get install -y \
-    postgresql-client \
+    postgresql-client-17 \
     dos2unix \
     curl \
     && apt-get clean \
@@ -63,7 +71,6 @@ COPY ./docker/django/restore_on_run.sh /app/alyx/scripts/restore_on_run.sh
 
 #############################################################################
 ## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
-COPY ./config/db-secure-password /run/secrets/db-secure-password
 COPY ./config/custom_settings.py /app/alyx/base/custom_settings.py
 
 ############################################

@@ -726,6 +726,8 @@ class BaseSerializerEnumField(serializers.Field):
 
     @property
     def choices(self):
+        if self.parent is None:
+            raise ValueError("parent of {self} is None, canot access to choices")
         model = self.parent.Meta.model
         return model._meta.get_field(self.field_name).choices
 

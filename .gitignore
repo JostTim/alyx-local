@@ -9,12 +9,15 @@
 .idea/*
 .vscode/
 .DS_Store
+.pdm-python
 
 alyx/data/management/commands/*ibl*
 alyx/templates/ibl_reports
 alyx/alyx/settings_secret.py
 alyx/alyx/settings_lab.py
 
-config/*
+config
+src/uploaded
+
 
 *secrets*

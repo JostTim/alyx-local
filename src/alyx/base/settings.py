@@ -48,7 +48,7 @@ elif IS_DOCKER:
         with open(secret_file_path) as f:
             return f.read().strip()
 
-    DB_PASSWORD_FILE = Path("/run/secrets/db-secure-password")
+    DB_PASSWORD_FILE = Path(os.environ["POSTGRES_PASSWORD_FILE"])  # "/run/secrets/db-secure-password")
     if not DB_PASSWORD_FILE.is_file():
         raise IOError(
             "No 'db-secure-password' file was found. "
@@ -96,7 +96,7 @@ if not DEBUG:
     # SECURE_HSTS_PRELOAD = True
     LOG_LEVEL = "WARNING"
 else:
-    LOG_LEVEL = "DEBUG"
+    LOG_LEVEL = "INFO"
 
 
 LOGGING = {
@@ -173,8 +173,7 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "mptt",
-    "polymorphic",
-    "rangefilter",
+    "polymorphic",  # enhances django model inheritance
     #### rest_framework
     "rest_framework",
     "rest_framework.authtoken",
@@ -183,10 +182,13 @@ INSTALLED_APPS = (
     "drf_spectacular_sidecar",
     "reversion",
     "test_without_migrations",
+    ## Backups and restore https://django-dbbackup.readthedocs.io/en/stable/index.html
+    "dbbackup",
     ### UI add-ons
     "markdownx",  # https://github.com/neutronX/django-markdownx
     "jsoneditor",  # https://github.com/nnseva/django-jsoneditor
     "django_admin_listfilter_dropdown",  # https://github.com/mrts/django-admin-list-filter-dropdown
+    "rangefilter",
     ### alyx-apps
     "alyx.actions",
     "alyx.data",
@@ -263,6 +265,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
+DBBACKUP_STORAGE_OPTIONS = {"location": "/app/uploaded/backups/"}
+
 # Internationalization
 USE_I18N = False
 USE_L10N = False
@@ -303,6 +308,7 @@ structlog.configure(
 )
 
 WSGI_APPLICATION = "alyx.base.wsgi.application"
+
 
 try:
     from .custom_settings import *  # type: ignore

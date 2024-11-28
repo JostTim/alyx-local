@@ -17,7 +17,6 @@ services:
       - uploaded_volume:/app/uploaded
       - ./config/db-secure-password:/run/secrets/db-secure-password:ro
     environment : 
-      - POSTGRES_DB=alyx
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
     expose:
       - 8000
@@ -36,7 +35,7 @@ services:
       - django_server
 
   db:
-    image: postgres:latest
+    image: postgres:17
     restart: always
     user: postgres
     volumes:

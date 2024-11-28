@@ -291,6 +291,7 @@ class SessionFilter(BaseFilterSet):
     # dataset_attribute : TODO
 
     def filter_subject(self, queryset, _, value):
+        print("SHIEKS", value)
         objects = value.split(",")
         return queryset.filter(subject__nickname__in=objects)
 
