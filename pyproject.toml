@@ -37,6 +37,7 @@ dependencies = [
     "setuptools>=75.3.0",
     "rich>=13.9.4",
     "django-dbbackup>=4.2.1",
+    "django-crispy-forms>=2.3",
 ]
 dynamic = ["version"]
 
@@ -91,8 +92,8 @@ source = "file"
 path = "src/alyx/__init__.py"
 
 [tool.pdm.scripts]
-build = { shell = "docker compose up --build" }
-configure = { call = "alyx:install_docker_alyx" }
-start = { shell = "docker compose restart" }
-interact = { shell = "docker exec -it haiss-alyx-django_server-1 bash" }
-manage = { shell = "docker exec -w /app/ -it haiss-alyx-django_server-1 pdm run manage.py {args}" }
+configure = { call = "alyx:install_docker_alyx", help = "Create necessary files for a first sucessfull build of the docker containers" }
+build = { shell = "docker compose up --build", help = "Build new images and then starts the containers for the alyx docker project" }
+start = { shell = "docker compose restart", help = "Start containers (if stopped, or restart if they are currentely running) containers for alyx that have already been built" }
+interact = { shell = "docker exec -it haiss-alyx-django_server-1 bash", help = "Connect the the django container of the alyx project, through a SSH shell, to be able to run and perform terminal actions as on a regular linux operative system" }
+manage = { shell = "docker exec -w /app/ -it haiss-alyx-django_server-1 pdm run manage.py {args}", help = "Shortcut to run the manage.py script on the currentely running django alyx docker container. THis is very powerfull for admin management like backups, restores, and many oher things like migrations etc." }

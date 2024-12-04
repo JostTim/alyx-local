@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4263ec181ceb6c7240a4002726a588b1c415e294a6d16116c665026d6e9d92f2"
+content_hash = "sha256:a08041fcc06d9fcd979b7271f39d2f0dd8ed899728a750ab39524b62af84d30b"
 
 [[metadata.targets]]
 requires_python = ">=3.12.3"
@@ -393,6 +393,20 @@ groups = ["default"]
 files = [
     {file = "django_cleanup-9.0.0-py3-none-any.whl", hash = "sha256:19f8b0e830233f9f0f683b17181f414672a0f48afe3ea3cc80ba47ae40ad880c"},
     {file = "django_cleanup-9.0.0.tar.gz", hash = "sha256:bb9fb560aaf62959c81e31fa40885c36bbd5854d5aa21b90df2c7e4ba633531e"},
+]
+
+[[package]]
+name = "django-crispy-forms"
+version = "2.3"
+requires_python = ">=3.8"
+summary = "Best way to have Django DRY forms"
+groups = ["default"]
+dependencies = [
+    "django>=4.2",
+]
+files = [
+    {file = "django_crispy_forms-2.3-py3-none-any.whl", hash = "sha256:efc4c31e5202bbec6af70d383a35e12fc80ea769d464fb0e7fe21768bb138a20"},
+    {file = "django_crispy_forms-2.3.tar.gz", hash = "sha256:2db17ae08527201be1273f0df789e5f92819e23dd28fec69cffba7f3762e1a38"},
 ]
 
 [[package]]
