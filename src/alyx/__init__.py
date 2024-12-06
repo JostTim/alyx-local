@@ -141,7 +141,7 @@ def _create_database_password(prompter: InstallStatusRenderer) -> str:
 
 def _create_uploaded_folder(install_root: "Path", renderer: InstallStatusRenderer) -> bool:
 
-    uploaded_folder = install_root / "src" / "uploaded"
+    uploaded_folder = install_root / "docker" / "templates" / "uploaded"
     folder_to_create = ["backups", "log", "media", "static", "tables"]
     for foldername in folder_to_create:
         folder = uploaded_folder / foldername
@@ -151,6 +151,19 @@ def _create_uploaded_folder(install_root: "Path", renderer: InstallStatusRendere
         folder.mkdir(parents=True)
         renderer.success(f"Created empty folder {folder} for docker copying")
     return False
+
+
+def _create_rabbitmq_config_file(prompter: InstallStatusRenderer) -> str:
+
+    username = prompter.ask(
+        "Please enter a password for securing the rabbitmq database", default=_generate_new_secret_key(20)
+    )
+
+    password = prompter.ask("Please enter a username for securing the rabbitmq database", default="username")
+
+    file_content = f"default_user = {username}\ndefault_pass = {password}"
+
+    return file_content
 
 
 class FileChecker:
@@ -187,6 +200,13 @@ class DbPasswordChecker(FileChecker):
     def check_errors(self):
         self.read()
         return False if "\n" not in self.content and len(self.content) >= 5 else True
+
+
+class RabbitConfChecker(FileChecker):
+
+    def check_errors(self):
+        self.read()
+        return False
 
 
 class DjangoSettingsChekcer(FileChecker):
@@ -250,6 +270,14 @@ def install_docker_alyx():
             renderer,
             source_file=INSTALL_ROOT / "docker" / "templates" / "custom_settings_template.py",
             replacements={"%SECRET_KEY%": _generate_new_secret_key(), "%HOSTNAME%": gethostname()},
+        )
+
+        error = error | _dump_to_file(
+            CONFIG_FOLDER / "rabbitmq-conf",
+            _create_rabbitmq_config_file,
+            RabbitConfChecker,
+            renderer,
+            prompter=renderer,
         )
 
         _create_uploaded_folder(INSTALL_ROOT, renderer)

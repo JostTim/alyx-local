@@ -13,6 +13,7 @@ from pathlib import Path
 import structlog
 from django.conf.locale.en import formats as en_formats
 from tzlocal import get_localzone
+import sys
 
 DEBUG = True
 
@@ -69,7 +70,9 @@ elif IS_DOCKER:
 # Custom User model with UUID primary key
 AUTH_USER_MODEL = "misc.LabMember"
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path("/app/src/alyx")  # Path(__file__).resolve().parent.parent
+UPLOADED_DIR = BASE_DIR.parent.parent / "uploaded"
+
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -278,15 +281,15 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = (str(BASE_DIR / "static"),)
 
 # this is where the collected static assets will be copied and served
-STATIC_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "static")
+STATIC_ROOT = str(UPLOADED_DIR / "static")
 
 
-MEDIA_ROOT = str(BASE_DIR.parent.absolute() / "uploaded" / "media")
+MEDIA_ROOT = str(UPLOADED_DIR / "media")
 MEDIA_URL = "/media/"
 
 # The location for saving and/or serving the cache tables.
 # May be a local path, http address or s3 uri (i.e. s3://)
-TABLES_ROOT = str(BASE_DIR / "uploaded" / "tables/")
+TABLES_ROOT = str(UPLOADED_DIR / "tables/")
 
 UPLOADED_IMAGE_WIDTH = 800
 
@@ -310,7 +313,9 @@ structlog.configure(
 WSGI_APPLICATION = "alyx.base.wsgi.application"
 
 
+sys.path.append("/app/extra_configuration")
+
 try:
-    from .custom_settings import *  # type: ignore
+    from custom_settings import *  # type: ignore
 except (ImportError, ModuleNotFoundError):
     raise ImportError("The custom_settings.py file is missing. Cannot proceed")

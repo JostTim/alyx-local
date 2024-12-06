@@ -20,6 +20,7 @@ from ..data.models import Tag
 from .serializers import UserSerializer, LabSerializer, NoteSerializer
 from .models import Lab, Note
 from ..base.settings import TABLES_ROOT, MEDIA_ROOT
+from .filters import LabFilter
 
 
 @api_view(["GET"])
@@ -70,20 +71,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = rest_permission_classes()
 
 
-class LabFilter(BaseFilterSet):
-    pass
-
-    class Meta:
-        model = Lab
-        exclude = ["json"]
-
-
 class LabList(generics.ListCreateAPIView):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     permission_classes = rest_permission_classes()
     lookup_field = "name"
-    filter_class = LabFilter
+    filterset_class = LabFilter
 
 
 class LabDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -109,7 +102,7 @@ class NoteList(generics.ListCreateAPIView):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     permission_classes = rest_permission_classes()
-    filter_class = BaseFilterSet
+    filterset_class = BaseFilterSet
 
 
 class NoteDetail(generics.RetrieveUpdateDestroyAPIView):

@@ -282,10 +282,10 @@ class Channel(BaseModel):
     z = models.FloatField(blank=True, null=True, help_text=Z_HELP_TEXT, verbose_name="z-dv (um)")
     brain_region = models.ForeignKey(
         BrainRegion,
-        default=0,
+        on_delete=models.SET_NULL,
+        default=0,  # type: ignore
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
         related_name="channels",
     )
     trajectory_estimate = models.ForeignKey(

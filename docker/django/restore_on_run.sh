@@ -7,7 +7,7 @@ LATEST_DUMP_FILE=$(find "$DUMP_DIR" -maxdepth 1 -name '*.sql' -printf '%T+ %p\n'
 # Check if a .sql dump file was found
 if [ -n "$LATEST_DUMP_FILE" ]; then
     
-    /app/alyx/scripts/restore_db.sh "$LATEST_DUMP_FILE"
+    /app/scripts/restore_db.sh "$LATEST_DUMP_FILE"
 else
     echo "No SQL dump file found in $DUMP_DIR. Skipping restore."
     echo "As no user exists in the database, creating the 'admin' user with priviledges. \

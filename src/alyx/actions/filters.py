@@ -3,7 +3,7 @@ from django_filters import CharFilter, NumberFilter, BooleanFilter
 from django.db.models import Count, ExpressionWrapper, F, Q, FloatField
 
 from ..base.base import BaseFilterSet, rich_json_filter
-from ..experiments.views import _filter_qs_with_brain_regions
+from ..experiments.filters import _filter_qs_with_brain_regions
 from .models import (
     BaseAction,
     Session,

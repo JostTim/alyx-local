@@ -1,14 +1,16 @@
 #!/bin/bash
 echo -n "Django version:" && echo -n $(pdm run python -m django --version) && echo " is installed"
 
-/app/alyx/scripts/restore_on_run.sh
+pdm install --prod --no-editable --frozen-lockfile
+
+/app/scripts/restore_on_run.sh
 
 echo "Applying database migrations..."
-pdm run manage.py migrate --noinput 
+pdm run ./src/manage.py migrate --noinput 
 
 # Collect static files
 echo "Collecting static files..."
-pdm run manage.py collectstatic --noinput --clear --verbosity 0
+pdm run ./src/manage.py collectstatic --noinput --clear --verbosity 0
 
 # Start Gunicorn
 echo "Starting Gunicorn to serve django alyx..."

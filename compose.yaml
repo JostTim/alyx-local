@@ -13,9 +13,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
+    container_name: django_server
     volumes :
       - uploaded_volume:/app/uploaded
       - ./config/db-secure-password:/run/secrets/db-secure-password:ro
+      - ./src:/app/src:rw
     environment : 
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
     expose:
@@ -26,6 +28,7 @@ services:
 
   nginx_server:
     image: nginx:latest
+    container_name: nginx_server
     ports:
       - "80:80"
     volumes:
@@ -36,6 +39,7 @@ services:
 
   db:
     image: postgres:17
+    container_name: postgres_db
     restart: always
     user: postgres
     volumes:
@@ -51,6 +55,15 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  rabbit_mq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports: 
+      - "5672:5672"
+      - "15672:15672"
+    volumes: 
+      - ./config/rabbitmq-conf:/etc/rabbitmq/rabbitmq.conf
 
 volumes:
   db-data:

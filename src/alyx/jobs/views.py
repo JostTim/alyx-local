@@ -3,7 +3,6 @@ from django.utils.safestring import mark_safe
 from django.contrib.postgres.forms import SimpleArrayField
 from django.db.models import Q, Count, Max
 from rest_framework import generics
-from django_filters.rest_framework import CharFilter
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import FormMixin
@@ -12,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 import numpy as np
 
-from ..base.base import BaseFilterSet, rest_permission_classes
+from ..base.base import rest_permission_classes
 import django_filters
 import structlog
 from ..misc.models import Lab
@@ -22,6 +21,8 @@ from ..actions.models import Session
 from pathlib import Path
 import os
 
+
+from .filters import ProjectFilter, TaskFilter
 
 logger = structlog.get_logger(__name__)
 
@@ -99,29 +100,6 @@ class TasksStatusView(ListView):
         return self.f.qs.distinct().order_by("-start_time")
 
 
-class ProjectFilter(django_filters.FilterSet):
-    """
-    Filter used in combobox of task admin page
-    """
-
-    class Meta:
-        model = Session
-        fields = ["projects"]
-        exclude = ["json"]
-
-    def __init__(self, *args, **kwargs):
-        super(ProjectFilter, self).__init__(*args, **kwargs)
-
-
-class TaskFilter(BaseFilterSet):
-    lab = CharFilter("session__lab__name")
-    status = CharFilter(method="enum_field_filter")
-
-    class Meta:
-        model = Task
-        exclude = ["json"]
-
-
 class TaskListView(generics.ListCreateAPIView):
     """
     get: **FILTERS**
@@ -136,7 +114,7 @@ class TaskListView(generics.ListCreateAPIView):
     queryset = Task.objects.all()
     # queryset = TaskListSerializer.setup_eager_loading(queryset)
     permission_classes = rest_permission_classes()
-    filter_class = TaskFilter
+    filterset_class = TaskFilter
 
     def get_serializer_class(self):
         if not self.request:

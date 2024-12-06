@@ -5,11 +5,9 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins, serializers
 from rest_framework.response import Response
-import django_filters
-import os
-from ..base.base import BaseFilterSet, rest_permission_classes
+
+from ..base.base import rest_permission_classes
 from ..subjects.models import Subject, Project
-from ..experiments.models import ProbeInsertion
 from ..misc.models import Lab
 
 from .models import (
@@ -35,6 +33,7 @@ from .serializers import (
     RevisionSerializer,
     TagSerializer,
 )
+from .filters import DataRepositoryFilter, DownloadFilter, FileRecordFilter, DatasetFilter
 from .transfers import (
     _get_session,
     _get_repositories_for_labs,
@@ -68,23 +67,8 @@ class DataRepositoryTypeDetail(generics.RetrieveUpdateDestroyAPIView):
 # ------------------------------------------------------------------------------------------------
 
 
-class DataRepositoryFilter(BaseFilterSet):
-    data_path = django_filters.CharFilter(method="filter_data_path")
-    globus_path = django_filters.CharFilter(field_name="globus_path")
-    hostname = django_filters.CharFilter(field_name="hostname")
-    name = django_filters.CharFilter(field_name="name")
-    id = django_filters.CharFilter(field_name="id")
-
-    def filter_data_path(self, queryset, name, value):
-        value = os.path.normpath(value)
-        values = [split for split in value.split(os.sep) if split != ""]
-        hostname = values[0]
-        path = os.sep + os.sep.join(values[1:])
-        return queryset.filter(hostname=hostname).filter(globus_path=path)
-
-
 class DataRepositoryList(generics.ListCreateAPIView):
-    filter_class = DataRepositoryFilter
+    filterset_class = DataRepositoryFilter
     queryset = DataRepository.objects.all()
     serializer_class = DataRepositorySerializer
     permission_classes = rest_permission_classes()
@@ -168,60 +152,6 @@ class TagDetail(generics.RetrieveUpdateDestroyAPIView):
 # ------------------------------------------------------------------------------------------------
 
 
-class DatasetFilter(BaseFilterSet):
-    subject = django_filters.CharFilter("session__subject__nickname")
-    lab = django_filters.CharFilter("session__lab__name")
-    created_date = django_filters.CharFilter("created_datetime__date")
-    date = django_filters.CharFilter("session__start_time__date")
-    created_by = django_filters.CharFilter("created_by__username")
-    dataset_type = django_filters.CharFilter("dataset_type__name")
-    experiment_number = django_filters.CharFilter("session__number")
-    created_date_gte = django_filters.DateTimeFilter("created_datetime__date", lookup_expr="gte")
-    created_date_lte = django_filters.DateTimeFilter("created_datetime__date", lookup_expr="lte")
-    exists = django_filters.BooleanFilter(method="filter_exists")
-    probe_insertion = django_filters.UUIDFilter(method="probe_insertion_filter")
-    public = django_filters.BooleanFilter(method="filter_public")
-    protected = django_filters.BooleanFilter(method="filter_protected")
-    tag = django_filters.CharFilter("tags__name")
-    revision = django_filters.CharFilter("revision__name")
-    data_repository = django_filters.CharFilter("data_repository__name")
-
-    class Meta:
-        model = Dataset
-        exclude = ["json"]
-
-    def filter_exists(self, dsets, name, value):
-        """
-        Filters datasets for which at least one file record Globus not personal exists.
-        Only if the database has any globus non-personal repositories (ie. servers)
-        """
-        if len(DataRepository.objects.filter(globus_is_personal=False)) > 0:
-            frs = FileRecord.objects.filter(pk__in=dsets.values_list("file_records", flat=True))
-            pkd = frs.filter(exists=value).values_list("dataset", flat=True)
-            dsets = dsets.filter(pk__in=pkd)
-        return dsets
-
-    def probe_insertion_filter(self, dsets, _, pk):
-        """
-        Filter datasets that have collection name the same as probe id
-        """
-        probe = ProbeInsertion.objects.get(pk=pk)
-        dsets = dsets.filter(session=probe.session, collection__icontains=probe.name)
-        return dsets
-
-    def filter_public(self, dsets, name, value):
-        if value:
-            return dsets.filter(tags__public=True).distinct()
-        else:
-            return dsets.exclude(tags__public=True)
-
-    def filter_protected(self, dsets, name, value):
-        if value:
-            return dsets.filter(tags__protected=True).distinct()
-        else:
-            return dsets.exclude(tags__protected=True)
-
-
 class DatasetList(generics.ListCreateAPIView):
     """
     get: **FILTERS**
@@ -247,7 +177,7 @@ class DatasetList(generics.ListCreateAPIView):
     queryset = DatasetSerializer.setup_eager_loading(queryset)
     serializer_class = DatasetSerializer
     permission_classes = rest_permission_classes()
-    filter_class = DatasetFilter
+    filterset_class = DatasetFilter
 
 
 class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -258,14 +188,6 @@ class DatasetDetail(generics.RetrieveUpdateDestroyAPIView):
 
 # FileRecord
 # ------------------------------------------------------------------------------------------------
-class FileRecordFilter(BaseFilterSet):
-    lab = django_filters.CharFilter("dataset__session__lab__name")
-
-    data_repository = django_filters.CharFilter(field_name="dataset__data_repository__name")
-
-    class Meta:
-        model = FileRecord
-        exclude = ["json"]
 
 
 class FileRecordList(generics.ListCreateAPIView):
@@ -284,7 +206,7 @@ class FileRecordList(generics.ListCreateAPIView):
     queryset = FileRecordSerializer.setup_eager_loading(queryset)
     serializer_class = FileRecordSerializer
     permission_classes = rest_permission_classes()
-    filter_class = FileRecordFilter
+    filterset_class = FileRecordFilter
 
 
 class FileRecordDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -609,17 +531,6 @@ class DownloadDetail(generics.RetrieveUpdateAPIView):
     permission_classes = rest_permission_classes()
 
 
-class DownloadFilter(BaseFilterSet):
-    json = django_filters.CharFilter(field_name="json", lookup_expr=("icontains"))
-    dataset = django_filters.CharFilter("dataset__name")
-    user = django_filters.CharFilter("user__username")
-    dataset_type = django_filters.CharFilter(field_name="dataset__dataset_type__name", lookup_expr=("icontains"))
-
-    class Meta:
-        model = Download
-        fields = ("count",)
-
-
 class DownloadList(generics.ListAPIView):
     """
     get: **FILTERS**
@@ -634,4 +545,4 @@ class DownloadList(generics.ListAPIView):
     queryset = Download.objects.all()
     serializer_class = DownloadSerializer
     permission_classes = rest_permission_classes()
-    filter_class = DownloadFilter
+    filterset_class = DownloadFilter

@@ -9,8 +9,13 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 
-from django.db import models
-from rest_framework import generics
+from rest_framework.generics import (
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveDestroyAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,7 +24,7 @@ from ..base.base import (
 )
 
 from ..subjects.models import Subject
-from ..experiments.views import _filter_qs_with_brain_regions
+from ..experiments.filters import _filter_qs_with_brain_regions
 from .water_control import water_control, to_date
 from .training_control import training_control
 from .models import (
@@ -245,14 +250,14 @@ def training_perf_plot(request, subject_id=None):
     return wc.plot()
 
 
-class ProcedureTypeList(generics.ListCreateAPIView):
+class ProcedureTypeList(ListCreateAPIView):
     queryset = ProcedureType.objects.all()
     permission_classes = rest_permission_classes()
     serializer_class = ProcedureTypeSerializer
     lookup_field = "name"
 
 
-class SessionAPIList(generics.ListCreateAPIView):
+class SessionAPIList(ListCreateAPIView):
     """
         get: **FILTERS**
 
@@ -298,7 +303,7 @@ class SessionAPIList(generics.ListCreateAPIView):
     queryset = SessionListSerializer.setup_eager_loading(queryset)
     permission_classes = rest_permission_classes()
 
-    filter_class = SessionFilter
+    filterset_class = SessionFilter
 
     def get_serializer_class(self):
         if not self.request:
@@ -309,7 +314,7 @@ class SessionAPIList(generics.ListCreateAPIView):
             return SessionDetailSerializer
 
 
-class SessionAPIDetail(generics.RetrieveUpdateDestroyAPIView):
+class SessionAPIDetail(RetrieveUpdateDestroyAPIView):
     """
     Detail of one session
     """
@@ -320,7 +325,7 @@ class SessionAPIDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = rest_permission_classes()
 
 
-class WeighingAPIListCreate(generics.ListCreateAPIView):
+class WeighingAPIListCreate(ListCreateAPIView):
     """
     Lists or creates a new weighing.
     """
@@ -329,10 +334,10 @@ class WeighingAPIListCreate(generics.ListCreateAPIView):
     serializer_class = WeighingDetailSerializer
     queryset = Weighing.objects.all()
     queryset = WeighingDetailSerializer.setup_eager_loading(queryset)
-    filter_class = WeighingFilter
+    filterset_class = WeighingFilter
 
 
-class WeighingAPIDetail(generics.RetrieveDestroyAPIView):
+class WeighingAPIDetail(RetrieveDestroyAPIView):
     """
     Allows viewing of full detail and deleting a weighing.
     """
@@ -342,14 +347,14 @@ class WeighingAPIDetail(generics.RetrieveDestroyAPIView):
     queryset = Weighing.objects.all()
 
 
-class WaterTypeList(generics.ListCreateAPIView):
+class WaterTypeList(ListCreateAPIView):
     queryset = WaterType.objects.all()
     serializer_class = WaterTypeDetailSerializer
     permission_classes = rest_permission_classes()
     lookup_field = "name"
 
 
-class WaterAdministrationAPIListCreate(generics.ListCreateAPIView):
+class WaterAdministrationAPIListCreate(ListCreateAPIView):
     """
     Lists or creates a new water administration.
     """
@@ -358,10 +363,10 @@ class WaterAdministrationAPIListCreate(generics.ListCreateAPIView):
     serializer_class = WaterAdministrationDetailSerializer
     queryset = WaterAdministration.objects.all()
     queryset = WaterAdministrationDetailSerializer.setup_eager_loading(queryset)
-    filter_class = WaterAdministrationFilter
+    filterset_class = WaterAdministrationFilter
 
 
-class WaterAdministrationAPIDetail(generics.RetrieveUpdateDestroyAPIView):
+class WaterAdministrationAPIDetail(RetrieveUpdateDestroyAPIView):
     """
     Allows viewing of full detail and deleting a water administration.
     """
@@ -399,7 +404,7 @@ class WaterRequirement(APIView):
         return Response(data)
 
 
-class WaterRestrictionList(generics.ListAPIView):
+class WaterRestrictionList(ListAPIView):
     """
     Lists water restriction.
     """
@@ -407,10 +412,10 @@ class WaterRestrictionList(generics.ListAPIView):
     queryset = WaterRestriction.objects.all().order_by("-end_time", "-start_time")
     serializer_class = WaterRestrictionListSerializer
     permission_classes = rest_permission_classes()
-    filter_class = WaterRestrictionFilter
+    filterset_class = WaterRestrictionFilter
 
 
-class LabLocationList(generics.ListAPIView):
+class LabLocationList(ListAPIView):
     """
     Lists Lab Location
     """
@@ -420,7 +425,7 @@ class LabLocationList(generics.ListAPIView):
     permission_classes = rest_permission_classes()
 
 
-class LabLocationAPIDetails(generics.RetrieveUpdateAPIView):
+class LabLocationAPIDetails(RetrieveUpdateAPIView):
     """
     Allows viewing of full detail and deleting a water administration.
     """
@@ -431,7 +436,7 @@ class LabLocationAPIDetails(generics.RetrieveUpdateAPIView):
     lookup_field = "name"
 
 
-class SurgeriesList(generics.ListAPIView):
+class SurgeriesList(ListAPIView):
     """
     Lists Surgeries
     """
