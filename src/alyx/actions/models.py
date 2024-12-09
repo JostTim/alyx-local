@@ -8,7 +8,9 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from ..base.base import BaseModel, modify_fields, alyx_mail, BaseManager
+from ..base.models import BaseModel, modify_fields
+from ..base.mails import send_alyx_mail
+from ..base.queries import BaseManager
 from ..misc.models import Lab, LabLocation, LabMember, Note
 
 import os
@@ -34,11 +36,11 @@ def _default_water_type():
     return None
 
 
-@modify_fields(
-    name={
-        "blank": False,
-    }
-)
+# @modify_fields(
+#     name={
+#         "blank": False,
+#     }
+# )
 class ProcedureType(BaseModel):
     """
     A procedure to be performed on a subject.
@@ -85,7 +87,7 @@ class Weighing(BaseModel):
 
     def save(self, *args, **kwargs):
         super(Weighing, self).save(*args, **kwargs)
-        from ..actions.notifications import check_weighing as check_underweight
+        from .notifications import check_weighing as check_underweight
 
         check_underweight(self.subject)
 
@@ -713,7 +715,7 @@ class Notification(BaseModel):
             logger.warning("Email not ready to send.")
             return False
         emails = [user.email for user in self.users.all() if user.email]
-        if alyx_mail(emails, self.title, self.message):
+        if send_alyx_mail(emails, self.title, self.message):
             self.status = "sent"
             self.sent_at = timezone.now()
             self.save()

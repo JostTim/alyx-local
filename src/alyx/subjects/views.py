@@ -1,6 +1,6 @@
 from rest_framework import generics
 
-from ..base.base import rest_permission_classes
+from ..base.permissions import rest_permission_classes
 from .models import Subject, Project
 from .serializers import (
     SubjectListSerializer,

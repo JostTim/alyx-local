@@ -7,7 +7,7 @@ import tempfile
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from ..base.base import BaseTests
+from ..base.tests import BaseTests
 from ..misc.models import LabMembership, Lab
 from ..misc.views import _get_cache_info
 from ..data.models import Tag

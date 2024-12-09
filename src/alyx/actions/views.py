@@ -19,7 +19,7 @@ from rest_framework.generics import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from ..base.base import (
+from ..base.permissions import (
     rest_permission_classes,
 )
 
@@ -55,6 +55,7 @@ from .filters import (
     WaterAdministrationFilter,
     WaterRestrictionFilter,
 )
+from . import admin
 
 import structlog
 

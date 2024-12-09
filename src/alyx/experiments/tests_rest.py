@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.management import call_command
 
-from ..base.base import BaseTests
+from ..base.tests import BaseTests
 from ..actions.models import Session
 from ..experiments.models import ProbeInsertion
 from ..data.models import Dataset

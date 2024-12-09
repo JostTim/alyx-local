@@ -16,6 +16,7 @@ from tzlocal import get_localzone
 import sys
 
 DEBUG = True
+DISABLE_MAIL = False  # used for testing
 
 DEFAULT_LAB_NAME = "defaultlab"
 DEFAULT_PROTOCOL = "1"
@@ -72,7 +73,7 @@ AUTH_USER_MODEL = "misc.LabMember"
 
 BASE_DIR = Path("/app/src/alyx")  # Path(__file__).resolve().parent.parent
 UPLOADED_DIR = BASE_DIR.parent.parent / "uploaded"
-
+DATA_DIR = Path("/data")
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -215,7 +216,7 @@ MIDDLEWARE = (
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.admindocs.middleware.XViewMiddleware",
     "django.middleware.security.SecurityMiddleware",
-    "alyx.base.base.QueryPrintingMiddleware",
+    "alyx.base.queries.QueryPrintingMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
 )
 
@@ -256,7 +257,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_RENDERER_CLASSES': (
     #     'rest_framework.renderers.JSONRenderer',
     # ),
-    "EXCEPTION_HANDLER": "alyx.base.base.rest_filters_exception_handler",
+    "EXCEPTION_HANDLER": "alyx.base.filters.rest_filters_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "PAGE_SIZE": 250,
 }

@@ -7,8 +7,10 @@ import requests
 
 # from one.remote.aws import get_s3_virtual_host
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.http import HttpResponse, FileResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
 from django.views import View
+from django.views.generic import TemplateView
 
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -17,12 +19,25 @@ from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
-from ..base.base import BaseFilterSet, rest_permission_classes
+from ..base.filters import BaseFilterSet
+from ..base.permissions import rest_permission_classes
 from ..data.models import Tag
 from .serializers import UserSerializer, LabSerializer, NoteSerializer
 from .models import Lab, Note
 from ..base.settings import TABLES_ROOT, MEDIA_ROOT
 from .filters import LabFilter
+
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+
+content_type = ContentType.objects.get_for_model(Permission)
+permission = Permission.objects.get_or_create(
+    codename="system_admin",
+    content_type=content_type,
+    defaults={
+        "name": "Can manage the system via UI interface. Dangerous action, should be admin restricted only",
+    },
+)
 
 
 @api_view(["GET"])
@@ -174,8 +189,8 @@ def _get_cache_info(tag=None):
         file_json_cache = f"{cache_root}/{META_NAME}"
         with s3.open_input_stream(file_json_cache) as stream:
             cache_info = json.load(stream)
-        if "location" not in cache_info:
-            cache_info["location"] = get_s3_virtual_host(f"{cache_root}/cache.zip", region=s3.region)
+        # if "location" not in cache_info:
+        #     cache_info["location"] = get_s3_virtual_host(f"{cache_root}/cache.zip", region=s3.region)
     else:
         raise ValueError(f'Unsupported URI scheme "{scheme}"')
 
@@ -204,6 +219,23 @@ class CacheDownloadView(APIView):
         return response
 
 
-class DatabaseManagementUIView(View):
-    template_name = "database_management.html"
-    
+class ManagementHubView(TemplateView, LoginRequiredMixin, PermissionRequiredMixin):
+    template_name = "management/hub.html"
+    permission_required = "system_admin"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["subpages"] = [
+            {"name": "Database Management", "url": "database-management"},
+            {"name": "Media Management", "url": "media-management"},
+            {"name": "Backups", "url": "backups-management"},
+            {"name": "Restore", "url": "restore-management"},
+        ]
+        context["site_header"] = "Alyx"
+        context["title"] = "Management Hub"
+        return context
+
+
+class DatabaseManagementUIView(View, LoginRequiredMixin, PermissionRequiredMixin):
+    template_name = "management/database.html"
+    permission_required = "system_admin"

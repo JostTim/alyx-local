@@ -1,4 +1,4 @@
-from ..base.base import BaseFilterSet
+from ..base.filters import BaseFilterSet
 from .models import Lab
 
 

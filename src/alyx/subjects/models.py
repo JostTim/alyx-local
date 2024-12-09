@@ -12,7 +12,9 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils import timezone
 
-from ..base.base import BaseModel, BaseManager, alyx_mail, modify_fields
+from ..base.mails import send_alyx_mail
+from ..base.queries import BaseManager
+from ..base.models import BaseModel, modify_fields
 from ..actions.notifications import responsible_user_changed
 from ..actions.water_control import water_control
 from ..actions.models import Surgery, WaterAdministration
@@ -497,7 +499,7 @@ def send_subject_request_mail_new(sender, instance=None, **kwargs):
         return
     subject = "%s requested: %s" % (instance.user, str(instance))
     to = stock_managers_emails()
-    alyx_mail(to, subject, instance.description)
+    send_alyx_mail(to, subject, instance.description)
 
 
 @receiver(post_save, sender=Subject)
@@ -515,7 +517,7 @@ def send_subject_request_mail_change(sender, instance=None, **kwargs):
         instance.nickname,
         str(instance.request),
     )
-    alyx_mail(instance.responsible_user.email, subject)
+    send_alyx_mail(instance.responsible_user.email, subject)
 
 
 @receiver(post_save, sender=Subject)
@@ -542,7 +544,7 @@ class LitterManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={"blank": False, "default": "-"})
+# @modify_fields(name={"blank": False, "default": "-"})
 class Litter(BaseModel):
     """A litter, containing a mother, father, and children with a
     shared date of birth."""
@@ -585,7 +587,7 @@ class BreedingPairManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={"blank": False, "default": "-", "help_text": "Leave to - to autofill."})
+# @modify_fields(name={"blank": False, "default": "-", "help_text": "Leave to - to autofill."})
 class BreedingPair(BaseModel):
     line = models.ForeignKey(
         "Line",
@@ -644,7 +646,7 @@ class LineManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(name={"blank": False})
+# @modify_fields(name={"blank": False})
 class Line(BaseModel):
     description = models.TextField(blank=True)
     target_phenotype = models.CharField(max_length=1023)
@@ -728,7 +730,7 @@ class SpeciesManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(name={"blank": False, "help_text": 'Binomial name, e.g. "mus musculus"'})
+# @modify_fields(name={"blank": False, "help_text": 'Binomial name, e.g. "mus musculus"'})
 class Species(BaseModel):
     nickname = models.CharField(max_length=255, unique=True, help_text='common name, e.g. "mouse"')
 
@@ -749,11 +751,11 @@ class StrainManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(
-    name={
-        "help_text": 'Standard descriptive name E.g. "C57BL/6J", http://www.informatics.jax.org/mgihome/nomen/',
-    }
-)
+# @modify_fields(
+#     name={
+#         "help_text": 'Standard descriptive name E.g. "C57BL/6J", http://www.informatics.jax.org/mgihome/nomen/',
+#     }
+# )
 class Strain(BaseModel):
     """A strain with a standardised name."""
 
@@ -776,7 +778,7 @@ class SourceManager(models.Manager):
         return self.get(name=name)
 
 
-@modify_fields(name={"blank": False})
+# @modify_fields(name={"blank": False})
 class Source(BaseModel):
     """A supplier / source of subjects."""
 
@@ -1026,15 +1028,15 @@ class AlleleManager(models.Manager):
         return self.get(nickname=name)
 
 
-@modify_fields(
-    name={
-        "help_text": (
-            "MGNC-standard genotype name e.g. Pvalb<tm1(cre)Arbr>, http://www.informatics.jax.org/mgihome/nomen/"
-        ),
-        "max_length": 1023,
-        "blank": False,
-    }
-)
+# @modify_fields(
+#     name={
+#         "help_text": (
+#             "MGNC-standard genotype name e.g. Pvalb<tm1(cre)Arbr>, http://www.informatics.jax.org/mgihome/nomen/"
+#         ),
+#         "max_length": 1023,
+#         "blank": False,
+#     }
+# )
 class Allele(BaseModel):
     """A single allele."""
 

@@ -1,7 +1,7 @@
 from django_filters import CharFilter, DateTimeFilter, UUIDFilter, BooleanFilter
 import os
 
-from ..base.base import BaseFilterSet
+from ..base.filters import BaseFilterSet
 from ..experiments.models import ProbeInsertion
 from .models import Download, FileRecord, Dataset, DataRepository
 

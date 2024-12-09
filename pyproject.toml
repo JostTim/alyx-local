@@ -38,6 +38,7 @@ dependencies = [
     "alyx-connector>=2.1.10",
     "setuptools>=75.3.0",
     "rich>=13.9.4",
+    "inotify>=0.2.10",
 ]
 dynamic = ["version"]
 

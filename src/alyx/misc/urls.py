@@ -1,23 +1,39 @@
 from django.urls import path, re_path
 from django.views.generic.base import RedirectView
-from . import views as misc_views
+from .views import (
+    ManagementHubView,
+    DatabaseManagementUIView,
+    CacheDownloadView,
+    CacheVersionView,
+    LabList,
+    LabDetail,
+    UserViewSet,
+    NoteList,
+    NoteDetail,
+    MediaView,
+)
 from django.conf.urls import include
 
 
-user_list = misc_views.UserViewSet.as_view({"get": "list"})
-user_detail = misc_views.UserViewSet.as_view({"get": "retrieve"})
+user_list = UserViewSet.as_view({"get": "list"})
+user_detail = UserViewSet.as_view({"get": "retrieve"})
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/admin")),  # redirect the page to admin interface
-    path("labs", misc_views.LabList.as_view(), name="lab-list"),
-    path("labs/<str:name>", misc_views.LabDetail.as_view(), name="lab-detail"),
-    path("notes", misc_views.NoteList.as_view(), name="note-list"),
-    path("notes/<uuid:pk>", misc_views.NoteDetail.as_view(), name="note-detail"),
+    path("labs", LabList.as_view(), name="lab-list"),
+    path("labs/<str:name>", LabDetail.as_view(), name="lab-detail"),
+    path("notes", NoteList.as_view(), name="note-list"),
+    path("notes/<uuid:pk>", NoteDetail.as_view(), name="note-detail"),
     path("users/<str:username>", user_detail, name="user-detail"),
     path("users", user_list, name="user-list"),
-    re_path("^media/(?P<img_url>.*)", misc_views.MediaView.as_view(), name="media"),
-    path("cache.zip", misc_views.CacheDownloadView.as_view(), name="cache-download"),
-    re_path(r"^cache/info(?:/(?P<tag>\w+))?/$", misc_views.CacheVersionView.as_view(), name="cache-info"),
+    re_path("^media/(?P<img_url>.*)", MediaView.as_view(), name="media"),
+    path("cache.zip", CacheDownloadView.as_view(), name="cache-download"),
+    re_path(r"^cache/info(?:/(?P<tag>\w+))?/$", CacheVersionView.as_view(), name="cache-info"),
+    path("management", ManagementHubView.as_view(), name="management-hub"),
+    path("management/database", DatabaseManagementUIView.as_view(), name="database-management"),
+    path("management/media", DatabaseManagementUIView.as_view(), name="media-management"),
+    path("management/restore", DatabaseManagementUIView.as_view(), name="restore-management"),
+    path("management/backups", DatabaseManagementUIView.as_view(), name="backups-management"),
 ]
 
 try:

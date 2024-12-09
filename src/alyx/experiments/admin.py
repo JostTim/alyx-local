@@ -18,7 +18,7 @@ from ..experiments.models import (
     FOVLocation,
 )
 from ..misc.admin import NoteInline
-from ..base.base import BaseAdmin
+from ..base.admins import BaseAdmin
 
 
 class TrajectoryEstimateInline(TabularInline):

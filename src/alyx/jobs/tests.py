@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.core.management import call_command
 
 from ..actions.models import Session
-from ..base.base import BaseTests
+from ..base.tests import BaseTests
 from ..data.models import DataRepository
 
 

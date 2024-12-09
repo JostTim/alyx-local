@@ -1,6 +1,6 @@
 from django_filters.rest_framework import CharFilter
 from django_filters import FilterSet
-from ..base.base import BaseFilterSet
+from ..base.filters import BaseFilterSet
 
 from .models import Task
 from ..actions.models import Session

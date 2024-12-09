@@ -5,7 +5,7 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from ..base.base import BaseTests
+from ..base.tests import BaseTests
 from ..data.models import Dataset, FileRecord, Download, Tag
 
 

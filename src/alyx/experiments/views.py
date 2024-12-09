@@ -3,7 +3,8 @@ from django_filters.rest_framework import CharFilter, UUIDFilter, NumberFilter
 from django.db.models import F, Func, Value, CharField, functions, Q
 
 
-from ..base.base import BaseFilterSet, rest_permission_classes
+from ..base.filters import BaseFilterSet
+from ..base.permissions import rest_permission_classes
 from ..data.models import Dataset
 from .models import ProbeInsertion, TrajectoryEstimate, Channel, BrainRegion
 from .serializers import (

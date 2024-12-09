@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, viewsets, mixins, serializers
 from rest_framework.response import Response
 
-from ..base.base import rest_permission_classes
+from ..base.permissions import rest_permission_classes
 from ..subjects.models import Subject, Project
 from ..misc.models import Lab
 

@@ -1,4 +1,4 @@
-from ..base.base import BaseTests
+from ..base.tests import BaseTests
 from ..actions.models import Session
 from ..experiments.models import ProbeInsertion
 from ..data.models import Dataset

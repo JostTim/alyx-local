@@ -3,7 +3,7 @@ from textwrap import dedent
 
 from django.utils import timezone
 
-from ..actions.models import create_notification
+from .models import create_notification
 
 
 logger = structlog.get_logger(__name__)

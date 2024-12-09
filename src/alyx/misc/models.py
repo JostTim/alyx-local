@@ -15,7 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
 
-from ..base.base import BaseModel, modify_fields
+from ..base.models import BaseModel, modify_fields
 from ..base.settings import TIME_ZONE, UPLOADED_IMAGE_WIDTH, DEFAULT_LAB_NAME
 
 
@@ -115,11 +115,11 @@ class LabMembership(BaseModel):
         return "%s %s in %s" % (self.user, self.role, self.lab)
 
 
-@modify_fields(
-    name={
-        "blank": False,
-    }
-)
+# @modify_fields(
+#     name={
+#         "blank": False,
+#     }
+# )
 class LabLocation(BaseModel):
     """
     The physical location at which an session is performed or appliances are located.

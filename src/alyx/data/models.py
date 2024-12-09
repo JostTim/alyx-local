@@ -7,7 +7,8 @@ from django.utils.functional import cached_property
 
 from ..base.settings import TIME_ZONE, AUTH_USER_MODEL
 from ..actions.models import Session
-from ..base.base import BaseModel, modify_fields, BaseManager, CharNullField
+from ..base.queries import BaseManager
+from ..base.models import BaseModel, CharNullField
 
 import os, re
 
@@ -409,9 +410,6 @@ class DatasetManager(BaseManager):
         return qs
 
 
-# @modify_fields(name={
-#    'blank': False,
-# })
 class Dataset(BaseExperimentalData):
     """
     A chunk of data that is stored outside the database, most often a rectangular binary array.

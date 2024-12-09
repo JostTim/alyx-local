@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from alyx.base.base import alyx_mail
+from alyx.base.mails import send_alyx_mail
 from alyx.actions.models import Surgery, WaterRestriction, Session
 from alyx.subjects.models import Subject
 
@@ -99,7 +99,7 @@ class Command(BaseCommand):
         self.stdout.write("\n\n")
         # NOTE: if there is no '*', it means the email is empty, so we don't send it.
         if to and self.do_send and "*" in text:
-            alyx_mail(to, subject, text)
+            send_alyx_mail(to, subject, text)
         elif self.do_send and "*" not in text:
             logger.debug("NOT sending an empty email.")
 

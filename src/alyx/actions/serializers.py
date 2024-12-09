@@ -5,7 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 import structlog
 
 from .models import ProcedureType, Session, Surgery, WaterAdministration, Weighing, WaterType, WaterRestriction
-from ..base.base import BaseSerializerEnumField, get_admin_url
+from ..base.serializers import BaseSerializerEnumField
+from ..base.admins import get_admin_url
 from ..subjects.models import Subject, Project
 from ..data.models import Dataset, DatasetType, DataRepository
 from ..misc.models import LabLocation, Lab

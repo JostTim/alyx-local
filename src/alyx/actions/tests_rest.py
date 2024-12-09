@@ -3,16 +3,16 @@ from django.urls import reverse
 from django.utils.timezone import now
 from datetime import timedelta
 
-from ..base import base
-from ..base.base import BaseTests
+from django.conf import settings
+from ..base.tests import BaseTests
 from ..subjects.models import Subject, Project
 from ..misc.models import Lab, Note, ContentType
-from ..actions.models import Session, WaterType, WaterAdministration
+from .models import Session, WaterType, WaterAdministration
 
 
 class APIActionsTests(BaseTests):
     def setUp(self):
-        base.DISABLE_MAIL = True
+        settings.DISABLE_MAIL = True
         self.superuser = get_user_model().objects.create_superuser("test", "test", "test")
         self.superuser2 = get_user_model().objects.create_superuser("test2", "test2", "test2")
         self.client.login(username="test", password="test")
@@ -27,7 +27,7 @@ class APIActionsTests(BaseTests):
         self.test_protocol = "test_passoire"
 
     def tearDown(self):
-        base.DISABLE_MAIL = False
+        settings.DISABLE_MAIL = False
 
     def test_create_weighing(self):
         url = reverse("weighing-create")
@@ -279,7 +279,7 @@ class APIActionsTests(BaseTests):
         self.assertTrue(d["notes"][0]["text"] == "gnagnagna")
 
     def test_surgeries(self):
-        from ..actions.models import Surgery
+        from .models import Surgery
 
         ns = Surgery.objects.all().count()
         sr = self.ar(

@@ -3,7 +3,7 @@ import numpy as np
 from django.test import TestCase
 from django.utils import timezone
 
-from ..base import base
+from django.conf import settings
 from ..actions.water_control import to_date
 from ..actions.models import (
     WaterAdministration,
@@ -23,7 +23,7 @@ class WaterControlTests(TestCase):
     fixtures = ["actions.watertype.json"]
 
     def setUp(self):
-        base.DISABLE_MAIL = True
+        settings.DISABLE_MAIL = True
         # create a subject
         self.lab = Lab.objects.create(name="test_lab")
         sub = Subject.objects.create(nickname="bigboy", birth_date="2018-09-01", lab=self.lab)
@@ -54,7 +54,7 @@ class WaterControlTests(TestCase):
         self.assertEqual(water_type, wa.water_type)
 
     def tearDown(self):
-        base.DISABLE_MAIL = False
+        settings.DISABLE_MAIL = False
 
     def test_water_administration_expected(self):
         wc = self.sub.water_control
@@ -96,7 +96,7 @@ class WaterControlTests(TestCase):
 
 class NotificationTests(TestCase):
     def setUp(self):
-        base.DISABLE_MAIL = True
+        settings.DISABLE_MAIL = True
         self.lab = Lab.objects.create(name="testlab", reference_weight_pct=0.85)
 
         self.user1 = LabMember.objects.create(username="test1")
@@ -122,7 +122,7 @@ class NotificationTests(TestCase):
         self.date = to_date("2018-06-10")
 
     def tearDown(self):
-        base.DISABLE_MAIL = False
+        settings.DISABLE_MAIL = False
 
     def test_notif_weighing_0(self):
         n = len(Notification.objects.all())

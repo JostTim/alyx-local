@@ -12,7 +12,9 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
 
-from ..base.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url, _iter_history_changes
+from ..base.utils import iter_history_changes
+from ..base.admins import BaseAdmin, BaseInlineAdmin, get_admin_url
+from ..base.filters import DefaultListFilter
 from .models import (
     Allele,
     BreedingPair,
@@ -615,7 +617,7 @@ class SubjectAdmin(BaseAdmin):
         return format_html('<a href="{url}">Go to the subject history page</a>', url=url)
 
     def cage_changes(self, obj):
-        return format_html("<br />\n".join(_iter_history_changes(obj, "cage")))
+        return format_html("<br />\n".join(iter_history_changes(obj, "cage")))
 
     def get_form(self, request, obj=None, **kwargs):
         # just save obj reference for future processing in Inline

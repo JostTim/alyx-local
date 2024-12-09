@@ -11,7 +11,8 @@ from django.core.exceptions import ValidationError
 from mptt.models import MPTTModel, TreeForeignKey
 from django.utils.translation import gettext as _
 
-from ..base.base import BaseModel, BaseManager
+from ..base.models import BaseModel
+from ..base.queries import BaseManager
 from ..actions.models import ChronicRecording
 
 logger = structlog.get_logger(__name__)

@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 import numpy as np
 
-from ..base.base import rest_permission_classes
+from ..base.permissions import rest_permission_classes
 import django_filters
 import structlog
 from ..misc.models import Lab

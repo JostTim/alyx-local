@@ -1,5 +1,5 @@
 from django_filters import BooleanFilter, CharFilter
-from ..base.base import BaseFilterSet
+from ..base.filters import BaseFilterSet
 from .models import Subject
 
 

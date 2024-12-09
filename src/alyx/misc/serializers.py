@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from ..subjects.models import Subject
 from ..misc.models import Lab, Note, LabMember
 from ..data.models import DataRepository
-from ..base.base import BaseSerializerContentTypeField
+from ..base.serializers import BaseSerializerContentTypeField
 
 
 class NoteSerializer(serializers.ModelSerializer):

@@ -14,7 +14,7 @@ from .models import (
     Tag,
 )
 from .transfers import _get_session, _change_default_dataset
-from ..base.base import get_admin_url
+from ..base.admins import get_admin_url
 from ..actions.models import Session
 from ..subjects.models import Subject
 from ..misc.models import LabMember

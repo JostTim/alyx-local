@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..base.base import BaseSerializerEnumField
+from ..base.serializers import BaseSerializerEnumField
 from ..actions.models import EphysSession, Session
 from ..experiments.models import ProbeInsertion, TrajectoryEstimate, ProbeModel, CoordinateSystem, Channel, BrainRegion
 from ..data.models import DatasetType, Dataset, DataRepository, FileRecord

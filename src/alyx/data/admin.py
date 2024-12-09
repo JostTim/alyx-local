@@ -21,7 +21,8 @@ from .models import (
     Revision,
     Tag,
 )
-from ..base.base import BaseAdmin, BaseInlineAdmin, DefaultListFilter, get_admin_url
+from ..base.admins import BaseAdmin, BaseInlineAdmin, get_admin_url
+from ..base.filters import DefaultListFilter
 
 # from natsort import natsorted
 
