@@ -7,7 +7,7 @@ name = "haiss-alyx"
 description = "A brief description of your project"
 authors = [{ name = "JostTim", email = "timothe.jost-mousseau@pasteur.fr" }]
 license = { text = "MIT" }
-requires-python = ">=3.12.3"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "django>=5.1.3",
     "django-admin-list-filter-dropdown>=1.0.3",
@@ -25,6 +25,8 @@ dependencies = [
     "django-test-without-migrations>=0.6",
     "djangorestframework>=3.15.2",
     "drf-spectacular[sidecar]>=0.27.2",
+    "django-dbbackup>=4.2.1",
+    "django-crispy-forms>=2.3",
     "docutils>=0.21.2",
     "gunicorn>=23.0.0",
     "colorlog>=6.9.0",
@@ -36,8 +38,6 @@ dependencies = [
     "alyx-connector>=2.1.10",
     "setuptools>=75.3.0",
     "rich>=13.9.4",
-    "django-dbbackup>=4.2.1",
-    "django-crispy-forms>=2.3",
 ]
 dynamic = ["version"]
 
@@ -97,8 +97,11 @@ configure = { call = "alyx:install_docker_alyx", help = "Create necessary files 
 build = { shell = "docker compose up --build", help = "Build new images and then starts the containers for the alyx docker project" }
 start = { shell = "docker compose restart", help = "Start containers (if stopped, or restart if they are currentely running) containers for alyx that have already been built" }
 stop = { shell = "docker-compose stop", help = "Stop running containers without removing them" }
-delete-build = { shell = "docker-compose down -v --rmi all", help = "Stop and delete containers, volumes, and builds" }
-fresh-build = { composite = ["delete-build", "build"] }
+delete-build = { shell = "docker-compose down -v --rmi all", help = "Stop and delete containers, volumes, and builds. Make sure your database is backed up before doing this !" }
+fresh-build = { composite = [
+    "delete-build",
+    "build",
+], help = "Build from a resh start, by ensuring all containers, volumes and build are deleted prior to building. Make sure your database is backed up before doing this !" }
 
 interact = { shell = "docker exec -it django_server bash", help = "Connect the the django container of the alyx project, through a SSH shell, to be able to run and perform terminal actions as on a regular linux operative system" }
 manage = { shell = "docker exec -w /app/ -it django_server pdm run ./src/manage.py {args}", help = "Shortcut to run the manage.py script on the currentely running django alyx docker container. This is very powerfull for admin management like backups, restores, and many oher things like migrations etc." }
