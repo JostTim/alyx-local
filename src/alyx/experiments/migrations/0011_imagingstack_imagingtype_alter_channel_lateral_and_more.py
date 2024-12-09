@@ -3,100 +3,235 @@
 import django.contrib.postgres.fields
 import django.db.models.deletion
 import uuid
-from django.db import migrations, models
+from django.db import migrations, models, connection
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('actions', '0024_imagingsession_alter_chronicrecording_location_and_more'),
-        ('experiments', '0010_probeinsertion_chronic_recording'),
+        ("actions", "0024_imagingsession_alter_chronicrecording_location_and_more"),
+        ("experiments", "0010_probeinsertion_chronic_recording"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ImagingStack',
+            name="ImagingStack",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    models.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='ImagingType',
+            name="ImagingType",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('json', models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('name', models.CharField(help_text='Long name', max_length=255, unique=True)),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    "json",
+                    models.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                ("name", models.CharField(help_text="Long name", max_length=255, unique=True)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AlterField(
-            model_name='channel',
-            name='lateral',
-            field=models.FloatField(blank=True, help_text='Distance in micrometers across the probe', null=True),
+            model_name="channel",
+            name="lateral",
+            field=models.FloatField(blank=True, help_text="Distance in micrometers across the probe", null=True),
         ),
         migrations.AlterField(
-            model_name='trajectoryestimate',
-            name='x',
-            field=models.FloatField(help_text='brain surface medio-lateral coordinate (um) ofthe insertion, right +, relative to Bregma', null=True, verbose_name='x-ml (um)'),
+            model_name="trajectoryestimate",
+            name="x",
+            field=models.FloatField(
+                help_text="brain surface medio-lateral coordinate (um) ofthe insertion, right +, relative to Bregma",
+                null=True,
+                verbose_name="x-ml (um)",
+            ),
         ),
         migrations.CreateModel(
-            name='ChronicInsertion',
+            name="ChronicInsertion",
             fields=[
-                ('chronicrecording_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='actions.chronicrecording')),
-                ('serial', models.CharField(blank=True, help_text='Probe serial number', max_length=255)),
-                ('model', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='chronic_insertion', to='experiments.probemodel')),
+                (
+                    "chronicrecording_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="actions.chronicrecording",
+                    ),
+                ),
+                ("serial", models.CharField(blank=True, help_text="Probe serial number", max_length=255)),
+                (
+                    "model",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="chronic_insertion",
+                        to="experiments.probemodel",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
-            bases=('actions.chronicrecording',),
+            bases=("actions.chronicrecording",),
         ),
         migrations.CreateModel(
-            name='FOV',
+            name="FOV",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('session', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='field_of_view', to='actions.imagingsession')),
-                ('stack', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='slices', to='experiments.imagingstack')),
-                ('imaging_type', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, related_name='field_of_view', to='experiments.imagingtype')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    models.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                (
+                    "session",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="field_of_view",
+                        to="actions.imagingsession",
+                    ),
+                ),
+                (
+                    "stack",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="slices",
+                        to="experiments.imagingstack",
+                    ),
+                ),
+                (
+                    "imaging_type",
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="field_of_view",
+                        to="experiments.imagingtype",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'field of view',
-                'verbose_name_plural': 'fields of view',
-                'ordering': ('session', 'name'),
-                'unique_together': {('session', 'name')},
+                "verbose_name": "field of view",
+                "verbose_name_plural": "fields of view",
+                "ordering": ("session", "name"),
+                "unique_together": {("session", "name")},
             },
         ),
         migrations.CreateModel(
-            name='FOVLocation',
+            name="FOVLocation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, help_text='Long name', max_length=255)),
-                ('json', models.JSONField(blank=True, help_text='Structured data, formatted in a user-defined way', null=True)),
-                ('provenance', models.CharField(choices=[('E', 'Estimate'), ('F', 'Functional'), ('L', 'Landmark'), ('H', 'Histology')], default='L', help_text='E: Estimate / F: Functional / L: Landmark / H: Histology', max_length=1)),
-                ('default_provenance', models.BooleanField(default=False)),
-                ('auto_datetime', models.DateTimeField(auto_now=True, verbose_name='last update')),
-                ('x', django.contrib.postgres.fields.ArrayField(base_field=models.FloatField(blank=True, null=True), default=list, help_text='The location in um of the top left, top right, bottom left and bottom right pixels respectively, along the x axis (typically the medio-lateral extent) at the most superficial depth.  For volumetric imaging provide four more coordinates for the deepest extent.', size=8)),
-                ('y', django.contrib.postgres.fields.ArrayField(base_field=models.FloatField(blank=True, null=True), default=list, help_text='The location in um of the top left, top right, bottom left and bottom right pixels respectively, along the y axis (typically the antereo-posterior extent) at the most superficial depth.  For volumetric imaging provide four more coordinates for the deepest extent.', size=8)),
-                ('z', django.contrib.postgres.fields.ArrayField(base_field=models.FloatField(blank=True, null=True), default=list, help_text='The location in um of the top left, top right, bottom left and bottom right pixels respectively, along the z axis (typically the dorsal-ventral extent) at the most superficial depth.  For volumetric imaging provide four more coordinates for the deepest extent.', size=8)),
-                ('n_xyz', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(blank=True, null=True), default=list, help_text='Number of pixels along each axis', size=3)),
-                ('brain_region', models.ManyToManyField(related_name='brain_region', to='experiments.brainregion')),
-                ('coordinate_system', models.ForeignKey(blank=True, help_text='3D coordinate system used.', null=True, on_delete=django.db.models.deletion.SET_NULL, to='experiments.coordinatesystem')),
-                ('field_of_view', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='location', to='experiments.fov')),
+                ("id", models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                ("name", models.CharField(blank=True, help_text="Long name", max_length=255)),
+                (
+                    "json",
+                    models.JSONField(
+                        blank=True, help_text="Structured data, formatted in a user-defined way", null=True
+                    ),
+                ),
+                (
+                    "provenance",
+                    models.CharField(
+                        choices=[("E", "Estimate"), ("F", "Functional"), ("L", "Landmark"), ("H", "Histology")],
+                        default="L",
+                        help_text="E: Estimate / F: Functional / L: Landmark / H: Histology",
+                        max_length=1,
+                    ),
+                ),
+                ("default_provenance", models.BooleanField(default=False)),
+                ("auto_datetime", models.DateTimeField(auto_now=True, verbose_name="last update")),
+                (
+                    "x",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.FloatField(blank=True, null=True),
+                        default=list,
+                        help_text="The location in um of the top left, top right, bottom left and bottom right pixels "
+                        "respectively, along the x axis (typically the medio-lateral extent) at the most "
+                        "superficial depth.  For volumetric imaging provide four more "
+                        "coordinates for the deepest extent.",
+                        size=8,
+                    ),
+                ),
+                (
+                    "y",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.FloatField(blank=True, null=True),
+                        default=list,
+                        help_text="The location in um of the top left, top right, bottom left and bottom "
+                        "right pixels respectively, along the y axis (typically the antereo-posterior extent) "
+                        "at the most superficial depth.  For volumetric imaging provide four more coordinates "
+                        "for the deepest extent.",
+                        size=8,
+                    ),
+                ),
+                (
+                    "z",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.FloatField(blank=True, null=True),
+                        default=list,
+                        help_text="The location in um of the top left, top right, bottom left and bottom "
+                        "right pixels respectively, along the z axis (typically the dorsal-ventral extent) "
+                        "at the most superficial depth.  For volumetric imaging provide four more coordinates "
+                        "for the deepest extent.",
+                        size=8,
+                    ),
+                ),
+                (
+                    "n_xyz",
+                    django.contrib.postgres.fields.ArrayField(
+                        base_field=models.IntegerField(blank=True, null=True),
+                        default=list,
+                        help_text="Number of pixels along each axis",
+                        size=3,
+                    ),
+                ),
+                ("brain_region", models.ManyToManyField(related_name="brain_region", to="experiments.brainregion")),
+                (
+                    "coordinate_system",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="3D coordinate system used.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="experiments.coordinatesystem",
+                    ),
+                ),
+                (
+                    "field_of_view",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, related_name="location", to="experiments.fov"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'field of view location',
-                'verbose_name_plural': 'fields of view location',
-                'ordering': ('-default_provenance',),
-                'constraints': [models.UniqueConstraint(fields=('provenance', 'field_of_view'), name='unique_provenance_per_field_of_view')],
+                "verbose_name": "field of view location",
+                "verbose_name_plural": "fields of view location",
+                "ordering": ("-default_provenance",),
+                "constraints": [
+                    models.UniqueConstraint(
+                        fields=("provenance", "field_of_view"), name="unique_provenance_per_field_of_view"
+                    )
+                ],
             },
         ),
     ]

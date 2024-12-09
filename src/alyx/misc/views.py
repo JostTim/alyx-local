@@ -8,12 +8,14 @@ import requests
 # from one.remote.aws import get_s3_virtual_host
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, FileResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound, Http404
+from django.views import View
 
-from rest_framework import viewsets, views
+from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.reverse import reverse
-from rest_framework import generics
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 from ..base.base import BaseFilterSet, rest_permission_classes
 from ..data.models import Tag
@@ -59,7 +61,7 @@ def api_root(request, format=None):
     )
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(ReadOnlyModelViewSet):
     """
     Lists all users with the subjects which they are responsible for.
     """
@@ -71,7 +73,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = rest_permission_classes()
 
 
-class LabList(generics.ListCreateAPIView):
+class LabList(ListCreateAPIView):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     permission_classes = rest_permission_classes()
@@ -79,14 +81,14 @@ class LabList(generics.ListCreateAPIView):
     filterset_class = LabFilter
 
 
-class LabDetail(generics.RetrieveUpdateDestroyAPIView):
+class LabDetail(RetrieveUpdateDestroyAPIView):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     permission_classes = rest_permission_classes()
     lookup_field = "name"
 
 
-class NoteList(generics.ListCreateAPIView):
+class NoteList(ListCreateAPIView):
     """
     post:
     If an image is provided, the request body can contain an additional item
@@ -105,13 +107,13 @@ class NoteList(generics.ListCreateAPIView):
     filterset_class = BaseFilterSet
 
 
-class NoteDetail(generics.RetrieveUpdateDestroyAPIView):
+class NoteDetail(RetrieveUpdateDestroyAPIView):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     permission_classes = rest_permission_classes()
 
 
-class MediaView(views.APIView):
+class MediaView(APIView):
     permission_classes = rest_permission_classes()
 
     def get(self, request=None, format=None, img_url=""):
@@ -180,7 +182,7 @@ def _get_cache_info(tag=None):
     return cache_info
 
 
-class CacheVersionView(views.APIView):
+class CacheVersionView(APIView):
     permission_classes = rest_permission_classes()
 
     def get(self, request=None, tag=None, **kwargs):
@@ -190,7 +192,7 @@ class CacheVersionView(views.APIView):
             return HttpResponseNotFound(str(ex))
 
 
-class CacheDownloadView(views.APIView):
+class CacheDownloadView(APIView):
     permission_classes = rest_permission_classes()
 
     def get(self, request=None, **kwargs):
@@ -200,3 +202,8 @@ class CacheDownloadView(views.APIView):
             cache_file = Path(TABLES_ROOT).joinpath("cache.zip")
             response = FileResponse(open(cache_file, "br"))
         return response
+
+
+class DatabaseManagementUIView(View):
+    template_name = "database_management.html"
+    

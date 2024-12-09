@@ -14,6 +14,7 @@ services:
       context: .
       dockerfile: ./docker/django/Dockerfile
     container_name: django_server
+    hostname: 'django_server'
     volumes :
       - uploaded_volume:/app/uploaded
       - ./config/db-secure-password:/run/secrets/db-secure-password:ro
@@ -29,6 +30,7 @@ services:
   nginx_server:
     image: nginx:latest
     container_name: nginx_server
+    hostname: 'nginx_server'
     ports:
       - "80:80"
     volumes:
@@ -40,6 +42,7 @@ services:
   db:
     image: postgres:17
     container_name: postgres_db
+    hostname: 'postgres_db'
     restart: always
     user: postgres
     volumes:
@@ -59,14 +62,17 @@ services:
   rabbit_mq:
     image: rabbitmq:4-management
     container_name: rabbitmq
+    hostname: 'rabbitmq'
     ports: 
       - "5672:5672"
       - "15672:15672"
     volumes: 
-      - ./config/rabbitmq-conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq-data:/var/lib/rabbitmq
+      - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
 volumes:
   db-data:
+  rabbitmq-data:
   uploaded_volume:
   
   

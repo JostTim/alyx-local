@@ -273,7 +273,7 @@ def install_docker_alyx():
         )
 
         error = error | _dump_to_file(
-            CONFIG_FOLDER / "rabbitmq-conf",
+            CONFIG_FOLDER / "rabbitmq.conf",
             _create_rabbitmq_config_file,
             RabbitConfChecker,
             renderer,
