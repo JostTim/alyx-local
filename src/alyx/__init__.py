@@ -19,6 +19,7 @@ def _generate_new_secret_key(length: int = 50) -> str:
 class InstallStatusRenderer:
     panel_style = "turquoise2"
     title = "Installation summary"
+    variables_store = {}
 
     def __init__(self, verbose=False):
         from rich.console import Console
@@ -52,8 +53,8 @@ class InstallStatusRenderer:
     def done(self):
         self.clear()
         self.print(
-            "💚  Your configuration is healthy, you are ready for building and running the docker app 💚",
-            style="bright_green bold italic on honeydew2",
+            "\n✔ 💚  Your configuration is healthy, you are ready for building and running the docker app 💚 ✔",
+            style="bright_green bold italic",  # on honeydew2",
             panel_style="bright_green",
             justify="center",
         )
@@ -155,14 +156,32 @@ def _create_uploaded_folder(install_root: "Path", renderer: InstallStatusRendere
 
 def _create_rabbitmq_config_file(prompter: InstallStatusRenderer) -> str:
 
-    username = prompter.ask(
+    username = prompter.ask("Please enter a username for securing the rabbitmq database", default="username")
+
+    password = prompter.ask(
         "Please enter a password for securing the rabbitmq database", default=_generate_new_secret_key(20)
     )
 
-    password = prompter.ask("Please enter a username for securing the rabbitmq database", default="username")
-
     file_content = f"default_user = {username}\ndefault_pass = {password}"
 
+    prompter.variables_store["rabbitmq_username"] = username
+    prompter.variables_store["rabbitmq_password"] = password
+
+    return file_content
+
+
+def _create_celery_env_file(prompter: InstallStatusRenderer) -> str:
+
+    username = prompter.variables_store["rabbitmq_username"]
+    password = prompter.variables_store["rabbitmq_password"]
+
+    lines = [
+        f"RABBITMQ_USER={username}",
+        f"RABBITMQ_PASSWORD={password}",
+        f"FLOWER_USER={username}",
+        f"FLOWER_PASSWORD={password}",
+    ]
+    file_content = "\n".join(lines)
     return file_content
 
 
@@ -202,7 +221,7 @@ class DbPasswordChecker(FileChecker):
         return False if "\n" not in self.content and len(self.content) >= 5 else True
 
 
-class RabbitConfChecker(FileChecker):
+class NoChecker(FileChecker):
 
     def check_errors(self):
         self.read()
@@ -275,7 +294,15 @@ def install_docker_alyx():
         error = error | _dump_to_file(
             CONFIG_FOLDER / "rabbitmq.conf",
             _create_rabbitmq_config_file,
-            RabbitConfChecker,
+            NoChecker,
+            renderer,
+            prompter=renderer,
+        )
+
+        error = error | _dump_to_file(
+            CONFIG_FOLDER / "celery.env",
+            _create_celery_env_file,
+            NoChecker,
             renderer,
             prompter=renderer,
         )
