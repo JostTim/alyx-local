@@ -6,7 +6,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from rest_framework.authtoken import views as authv
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from . import adminsite
+from .adminsite import mysite
 
 urlpatterns = [
     path("", include("alyx.misc.urls")),
@@ -16,7 +16,7 @@ urlpatterns = [
     path("", include("alyx.data.urls")),
     path("", include("alyx.subjects.urls")),
     path("admin/doc/", include("django.contrib.admindocs.urls")),
-    path("admin/", adminsite.admin.site.urls),
+    path("admin/", mysite.urls),
     path("auth/", include("rest_framework.urls", namespace="rest_framework")),
     path("auth-token", authv.obtain_auth_token),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

@@ -7,10 +7,10 @@ import tempfile
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-from ..base.tests import BaseTests
-from ..misc.models import LabMembership, Lab
-from ..misc.views import _get_cache_info
-from ..data.models import Tag
+from alyx.base.tests import BaseTests
+from alyx.misc.models import LabMembership, Lab
+from alyx.misc.views import _get_cache_info
+from alyx.data.models import Tag
 
 
 class APIActionsTests(BaseTests):
@@ -61,7 +61,7 @@ class APIActionsTests(BaseTests):
 
     def test_note_rest(self):
         user = self.ar(self.client.get(reverse("user-list")), 200)
-        from ..subjects.models import Subject
+        from ...subjects.models import Subject
 
         sub = Subject.objects.first()
         my_note = {"user": user[0]["username"], "content_type": "subject", "object_id": sub.pk, "text": "gnagnagna"}

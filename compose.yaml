@@ -10,13 +10,15 @@
 services:
 
   django_server:
+    restart: always
     build:
       context: .
       dockerfile: ./docker/django/Dockerfile
+    image: alyx_django_server:latest
     container_name: django_server
     hostname: 'django_server'
     volumes :
-      - uploaded_volume:/app/uploaded
+      - uploaded-data:/app/uploaded
       - ./config/db-secure-password:/run/secrets/db-secure-password:ro
       - ./src:/app/src:rw
     environment : 
@@ -34,7 +36,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - uploaded_volume:/app/uploaded
+      - uploaded-data:/app/uploaded
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - django_server
@@ -59,7 +61,7 @@ services:
       timeout: 5s
       retries: 5
 
-  rabbit_mq:
+  rabbitmq:
     image: rabbitmq:4-management
     container_name: rabbitmq
     hostname: 'rabbitmq'
@@ -70,9 +72,25 @@ services:
       - rabbitmq-data:/var/lib/rabbitmq
       - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
+  celery_server:
+    build:
+        context: .
+        dockerfile: ./docker/celery/Dockerfile
+    image: celery_flower:latest
+    container_name: celery_server
+    hostname: 'celery_server'
+    expose:
+      - 5001
+      - 5555
+    ports:
+      - "5001:5001"
+      - "5555:5555"
+    env_file:
+      - ./config/celery.env
+    depends_on:
+      - rabbitmq
+
 volumes:
   db-data:
   rabbitmq-data:
-  uploaded_volume:
-  
-  
+  uploaded-data:

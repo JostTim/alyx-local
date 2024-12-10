@@ -1,4 +1,4 @@
-__version__ = "3.0.1"
+__version__ = "3.0.2"
 
 
 from typing import TYPE_CHECKING
@@ -44,7 +44,7 @@ class InstallStatusRenderer:
             self.print(f"🫷  Won't create {file_or_folder} as it already exists. Skipping this phase.", style="grey50")
 
     def success(self, message: str):
-        self.print(f"✅  {message}", style="bright_green")
+        self.print(f"✔  {message}", style="bright_green")
 
     def warning(self, message: str):
         self.print(f"⚠️  {message}", style="dark_orange", panel_style="dark_orange")

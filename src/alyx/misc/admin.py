@@ -12,7 +12,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
 from ..misc.models import Note, Lab, LabMembership, LabLocation, CageType, Enrichment, Food, Housing, HousingSubject
-from ..base.admins import BaseAdmin, get_admin_url
+from ..base.admin import BaseAdmin, get_admin_url
 from ..base.filters import DefaultListFilter
 
 

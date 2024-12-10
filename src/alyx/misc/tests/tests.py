@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 import unittest
 from django.test import TestCase
 
-from ..subjects.models import Subject
-from ..misc.models import Housing, HousingSubject, CageType
+from alyx.subjects.models import Subject
+from alyx.misc.models import Housing, HousingSubject, CageType
 
 SKIP_ONE_CACHE = False
 try:
     import pyarrow as pa
-    from ..misc.management.commands import one_cache
+    from alyx.misc.management.commands import one_cache
 except ImportError as ex:
     print(f"Failed to import one_cache: {ex}")
     SKIP_ONE_CACHE = True

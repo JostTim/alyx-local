@@ -4,7 +4,7 @@ from django.urls import reverse
 from django_admin_listfilter_dropdown.filters import DropdownFilter, ChoiceDropdownFilter
 
 from ..jobs.models import Task
-from ..base.admins import BaseAdmin, get_admin_url
+from ..base.admin import BaseAdmin, get_admin_url
 from ..actions.models import Session
 
 

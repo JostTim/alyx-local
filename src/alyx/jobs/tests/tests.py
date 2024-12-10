@@ -2,9 +2,9 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.management import call_command
 
-from ..actions.models import Session
-from ..base.tests import BaseTests
-from ..data.models import DataRepository
+from alyx.actions.models import Session
+from alyx.base.tests import BaseTests
+from alyx.data.models import DataRepository
 
 
 class APISubjectsTests(BaseTests):

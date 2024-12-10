@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from ..base.tests import BaseTests
-from ..actions.models import WaterAdministration, Weighing
-from ..subjects.models import Subject, Project
-from ..misc.models import Lab
+from alyx.base.tests import BaseTests
+from alyx.actions.models import WaterAdministration, Weighing
+from alyx.subjects.models import Subject, Project
+from alyx.misc.models import Lab
 
 
 class APISubjectsTests(BaseTests):

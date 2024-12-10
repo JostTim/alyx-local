@@ -1,5 +1,6 @@
+import os
 from datetime import timedelta
-import structlog
+
 from math import inf
 
 from django.conf import settings
@@ -13,7 +14,6 @@ from ..base.mails import send_alyx_mail
 from ..base.queries import BaseManager
 from ..misc.models import Lab, LabLocation, LabMember, Note
 
-import os
 
 from typing import Dict
 
@@ -23,8 +23,9 @@ from typing import Dict
 
 from markdownx.models import MarkdownxField
 from markdownx.widgets import AdminMarkdownxWidget
-
 from markdownx.fields import MarkdownxFormField
+
+import structlog
 
 logger = structlog.get_logger("action.models")
 

@@ -3,11 +3,12 @@ from django.urls import reverse
 from django.utils.timezone import now
 from datetime import timedelta
 
-from django.conf import settings
-from ..base.tests import BaseTests
-from ..subjects.models import Subject, Project
-from ..misc.models import Lab, Note, ContentType
-from .models import Session, WaterType, WaterAdministration
+# from django.conf import settings
+from alyx.base import settings
+from alyx.base.tests import BaseTests
+from alyx.subjects.models import Subject, Project
+from alyx.misc.models import Lab, Note, ContentType
+from alyx.actions.models import Session, WaterType, WaterAdministration
 
 
 class APIActionsTests(BaseTests):

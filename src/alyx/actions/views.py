@@ -55,7 +55,6 @@ from .filters import (
     WaterAdministrationFilter,
     WaterRestrictionFilter,
 )
-from . import admin
 
 import structlog
 

@@ -8,19 +8,21 @@ from django.contrib.auth import get_user_model
 from django.db.models import Case, When, Q, Value, Func, F, CharField
 from django.db.models.functions import Concat
 from django.urls import reverse
-from django.utils.html import format_html, mark_safe
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django_admin_listfilter_dropdown.filters import (
     RelatedDropdownFilter,
     SimpleDropdownFilter,
 )
 from django.shortcuts import get_object_or_404
-from django.contrib.admin import site, SimpleListFilter, TabularInline
+from django.contrib.admin import TabularInline
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib import admin
 from django.db.models.functions import Collate
 from rangefilter.filters import DateRangeFilter
 from functools import partial
 
-from ..base.admins import BaseAdmin, BaseInlineAdmin, get_admin_url
+from ..base.admin import BaseAdmin, BaseInlineAdmin, get_admin_url
 from ..base.filters import DefaultListFilter
 from .models import (
     OtherAction,
@@ -1115,22 +1117,25 @@ class CullAdmin(BaseAdmin):
         return ", ".join(p.name for p in obj.subject.projects.all())
 
 
-site.register(ProcedureType, ProcedureTypeAdmin)
-site.register(Weighing, WeighingAdmin)
-site.register(WaterAdministration, WaterAdministrationAdmin)
-site.register(WaterRestriction, WaterRestrictionAdmin)
+mysite = admin.site
 
-site.register(Session, SessionAdmin)
-site.register(EphysSession, EphysSessionAdmin)
-site.register(OtherAction, BaseActionAdmin)
-site.register(VirusInjection, BaseActionAdmin)
 
-site.register(Surgery, SurgeryAdmin)
-site.register(WaterType, WaterTypeAdmin)
+mysite.register(ProcedureType, ProcedureTypeAdmin)
+mysite.register(Weighing, WeighingAdmin)
+mysite.register(WaterAdministration, WaterAdministrationAdmin)
+mysite.register(WaterRestriction, WaterRestrictionAdmin)
 
-site.register(Notification, NotificationAdmin)
-site.register(NotificationRule, NotificationRuleAdmin)
+mysite.register(Session, SessionAdmin)
+mysite.register(EphysSession, EphysSessionAdmin)
+mysite.register(OtherAction, BaseActionAdmin)
+mysite.register(VirusInjection, BaseActionAdmin)
 
-site.register(Cull, CullAdmin)
-site.register(CullReason, BaseAdmin)
-site.register(CullMethod, BaseAdmin)
+mysite.register(Surgery, SurgeryAdmin)
+mysite.register(WaterType, WaterTypeAdmin)
+
+mysite.register(Notification, NotificationAdmin)
+mysite.register(NotificationRule, NotificationRuleAdmin)
+
+mysite.register(Cull, CullAdmin)
+mysite.register(CullReason, BaseAdmin)
+mysite.register(CullMethod, BaseAdmin)

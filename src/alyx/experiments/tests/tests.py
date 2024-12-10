@@ -1,7 +1,7 @@
-from ..base.tests import BaseTests
-from ..actions.models import Session
-from ..experiments.models import ProbeInsertion
-from ..data.models import Dataset
+from alyx.base.tests import BaseTests
+from alyx.actions.models import Session
+from alyx.experiments.models import ProbeInsertion
+from alyx.data.models import Dataset
 
 
 class EphysModels(BaseTests):

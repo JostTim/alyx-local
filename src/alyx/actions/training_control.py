@@ -140,9 +140,7 @@ def training_control(subject):
         water_control=wc,
     )
 
-    sessions = subject.actions_sessions.all().exclude(
-        n_trials__isnull=True, n_correct_trials__isnull=True
-    )
+    sessions = subject.actions_sessions.all().exclude(n_trials__isnull=True, n_correct_trials__isnull=True)
 
     tc.add_sessions(list(sessions))
 

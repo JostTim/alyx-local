@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.db.models import Q
 
 from ..base.utils import iter_history_changes
-from ..base.admins import BaseAdmin, BaseInlineAdmin, get_admin_url
+from ..base.admin import BaseAdmin, BaseInlineAdmin, get_admin_url
 from ..base.filters import DefaultListFilter
 from .models import (
     Allele,
