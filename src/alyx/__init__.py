@@ -9,13 +9,6 @@ if TYPE_CHECKING:
     from rich.text import Text
 
 
-def _generate_new_secret_key(length: int = 50) -> str:
-    from django.utils.crypto import get_random_string
-
-    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%^&-_=+"
-    return get_random_string(length, chars)
-
-
 class InstallStatusRenderer:
     panel_style = "turquoise2"
     title = "Installation summary"
@@ -99,6 +92,13 @@ class InstallStatusRenderer:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.live.__exit__(exc_type, exc_val, exc_tb)
+
+
+def _generate_new_secret_key(length: int = 50) -> str:
+    from django.utils.crypto import get_random_string
+
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%^&-_=+"
+    return get_random_string(length, chars)
 
 
 def _dump_to_file(
