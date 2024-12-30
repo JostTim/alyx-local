@@ -22,22 +22,23 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from ..base.filters import BaseFilterSet
 from ..base.permissions import rest_permission_classes
 from ..data.models import Tag
+from ..base.settings import TABLES_ROOT, MEDIA_ROOT
+
 from .serializers import UserSerializer, LabSerializer, NoteSerializer
 from .models import Lab, Note
-from ..base.settings import TABLES_ROOT, MEDIA_ROOT
 from .filters import LabFilter
 
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+# from django.contrib.auth.models import Permission
+# from django.contrib.contenttypes.models import ContentType
 
-content_type = ContentType.objects.get_for_model(Permission)
-permission = Permission.objects.get_or_create(
-    codename="system_admin",
-    content_type=content_type,
-    defaults={
-        "name": "Can manage the system via UI interface. Dangerous action, should be admin restricted only",
-    },
-)
+# content_type = ContentType.objects.get_for_model(Permission)
+# permission = Permission.objects.get_or_create(
+#     codename="system_admin",
+#     content_type=content_type,
+#     defaults={
+#         "name": "Can manage the system via UI interface. Dangerous action, should be admin restricted only",
+#     },
+# )
 
 
 # @api_view(["GET"])

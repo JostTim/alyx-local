@@ -507,7 +507,7 @@ class Migration(migrations.Migration):
             name="source",
             field=models.ForeignKey(
                 blank=True,
-                default=subjects_models.default_source,
+                default=subjects_models.default_subject_source,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 to="subjects.Source",

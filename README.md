@@ -57,6 +57,14 @@ It is ideal that you use [git](https://git-scm.com/downloads) for the cloning / 
     django_server  | [2024-12-09 13:13:38 +0000] [310] [INFO] Booting worker with pid: 310 (the number here is not important and may be different when you run this)
     ```
 
+Possible errors :
+- If you get an error similar to : 
+    ```log
+    error during connect : Get ....
+    open //./pipe/dockerDesktopLinuxEngine: The system cannot find the file specified.
+    ```
+    It means that the docker desktop service is not launched. Please make sure the docker desktop application you installed previously is running.
+
 ### Turn **off**, **restart** and **maintain**
     
 - To turn off the containers, you can run anytime from a terminal the command `pdm run stop`, wile the current working directory of your terminal is at the root of the repository you cloned from github.

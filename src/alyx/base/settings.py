@@ -15,36 +15,31 @@ from django.conf.locale.en import formats as en_formats
 from tzlocal import get_localzone
 import sys
 
-DEBUG = True
-DISABLE_MAIL = False  # used for testing
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
 
-DEFAULT_LAB_NAME = "defaultlab"
-DEFAULT_PROTOCOL = "1"
+if DEBUG:
+    LOG_LEVEL = "WARNING"
+else:
+    LOG_LEVEL = "INFO"
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # CSRF_COOKIE_SECURE = False #previous value was True
 
-en_formats.DATETIME_FORMAT = "d/m/Y H:i"
-DATE_INPUT_FORMATS = ("%d/%m/%Y",)
-
-USE_TZ = True
-TIME_ZONE = get_localzone().key  # "Europe/Paris"
+    # X_FRAME_OPTIONS = 'DENY'
+    # SESSION_COOKIE_SECURE = True
+    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
+    # SECURE_SSL_REDIRECT = False #previous value was True
+    # SECURE_BROWSER_XSS_FILTER = True
+    # SECURE_CONTENT_TYPE_NOSNIFF = True
+    # SECURE_HSTS_SECONDS = 30
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    # SECURE_HSTS_PRELOAD = True
 
 # IN WHAT ENVIRONMENT DO WE RUN ?
 IS_DOCKER = os.path.exists("/.dockerenv")
 IS_GITHUB_ACTION = "GITHUB_ACTIONS" in os.environ
 
-
-if IS_GITHUB_ACTION:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": "githubactions",
-            "USER": "postgres",
-            "PASSWORD": "postgres",
-            "HOST": "localhost",
-            "PORT": "5432",
-        }
-    }
-
-elif IS_DOCKER:
+if IS_DOCKER:
 
     def read_db_password(secret_file_path: Path | str):
         with open(secret_file_path) as f:
@@ -67,9 +62,19 @@ elif IS_DOCKER:
         }
     }
 
+elif IS_GITHUB_ACTION:
 
-# Custom User model with UUID primary key
-AUTH_USER_MODEL = "misc.LabMember"
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": "githubactions",
+            "USER": "postgres",
+            "PASSWORD": "postgres",
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
+    }
+
 
 BASE_DIR = Path("/app/src/alyx")  # Path(__file__).resolve().parent.parent
 UPLOADED_DIR = BASE_DIR.parent.parent / "uploaded"
@@ -77,31 +82,18 @@ DATA_DIR = Path("/data")
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+# Custom User model with UUID primary key
+AUTH_USER_MODEL = "misc.LabMember"
 
-# SECURITY WARNING: don't run with debug turned on in production!
+en_formats.DATETIME_FORMAT = "d/m/Y H:i"
+DATE_INPUT_FORMATS = ("%d/%m/%Y",)
 
+USE_TZ = True
+TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
 # Production settings. Used mainly for SSL security. As we go local, i deactiated them.
 # There is still authentification, but "risk" for man in the middle attack
 # (only, the middle man have to be IN pasteur's private network so it's much less likely and data is backuped regularly.
-if not DEBUG:
-    pass
-    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
-    # CSRF_COOKIE_SECURE = False #previous value was True
-
-    # X_FRAME_OPTIONS = 'DENY'
-    # SESSION_COOKIE_SECURE = True
-    # #EDITED BY TIMOTHE ON 22/11/2022 TO BE ABLE TO CONNECT WITH HTTP.
-    # SECURE_SSL_REDIRECT = False #previous value was True
-    # SECURE_BROWSER_XSS_FILTER = True
-    # SECURE_CONTENT_TYPE_NOSNIFF = True
-    # SECURE_HSTS_SECONDS = 30
-    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    # SECURE_HSTS_PRELOAD = True
-    LOG_LEVEL = "WARNING"
-else:
-    LOG_LEVEL = "INFO"
-
 
 LOGGING = {
     "version": 1,
@@ -161,9 +153,22 @@ LOGGING = {
     },
 }
 
-if "TRAVIS" in os.environ or "READTHEDOCS" in os.environ:
-    LOGGING["handlers"]["file"]["filename"] = "alyx.log"
-
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
 # Application definition
 
@@ -220,8 +225,6 @@ MIDDLEWARE = (
     "django_structlog.middlewares.RequestMiddleware",
 )
 
-ROOT_URLCONF = "alyx.base.urls"
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -244,7 +247,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -276,15 +278,17 @@ DBBACKUP_STORAGE_OPTIONS = {"location": "/app/uploaded/backups/"}
 USE_I18N = False
 USE_L10N = False
 
-STATIC_URL = "/static/"
+# URLS
+ROOT_URLCONF = "alyx.base.urls"
 
 # this is where the static assets will be collected to be copied to serving location
 STATICFILES_DIRS = (str(BASE_DIR / "static"),)
 
 # this is where the collected static assets will be copied and served
 STATIC_ROOT = str(UPLOADED_DIR / "static")
+STATIC_URL = "/static/"
 
-
+# this is where the media uploaded / generated files will be stored and served
 MEDIA_ROOT = str(UPLOADED_DIR / "media")
 MEDIA_URL = "/media/"
 
@@ -294,25 +298,16 @@ TABLES_ROOT = str(UPLOADED_DIR / "tables/")
 
 UPLOADED_IMAGE_WIDTH = 800
 
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=structlog.threadlocal.wrap_dict(dict),
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
-
 WSGI_APPLICATION = "alyx.base.wsgi.application"
 
+# Testing related parameters
+DISABLE_MAIL = False
+
+# Parametrable default values
+
+DEFAULT_SUBJECT_SOURCE = "internal"
+DEFAULT_LAB_NAME = "defaultlab"
+DEFAULT_PROTOCOL = "1"
 
 sys.path.append("/app/extra_configuration")
 

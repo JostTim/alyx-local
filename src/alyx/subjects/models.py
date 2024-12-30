@@ -99,8 +99,8 @@ class SubjectManager(models.Manager):
         return self.get(nickname=name)
 
 
-def default_source():
-    return Source.objects.filter(name=settings.DEFAULT_SOURCE).first()
+def default_subject_source():
+    return Source.objects.filter(name=settings.DEFAULT_SUBJECT_SOURCE).first()
 
 
 def default_responsible():
@@ -187,7 +187,7 @@ please use the Zygosities fields below, and the description field to put more de
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        default=default_source,
+        default=default_subject_source,
     )
     line = models.ForeignKey("Line", null=True, blank=True, on_delete=models.SET_NULL)
     birth_date = models.DateField(null=True, blank=True)

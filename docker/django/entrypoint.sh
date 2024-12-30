@@ -6,7 +6,7 @@ pdm install --prod --no-editable --frozen-lockfile
 /app/scripts/restore_on_run.sh
 
 echo "Applying database migrations..."
-pdm run ./src/manage.py migrate --noinput 
+pdm run ./src/manage.py migrate # --noinput 
 
 # Collect static files
 echo "Collecting static files..."

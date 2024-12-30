@@ -53,6 +53,8 @@ services:
     environment:
       - POSTGRES_DB=alyx
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
+    ports:
+      - "5432:5432"
     expose:
       - 5432
     healthcheck:
@@ -60,6 +62,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    hostname: 'pgadmin'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "8888:80"
+    depends_on:
+      db:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -89,6 +104,7 @@ services:
       - ./config/celery.env
     depends_on:
       - rabbitmq
+
 
 volumes:
   db-data:
