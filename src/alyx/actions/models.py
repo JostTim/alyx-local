@@ -14,8 +14,7 @@ from ..base.mails import send_alyx_mail
 from ..base.queries import BaseManager
 from ..misc.models import Lab, LabLocation, LabMember, Note
 
-
-from typing import Dict
+from typing import Dict, TYPE_CHECKING
 
 # from markdownfield.models import MarkdownField, RenderedMarkdownField
 # from markdownfield.validators import VALIDATOR_STANDARD
@@ -28,6 +27,9 @@ from markdownx.fields import MarkdownxFormField
 import structlog
 
 logger = structlog.get_logger("action.models")
+
+if TYPE_CHECKING:
+    from ..data.models import DataRepository
 
 
 def _default_water_type():
@@ -486,11 +488,11 @@ class Session(BaseAction):
         return string
 
     @property
-    def alias(self):
+    def alias(self) -> str:
         return "/".join([self.subject.nickname, str(self.start_time)[:10], str(self.number).zfill(3)])
 
     @property
-    def u_alias(self):
+    def u_alias(self) -> str:
         return self.alias.replace("/", "_")
 
     @property
@@ -498,7 +500,7 @@ class Session(BaseAction):
         return Note.objects.filter(object_id=self.pk)
 
     @property
-    def path(self):
+    def path(self) -> str:
         return os.path.join(self.default_data_repository.data_path, self.alias)
 
 

@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content %}
+
+{{block.super}}
+
+<div id="content-main">
+<div class="module">
+    <table>
+        <caption>Services Hub</caption>
+        <tbody class = "">
+        {% for subpage in subpages %}
+            <tr>
+            <th scope="row"><a href="{{ subpage.url }}">{{ subpage.name }}</a></th>
+            <td></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+
+<style>
+    table caption {
+        display: inline-block; /* or inline */
+    }
+</style>
+
+{% endblock %}
+
+{% block title %}
+{{ title|striptags }}
+{% endblock %}

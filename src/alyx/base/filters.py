@@ -1,9 +1,11 @@
-from django.contrib.admin import SimpleListFilter
+from django.db.models import QuerySet, JSONField
 from django_filters import CharFilter
 from django_filters.rest_framework import FilterSet
-from django.db.models import QuerySet, JSONField
+from django.contrib.admin import SimpleListFilter
+from django_admin_listfilter_dropdown.filters import RelatedDropdownFilter
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import ParseError
+
 
 import json, re
 
@@ -74,6 +76,57 @@ class BaseFilterSet(FilterSet):
 
     class Meta:
         abstract = True
+
+
+class SortedRelatedDropdownFilter(RelatedDropdownFilter):
+    def field_choices(self, field, request, model_admin):
+        related_model = field.related_model
+        human_readable_name = related_model.human_field_string()
+
+        related_ids = model_admin.model.objects.values_list(f"{field.name}__id", flat=True).distinct()
+        choices = (
+            related_model.objects.filter(id__in=related_ids)
+            .order_by(human_readable_name)
+            .values_list("id", human_readable_name)
+        )
+        return list(choices)
+
+
+class ActiveFilter(DefaultListFilter):
+    title = "active"
+    parameter_name = "active"
+
+    def lookups(self, request, model_admin):
+        return (
+            (None, "All"),
+            ("active", "Active"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "active":
+            return queryset.filter(
+                start_time__isnull=False,
+                end_time__isnull=True,
+            )
+        elif self.value is None:
+            return queryset.all()
+
+
+class CreatedByListFilter(DefaultListFilter):
+    title = "users"
+    parameter_name = "users"
+
+    def lookups(self, request, model_admin):
+        return (
+            (None, "Me"),
+            ("all", "All"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() is None:
+            return queryset.filter(users=request.user)
+        elif self.value == "all":
+            return queryset.all()
 
 
 def rest_filters_exception_handler(exc, context):

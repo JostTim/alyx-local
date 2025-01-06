@@ -240,3 +240,19 @@ class ManagementHubView(TemplateView, LoginRequiredMixin, PermissionRequiredMixi
 class DatabaseManagementUIView(View, LoginRequiredMixin, PermissionRequiredMixin):
     template_name = "management/database.html"
     permission_required = "system_admin"
+
+
+class ServicesHubView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    template_name = "management/services.html"
+    permission_required = "system_admin"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["subpages"] = [
+            {"name": "Celery", "url": "/services/celery"},
+            {"name": "PgAdmin", "url": "/services/pgadmin"},
+            {"name": "Rabbitmq", "url": "/services/rabbitmq"},
+        ]
+        context["site_header"] = "Alyx"
+        context["title"] = "Services Hub"
+        return context

@@ -23,7 +23,13 @@ from rangefilter.filters import DateRangeFilter
 from functools import partial
 
 from ..base.admin import BaseAdmin, BaseInlineAdmin, get_admin_url
-from ..base.filters import DefaultListFilter
+from ..base.filters import SortedRelatedDropdownFilter, ActiveFilter
+from ..data.models import Dataset, FileRecord, DatasetType
+from ..misc.admin import NoteInline
+from ..misc.models import LabMember
+from ..subjects.models import Subject, Project
+from ..experiments.models import ProbeInsertion
+
 from .models import (
     OtherAction,
     ProcedureType,
@@ -42,12 +48,14 @@ from .models import (
     CullMethod,
     ImagingSession,
 )
-from ..data.models import Dataset, FileRecord, DatasetType
-from ..misc.admin import NoteInline
-from ..misc.models import LabMember
-from ..subjects.models import Subject, Project
-from ..experiments.models import ProbeInsertion
 from .water_control import WaterControl
+from .filters import (
+    NotificationUserFilter,
+    SubjectAliveListFilter,
+    ResponsibleUserListFilter,
+    QCFilter,
+    SessionDatasetTypeDropdownFilter,
+)
 
 
 # https://github.com/nnseva/django-jsoneditor
@@ -63,94 +71,6 @@ from markdownx.admin import MarkdownxModelAdmin
 logger = structlog.get_logger("actions.admin")
 
 
-# Filters
-# ------------------------------------------------------------------------------------------------
-
-
-class ResponsibleUserListFilter(DefaultListFilter):
-    title = "responsible user"
-    parameter_name = "responsible_user"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "All"),
-            ("me", "Me"),
-        )
-
-    def queryset(self, request, queryset):
-        value = self.value()
-        if value is None:
-            return queryset.all()
-        elif value == "me":
-            return queryset.filter(subject__responsible_user=request.user)
-
-
-class SubjectAliveListFilter(DefaultListFilter):
-    title = "alive"
-    parameter_name = "alive"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "Yes"),
-            ("n", "No"),
-            ("all", "All"),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() is None:
-            return queryset.filter(subject__cull__isnull=True)
-        if self.value() == "n":
-            return queryset.exclude(subject__cull__isnull=True)
-        elif self.value == "all":
-            return queryset.all()
-
-
-class ActiveFilter(DefaultListFilter):
-    title = "active"
-    parameter_name = "active"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "All"),
-            ("active", "Active"),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == "active":
-            return queryset.filter(
-                start_time__isnull=False,
-                end_time__isnull=True,
-            )
-        elif self.value is None:
-            return queryset.all()
-
-
-class CreatedByListFilter(DefaultListFilter):
-    title = "users"
-    parameter_name = "users"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "Me"),
-            ("all", "All"),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() is None:
-            return queryset.filter(users=request.user)
-        elif self.value == "all":
-            return queryset.all()
-
-
-def _bring_to_front(ids: list, id: int):
-    if id in ids:
-        ids.remove(id)
-    ids.insert(0, id)
-    return ids
-
-
-# Admin
-# ------------------------------------------------------------------------------------------------
 class BaseActionForm(forms.ModelForm):
     def __init__(self, *args, last_subject_id=None, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -744,63 +664,6 @@ def _pass_narrative_templates(context):
     return context
 
 
-class QCFilter(SimpleDropdownFilter):
-    title = "quality check"
-    parameter_name = "qc"
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(qc__exact=self.value())
-
-    def lookups(self, request, model_admin):
-        return model_admin.model.QC_CHOICES
-
-
-class SessionSubjectFilter(SimpleDropdownFilter):
-    title = "subject"
-    parameter_name = "subject"
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(subject__id=self.value())
-
-    def lookups(self, request, model_admin):
-        return Subject.objects.all().order_by("nickname").values_list("id", "nickname")
-
-
-class SortedRelatedDropdownFilter(RelatedDropdownFilter):
-    def field_choices(self, field, request, model_admin):
-        related_model = field.related_model
-        human_readable_name = related_model.human_field_string()
-
-        related_ids = model_admin.model.objects.values_list(f"{field.name}__id", flat=True).distinct()
-        choices = (
-            related_model.objects.filter(id__in=related_ids)
-            .order_by(human_readable_name)
-            .values_list("id", human_readable_name)
-        )
-        return list(choices)
-
-
-class DatasetTypeDropdownFilter(RelatedDropdownFilter):
-    def field_choices(self, field, request, model_admin):
-        related_ids = model_admin.model.objects.values_list(
-            "data_dataset_session_related__dataset_type__id", flat=True
-        ).distinct()
-        choices = DatasetType.objects.filter(id__in=related_ids).order_by("name").values_list("id", "name")
-        return list(choices)
-
-
-class FormatDate(Func):
-    function = "TO_CHAR"
-    template = "%(function)s(%(expressions)s, 'YYYY-MM-DD')"
-
-
-class ZFill(Func):
-    function = "LPAD"
-    template = "%(function)s(CAST(%(expressions)s AS TEXT), 3, '0')"
-
-
 class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
     change_form_template = r"admin/session_change_form.html"
 
@@ -852,7 +715,7 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
         ("start_time", DateRangeFilter),
         ("projects", RelatedDropdownFilter),
         ("procedures", RelatedDropdownFilter),
-        ("data_dataset_session_related__dataset_type", DatasetTypeDropdownFilter),
+        ("data_dataset_session_related__dataset_type", SessionDatasetTypeDropdownFilter),
         QCFilter,
     ]
 
@@ -877,6 +740,14 @@ class SessionAdmin(BaseActionAdmin, MarkdownxModelAdmin):
 
         ## Just convert back slashes to forward slashes to make sure we search for the session.alias in the right way
         # (unix style)
+        class FormatDate(Func):
+            function = "TO_CHAR"
+            template = "%(function)s(%(expressions)s, 'YYYY-MM-DD')"
+
+        class ZFill(Func):
+            function = "LPAD"
+            template = "%(function)s(CAST(%(expressions)s AS TEXT), 3, '0')"
+
         search_term = search_term.replace("\\", "/")
 
         queryset = queryset.annotate(
@@ -1036,23 +907,6 @@ class EphysSessionAdmin(SessionAdmin):
     def get_queryset(self, request):
         qs = super(EphysSessionAdmin, self).get_queryset(request)
         return qs.filter(procedures__name__icontains="ephys").distinct()
-
-
-class NotificationUserFilter(DefaultListFilter):
-    title = "notification users"
-    parameter_name = "users"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "Me"),
-            ("all", "All"),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() is None:
-            return queryset.filter(users__in=[request.user])
-        elif self.value == "all":
-            return queryset.all()
 
 
 class NotificationAdmin(BaseAdmin):

@@ -30,23 +30,6 @@ from ..base.filters import DefaultListFilter
 from jsoneditor.forms import JSONEditor
 
 
-class CreatedByListFilter(DefaultListFilter):
-    title = "created by"
-    parameter_name = "created_by"
-
-    def lookups(self, request, model_admin):
-        return (
-            (None, "Me"),
-            ("all", "All"),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() is None:
-            return queryset.filter(created_by=request.user)
-        elif self.value == "all":
-            return queryset.all()
-
-
 class DataRepositoryTypeAdmin(BaseAdmin):
     fields = ("name", "json")
     list_display = ("name",)

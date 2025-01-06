@@ -84,8 +84,9 @@ ADMIN_PAGES = [
 ]
 
 ADDITIONAL_PAGES = [
-    {"admin_url": "training", "name": "Training view", "perms": {}, "add_url": ""},
-    {"admin_url": "management-hub", "name": "Management hub", "perms": {}, "add_url": ""},
+    {"admin_url": "training", "name": "Training View", "perms": {}, "add_url": ""},
+    {"admin_url": "management-hub", "name": "Management Hub", "perms": {}, "add_url": ""},
+    {"admin_url": "services-hub", "name": "Services Hub", "perms": {}, "add_url": ""},
 ]
 
 

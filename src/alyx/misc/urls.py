@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from django.views.generic.base import RedirectView
 from .views import (
     ManagementHubView,
+    ServicesHubView,
     DatabaseManagementUIView,
     CacheDownloadView,
     CacheVersionView,
@@ -34,6 +35,7 @@ urlpatterns = [
     path("management/media", DatabaseManagementUIView.as_view(), name="media-management"),
     path("management/restore", DatabaseManagementUIView.as_view(), name="restore-management"),
     path("management/backups", DatabaseManagementUIView.as_view(), name="backups-management"),
+    path("services", ServicesHubView.as_view(), name="services-hub"),
 ]
 
 try:
