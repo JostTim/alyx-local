@@ -12,7 +12,6 @@ import os
 from pathlib import Path
 import structlog
 from django.conf.locale.en import formats as en_formats
-from tzlocal import get_localzone
 import sys
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -89,7 +88,6 @@ en_formats.DATETIME_FORMAT = "d/m/Y H:i"
 DATE_INPUT_FORMATS = ("%d/%m/%Y",)
 
 USE_TZ = True
-TIME_ZONE = get_localzone().key  # "Europe/Paris"
 
 # Production settings. Used mainly for SSL security. As we go local, i deactiated them.
 # There is still authentification, but "risk" for man in the middle attack

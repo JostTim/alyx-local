@@ -10,10 +10,9 @@ from sys import getsizeof
 import zipfile
 import tempfile
 
-import pandas as pd
+import pandas as pd, numpy as np
 import pyarrow.parquet as pq
 import pyarrow as pa
-from iblutil.io.parquet import uuid2np
 from one.alf.cache import _metadata
 
 # from one.remote.aws import get_s3_virtual_host
@@ -32,6 +31,10 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 ONE_API_VERSION = "1.13.0"  # Minimum compatible ONE api version
+
+
+def uuid2np(eids_uuid):
+    return np.asfortranarray(np.array([np.frombuffer(eid.bytes, dtype=np.int64) for eid in eids_uuid]))
 
 
 def measure_time(func):

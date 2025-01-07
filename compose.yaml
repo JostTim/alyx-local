@@ -68,14 +68,17 @@ services:
     container_name: pgadmin
     hostname: 'pgadmin'
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - SCRIPT_NAME=/services/pgadmin
+      - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
+    env_file:
+      - ./config/pgadmin.env
     ports:
       - "8888:80"
     expose:
       - 80
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+      - ./config/servers.json:/pgadmin4/servers.json:ro
     depends_on:
       db:
         condition: service_healthy

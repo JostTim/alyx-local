@@ -96,7 +96,7 @@ source = "file"
 path = "src/alyx/__init__.py"
 
 [tool.pdm.scripts]
-configure = { call = "alyx:install_docker_alyx", help = "Create necessary files for a first sucessfull build of the docker containers" }
+configure = { call = "alyx.docker_install:configure", help = "Create necessary files for a first sucessfull build of the docker containers" }
 
 fresh-build = { composite = [
     "delete-containers",
