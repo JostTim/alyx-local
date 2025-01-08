@@ -243,10 +243,11 @@ class InstallationManager:
             self.renderer.done()
 
     @staticmethod
-    def generate_password(length: int = 15, chars="[a-Z]!#%^&-_+") -> str:
+    def generate_password(length: int = 15, chars="[a-Z][0-9]!#%^&-_+") -> str:
         from django.utils.crypto import get_random_string
 
         latin_alphabet = "abcdefghijklmnopqrstuvwxyz"
+        numbers = "1234567890"
 
         if "[a-Z]" in chars:
             chars = chars.replace("[a-Z]", latin_alphabet + latin_alphabet.upper())
@@ -256,6 +257,9 @@ class InstallationManager:
 
         if "[A-Z]" in chars:
             chars = chars.replace("[A-Z]", latin_alphabet.upper())
+
+        if "[0-9]" in chars:
+            chars = chars.replace("[0-9]", numbers)
 
         return get_random_string(length, chars)
 

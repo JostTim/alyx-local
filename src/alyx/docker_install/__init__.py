@@ -22,7 +22,9 @@ class DbPasswordFile(InstallationFile):
     def get_content(self):
         return self.renderer.ask(
             "Please enter a password for securing the postgresql database",
-            default=self.manager.generate_password(20),
+            default=self.manager.generate_password(
+                20, chars="[a-Z][0-9]"
+            ),  # no special chars as they fuck up the connection with pg_dumb through dbbackup
             password_mode=True,
         )
 
