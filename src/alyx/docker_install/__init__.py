@@ -26,6 +26,7 @@ class DbPasswordFile(InstallationFile):
                 20, chars="[a-Z][0-9]"
             ),  # no special chars as they fuck up the connection with pg_dumb through dbbackup
             password_mode=True,
+            no_input_mode=self.manager.no_input_mode,
         )
 
     class DbPasswordChecker(FileChecker):
@@ -73,12 +74,14 @@ class PgadminEnvFile(InstallationFile):
         username = self.renderer.ask(
             "Please enter a username for securing the pgadmin management web interface",
             default="admin@admin.com",
+            no_input_mode=self.manager.no_input_mode,
         )
 
         password = self.renderer.ask(
             "Please enter a password for securing the pgadmin management web interface",
             default=self.manager.generate_password(20),
             password_mode=True,
+            no_input_mode=self.manager.no_input_mode,
         )
 
         lines = [
@@ -98,15 +101,21 @@ class RabbitmqConfFile(InstallationFile):
         username = self.renderer.ask(
             "Please enter a username for securing the rabbitmq database",
             default="username",
+            no_input_mode=self.manager.no_input_mode,
         )
 
         password = self.renderer.ask(
             "Please enter a password for securing the rabbitmq database",
             default=self.manager.generate_password(20),
             password_mode=True,
+            no_input_mode=self.manager.no_input_mode,
         )
-
-        file_content = f"default_user = {username}\ndefault_pass = {password}"
+        lines = [
+            f"default_user = {username}",
+            f"default_pass = {password}",
+            "management.path_prefix = /services/rabbitmq",  # Only affects the management uri, not the AMQP uri
+        ]
+        file_content = "\n".join(lines)
         self.manager.add_variables(rabbitmq_username=username, rabbitmq_password=password)
         return file_content
 
@@ -132,15 +141,32 @@ def configure():
         "Be carrefull, this is a permanent data deletion operation and you "
         " can loose valueable settings written in the files located in the config folder.",
     )
+    parser.add_argument(
+        "--delete-noinput",
+        action="store_true",
+        help="Completely delete any previous configuration file, without asking for confirmation. "
+        "Be carrefull, this is a permanent data deletion operation and you "
+        " can loose valueable settings written in the files located in the config folder.",
+    )
+    parser.add_argument(
+        "-i",
+        "--noinput",
+        action="store_true",
+        help="Runs the configuration in no input mode, meaning that all operations that normally asks the user for "
+        "an input will auto-complete, using default values for usernames and generated ones for passwords.",
+    )
     args = parser.parse_args()
+
+    if args.delete_noinput:
+        args.noinput = True
 
     with InstallStatusRenderer(verbose=args.verbose) as renderer:
 
-        installation = InstallationManager(renderer, fixmode=args.fix)
+        installation = InstallationManager(renderer, fixmode=args.fix, no_input_mode=args.noinput)
         installation.header()
 
-        if args.delete:
-            installation.delete_installation()
+        if args.delete or args.delete_noinput:
+            installation.delete_installation(no_input_mode=args.delete_noinput)
 
         installation.create_uploaded_folder()
 

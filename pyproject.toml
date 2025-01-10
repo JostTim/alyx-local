@@ -98,6 +98,11 @@ path = "src/alyx/__init__.py"
 [tool.pdm.scripts]
 configure = { call = "alyx.docker_install:configure", help = "Create necessary files for a first sucessfull build of the docker containers" }
 
+rapid-setup = { composite = [
+    "configure --delete-noinput",
+    "fresh-build-fast",
+], help = "Build from a fresh start, initiating a new configuration and a new build, removing previous configuration and builds. Best suitable for new installations or debugging." }
+
 fresh-build = { composite = [
     "delete-containers",
     "delete-images",
@@ -110,6 +115,8 @@ fresh-build-fast = { composite = [
     "build",
 ], help = "Build from a fresh start, by ensuring all containers and volumes are deleted prior to building. This doesn't delete images, so it is not as 'clean' as fresh-build, but is faster. Make sure your database is backed up before doing this !" }
 build = { shell = "docker compose up --build", help = "Build new images and then starts the containers for the alyx docker project" }
+
+update-repo = { shell = "git reset --hard && git fetch && git pull", help = "Reset, fetch, and pull the latest changes from the repository. Be carefull, this will destroy all your changes that are no git-ignored. (All config files are git-ignored)" }
 
 delete-containers = { shell = "docker-compose down", help = "Stop and delete containers. Make sure your database is backed up before doing this !" }
 delete-images = { shell = "docker-compose down --rmi all", help = "Stop and delete built and downloaded container images. Make sure your database is backed up before doing this !" }

@@ -114,13 +114,15 @@ class InstallStatusRenderer:
             )
         )
 
-    def ask(self, instruction: str, default="", password_mode=False) -> str:
+    def ask(self, instruction: str, default="", password_mode=False, no_input_mode=False) -> str:
 
         if default:
             adjective = "generated" if password_mode else "default"
             password_help = Text(" (", style="turquoise2").append(
-                f"press enter to keep the {adjective} one:", style="grey50"
+                f"press enter to use the {adjective} one:", style="grey50"
             )
+            if no_input_mode:
+                return default
         else:
             password_help = ""
 
@@ -168,33 +170,46 @@ class InstallationManager:
 
     variables: dict
 
-    def __init__(self, renderer: InstallStatusRenderer, fixmode=False):
+    def __init__(self, renderer: InstallStatusRenderer, fixmode=False, no_input_mode=False):
         self.renderer = renderer
         self.status = FILE_OK
         self.variables = {}
         self.fixmode = fixmode
+        self.no_input_mode = no_input_mode
 
         # This is the folder containing pyproject.toml and .git
         self.install_root_path = Path(__file__).parent.parent.parent.parent.absolute()
 
         self.config_path = self.install_root_path / "config"
 
-    def delete_installation(self):
+    def delete_installation(self, no_input_mode=False):
 
         self.renderer.title("Configuration complete deletion", style="bright_red")
-        if Confirm.ask(
-            Text(
-                "⚠️ ⚠️ ⚠️  Are you sure that you want to reset the configuration at ",
-                style="bright_red",
+
+        if not self.config_path.exists():
+            self.renderer.success("No configuration folder to remove. Done.")
+            return
+
+        if no_input_mode or (
+            Confirm.ask(
+                Text(
+                    "⚠️ ⚠️ ⚠️  Are you sure that you want to reset the configuration at ",
+                    style="bright_red",
+                )
+                .append(f"{self.config_path}", self.renderer.items_style)
+                .append(" ?\nPrevious configuration data in the form of ANY file in this folder ")
+                .append("WILL BE LOST FOREVER !!!", style="yellow"),
+                console=self.renderer.console,
             )
-            .append(f"{self.config_path}", self.renderer.items_style)
-            .append(" ?\nPrevious configuration data in the form of ANY file in this folder ")
-            .append("WILL BE LOST FOREVER !!!", style="yellow"),
-            console=self.renderer.console,
         ):
             [file.unlink() for file in self.config_path.iterdir()]
             self.config_path.rmdir()
             self.renderer.success("Removed all previous configuration")
+        else:
+            raise KeyboardInterrupt(
+                "The configuration process was stopped because you added a --delete "
+                "option but didn't confirm the deletion when asked for."
+            )
 
     def header(self):
 
