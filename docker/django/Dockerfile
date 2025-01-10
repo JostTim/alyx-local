@@ -52,24 +52,13 @@ RUN pip install pdm
 # COPY ./src/ /app/
 RUN mkdir -p /app/uploaded/static && \
     mkdir -p /app/uploaded/log
+
 COPY ./pyproject.toml /app/pyproject.toml
-
-# this is just a crappy fix for pdm to find the version
-# COPY ./src/alyx/__init__.py /app/src/alyx/__init__.py
 COPY ./pdm.lock /app/pdm.lock
-
-#########################################################################
-## ENSURE WE COPY ALL SHELL SCRIPTS INTO THE ALYX FOLDER FOR LATER USE ##
-COPY ./scripts/ /app/scripts
-
-#####################################################
-## ENSURE WE COPY ALL DUMPS DATA IF THERE ARE SOME ##
-COPY ./data/ /data
 
 ################################################
 ## ENSURE WE ACCESS THE ENTRYPOINT CORRECTLY  ##
 COPY ./docker/django/entrypoint.sh /app/entrypoint.sh
-COPY ./docker/django/restore_on_run.sh /app/scripts/restore_on_run.sh
 
 #############################################################################
 ## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
@@ -95,14 +84,6 @@ RUN find /app/scripts -type f -name "*.sh" \
 USER ${APP_USER}
 
 WORKDIR /app
-
-# RUN echo "Contents of /app:" && ls -la /app
-
-# CMD ["tail", "-f", "/dev/null"]
-
-# Install the application python dependancies packages
-# RUN pdm install --prod --no-editable
-# RUN pdm install --prod --no-editable --frozen-lockfile
 
 # Expose the port that the application listens on.
 EXPOSE 80
