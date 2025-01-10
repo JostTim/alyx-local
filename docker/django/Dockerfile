@@ -49,9 +49,8 @@ RUN pip install pdm
 
 #################################################################
 ## Copy the django application source code into the container. ##
-# COPY ./src/ /app/
 RUN mkdir -p /app/uploaded/static && \
-    mkdir -p /app/uploaded/log
+    mkdir -p /app/uploaded/media
 
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./pdm.lock /app/pdm.lock
@@ -64,20 +63,13 @@ COPY ./docker/django/entrypoint.sh /app/entrypoint.sh
 ## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
 COPY ./config/custom_settings.py /app/extra_configuration/custom_settings.py
 
-############################################
-## SET USER PERMISSIONS ON THE APP FOLDER ##
+##################################################################
+## SET USER PERMISSIONS ON THE APP FOLDER AND ENTRYPOINT SCRIPT ##
 RUN chown -R ${APP_USER}:${APP_USER} /app/
 
 RUN dos2unix -o /app/entrypoint.sh
 RUN chown ${APP_USER}:${APP_USER} /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
-
-# we run chmod executeable, chown user, and we ensure scripts are LF ended with dos2unix
-RUN find /app/scripts -type f -name "*.sh" \
-    -exec dos2unix -o {} \; \ 
-    -exec chmod +x {} \; \
-    && \
-    chown -R ${APP_USER}:${APP_USER} /app/scripts
 
 #############################################################
 # Switch to the non-privileged user to run the application. #
