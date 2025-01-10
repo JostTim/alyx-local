@@ -73,8 +73,8 @@ services:
       - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
     env_file:
       - ./config/pgadmin.env
-    ports:
-      - "8888:80"
+    # ports:
+    #   - "8888:80"
     expose:
       - 80
     volumes:
@@ -90,7 +90,10 @@ services:
     hostname: 'rabbitmq'
     ports: 
       - "5672:5672"
-      - "15672:15672"
+    expose :
+      - 15672
+    environment:
+      - RABBITMQ_MANAGEMENT_PATH_PREFIX=/services/rabbitmq
     volumes: 
       - rabbitmq-data:/var/lib/rabbitmq
       - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf

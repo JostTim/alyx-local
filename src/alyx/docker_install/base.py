@@ -237,20 +237,6 @@ class InstallationManager:
         destination_path = self.get_file_path(destination_path)
         return file_class(destination_path, manager=self, **kwargs)
 
-    # def create_uploaded_folder(self) -> None:
-
-    #     self.renderer.title("folder template for persistent data across")
-    #     uploaded_folder = self.install_root_path / "docker" / "templates" / "uploaded"
-    #     sub_folders_to_create = ["media", "static"]
-    #     for foldername in sub_folders_to_create:
-    #         folder = uploaded_folder / foldername
-    #         if folder.is_dir():
-    #             self.renderer.wont_create(folder)
-    #             continue
-    #         folder.mkdir(parents=True)
-    #         self.renderer.success(f"Created empty folder {folder} for docker copying")
-    #     self.renderer.success("All good")
-
     def create_data_folder(self) -> None:
 
         self.renderer.title("folders for shared and persistent data through containers and host")

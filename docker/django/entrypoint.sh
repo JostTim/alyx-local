@@ -3,14 +3,15 @@ echo -n "Django version:" && echo -n $(pdm run python -m django --version) && ec
 
 pdm install --prod --no-editable --frozen-lockfile
 
-echo "Applying database migrations..."
-pdm run ./src/manage.py migrate # --noinput 
-
 # Collect static files
 echo "Collecting static files..."
 pdm run ./src/manage.py collectstatic --noinput --clear --verbosity 0
 
-# Restore
+# migrate to be sure the database is created correctly
+echo "Applying database migrations..."
+pdm run ./src/manage.py migrate # --noinput 
+
+# Restore data
 echo "Restoring postgres table from backup if any"
 pdm run ./src/manage.py dbrestore --noinput
 
