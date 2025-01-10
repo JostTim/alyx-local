@@ -21,6 +21,7 @@ services:
       - uploaded-data:/app/uploaded
       - ./config/db-secure-password:/run/secrets/db-secure-password:ro
       - ./src:/app/src:rw
+      - ./data:/app/data:rw
     environment : 
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
     expose:

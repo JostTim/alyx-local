@@ -77,7 +77,7 @@ elif IS_GITHUB_ACTION:
 
 BASE_DIR = Path("/app/src/alyx")  # Path(__file__).resolve().parent.parent
 UPLOADED_DIR = BASE_DIR.parent.parent / "uploaded"
-DATA_DIR = Path("/data")
+DATA_DIR = Path("/app/data")
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
@@ -270,7 +270,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
-DBBACKUP_STORAGE_OPTIONS = {"location": "/app/uploaded/backups/"}
+DBBACKUP_STORAGE_OPTIONS = {"location": str(DATA_DIR / "backups")}
 
 # Internationalization
 USE_I18N = False
@@ -292,7 +292,7 @@ MEDIA_URL = "/media/"
 
 # The location for saving and/or serving the cache tables.
 # May be a local path, http address or s3 uri (i.e. s3://)
-TABLES_ROOT = str(UPLOADED_DIR / "tables/")
+TABLES_ROOT = str(DATA_DIR / "tables/")
 
 UPLOADED_IMAGE_WIDTH = 800
 

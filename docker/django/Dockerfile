@@ -50,7 +50,8 @@ RUN pip install pdm
 #################################################################
 ## Copy the django application source code into the container. ##
 # COPY ./src/ /app/
-COPY ./docker/templates/uploaded /app/uploaded
+RUN mkdir -p /app/uploaded/static && \
+    mkdir -p /app/uploaded/log
 COPY ./pyproject.toml /app/pyproject.toml
 
 # this is just a crappy fix for pdm to find the version

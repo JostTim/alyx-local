@@ -168,7 +168,7 @@ def configure():
         if args.delete or args.delete_noinput:
             installation.delete_installation(no_input_mode=args.delete_noinput)
 
-        installation.create_uploaded_folder()
+        installation.create_data_folder()
 
         installation.setup_file(
             "db-secure-password",
