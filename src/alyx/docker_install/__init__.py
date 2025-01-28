@@ -1,125 +1,163 @@
 from argparse import ArgumentParser
-from pathlib import Path
 from socket import gethostname
 from tzlocal import get_localzone
-from .base import (
-    InstallStatusRenderer,
-    InstallationManager,
-    InstallationFile,
-    FileChecker,
-    ReplaceTemplateChecker,
-    ReplaceTemplateInstallationFile,
-    KeysChecker,
-    NoCheck,
-    FILE_OK,
-    FILE_ERROR,
-)
+from .installation import Installation, InstallationUtilities
+from .containers import Container
+from .files import TemplatedFile
 
 
-class DbPasswordFile(InstallationFile):
-    title = "db-secure-password"
+class DjangoServer(Container):
+    container_name = "django_server"
 
-    def get_content(self):
+    class DjangoSettingsFile(TemplatedFile):
+        filename = "custom_settings.py"
+        keywords = ["DJANGO_SECRET_KEY", "DB_BACKUP_HOSTNAME", "TIMEZONE", "MACHINE_ALLOWED_HOSTS"]
+
+    class DjangoEntrypoint(TemplatedFile):
+        filename = "entrypoint.sh"
+
+    files_classes = [DjangoSettingsFile, DjangoEntrypoint]
+
+
+class NginxServer(Container):
+    container_name = "nginx_server"
+
+    class NginxConfFile(TemplatedFile):
+        filename = "nginx.conf"
+        keywords = ["NGINX_OUT_PORT"]
+
+    files_classes = [NginxConfFile]
+
+
+class RabbitMQ(Container):
+    container_name = "rabbitmq"
+
+    class RabbitmqConfFile(TemplatedFile):
+        filename = "rabbitmq.conf"
+        keywords = ["RABBITMQ_USER", "RABBITMQ_PASSWORD"]
+
+    files_classes = [RabbitmqConfFile]
+
+
+class PostgresDB(Container):
+    container_name = "postgres_db"
+
+    class DbPasswordFile(TemplatedFile):
+        filename = "db-secure-password"
+        keywords = ["POSTGRES_DB_PASSWORD"]
+
+    files_classes = [DbPasswordFile]
+
+
+class PgAdmin(Container):
+    container_name = "pgadmin"
+
+    class ServersJsonFile(TemplatedFile):
+        filename = "servers.json"
+        keywords = ["POSTGRES_DB_USERNAME"]
+
+    class PgadminEnvFile(TemplatedFile):
+        filename = "pgadmin.env"
+        keywords = ["PGADMIN_DEFAULT_EMAIL", "PGADMIN_DEFAULT_PASSWORD"]
+
+    files_classes = [PgadminEnvFile, ServersJsonFile]
+
+
+class CeleryServer(Container):
+    container_name = "celery_server"
+
+    class CeleryEnvFile(TemplatedFile):
+        filename = "celery.env"
+        keywords = ["RABBITMQ_USER", "RABBITMQ_PASSWORD"]
+
+    files_classes = [CeleryEnvFile]
+
+
+class ComposeEnvFile(TemplatedFile):
+    filename = "compose.env"
+    keywords = ["NGINX_RABBITMQ_PORT", "NGINX_OUT_PORT"]
+
+
+class DockerInstallation(Installation, InstallationUtilities):
+    # registers these containers for the installation
+    containers_classes = [DjangoServer, NginxServer, PostgresDB, PgAdmin, RabbitMQ, CeleryServer]
+    # registers these files (not linked to a specific container) for the installation
+    files_classes = [ComposeEnvFile]
+
+    def POSTGRES_DB_USERNAME(self):
+        return "postgres"
+
+    def POSTGRES_DB_PASSWORD(self):
         return self.renderer.ask(
             "Please enter a password for securing the postgresql database",
-            default=self.manager.generate_password(
-                20, chars="[a-Z][0-9]"
-            ),  # no special chars as they fuck up the connection with pg_dumb through dbbackup
+            self,
+            default=self.generate_password(
+                20, alphanum=True
+            ),  # no special chars as they cause issues with the connection with pg_dumb through dbbackup
             password_mode=True,
-            no_input_mode=self.manager.no_input_mode,
         )
 
-    class DbPasswordChecker(FileChecker):
-        def get_errors(self):
-            self.read()
-            return FILE_OK if "\n" not in self.content and len(self.content) >= 5 else FILE_ERROR
-
-    checker_class = DbPasswordChecker
-
-
-class DjangoSettingsFile(ReplaceTemplateInstallationFile):
-    title = "custom_settings.py"
-    checker_class = ReplaceTemplateChecker
-
-
-class ServersJsonFile(ReplaceTemplateInstallationFile):
-    title = "servers.json"
-    checker_class = ReplaceTemplateChecker
-
-
-class CeleryEnvFile(InstallationFile):
-    title = "celery.env"
-
-    def get_content(self):
-        username = self.manager.get_variable("rabbitmq_username")
-        password = self.manager.get_variable("rabbitmq_password")
-
-        lines = [
-            f"RABBITMQ_USER={username}",
-            f"RABBITMQ_PASSWORD={password}",
-            f"FLOWER_USER={username}",
-            f"FLOWER_PASSWORD={password}",
-        ]
-        file_content = "\n".join(lines)
-        return file_content
-
-    checker_class = KeysChecker
-
-
-class PgadminEnvFile(InstallationFile):
-    title = "pgadmin.env"
-
-    def get_content(self) -> str:
-
+    def RABBITMQ_USER(self):
         username = self.renderer.ask(
-            "Please enter a username for securing the pgadmin management web interface",
-            default="admin@admin.com",
-            no_input_mode=self.manager.no_input_mode,
-        )
-
-        password = self.renderer.ask(
-            "Please enter a password for securing the pgadmin management web interface",
-            default=self.manager.generate_password(20),
-            password_mode=True,
-            no_input_mode=self.manager.no_input_mode,
-        )
-
-        lines = [
-            f"PGADMIN_DEFAULT_EMAIL={username}",
-            f"PGADMIN_DEFAULT_PASSWORD={password}",
-        ]
-        file_content = "\n".join(lines)
-        return file_content
-
-    checker_class = KeysChecker
-
-
-class RabbitmqConfFile(InstallationFile):
-    title = "rabbitmq.conf"
-
-    def get_content(self):
-        username = self.renderer.ask(
-            "Please enter a username for securing the rabbitmq database",
+            "Please enter an Username for securing the rabbitmq database",
+            self,
             default="username",
-            no_input_mode=self.manager.no_input_mode,
         )
+        return username
 
+    def RABBITMQ_PASSWORD(self):
         password = self.renderer.ask(
-            "Please enter a password for securing the rabbitmq database",
-            default=self.manager.generate_password(20),
+            "Please enter a Password for securing the rabbitmq database",
+            self,
+            default=self.generate_password(20),
             password_mode=True,
-            no_input_mode=self.manager.no_input_mode,
         )
-        lines = [
-            f"default_user = {username}",
-            f"default_pass = {password}",
-            "management.path_prefix = /services/rabbitmq",  # Only affects the management uri, not the AMQP uri
-        ]
-        file_content = "\n".join(lines)
-        self.manager.add_variables(rabbitmq_username=username, rabbitmq_password=password)
-        return file_content
+        return password
 
-    checker_class = KeysChecker
+    def PGADMIN_DEFAULT_EMAIL(self):
+        return "admin@admin.com"
+
+    def PGADMIN_DEFAULT_PASSWORD(self):
+        return self.renderer.ask(
+            "Please enter a password for securing the pgadmin web interface",
+            self,
+            default=self.generate_password(20),
+            password_mode=True,
+        )
+
+    def DJANGO_SECRET_KEY(self):
+        return self.generate_password()
+
+    def DB_BACKUP_HOSTNAME(self):
+        return gethostname()
+
+    def TIMEZONE(self):
+        return get_localzone().key
+
+    def MACHINE_ALLOWED_HOSTS(self):
+        input_value = self.renderer.ask(
+            "Please specify a port (example localhost, 127.0.0.1) that will be used to access the service from outside "
+            "(usually you want to put the IP adress and / or network hostname of your machine in there) "
+            "Must be comma separated.",
+            self,
+            default="localhost, 127.0.0.1",
+            password_mode=False,
+        )
+        # input_value = "localhost, 127.0.0.1"  # make this the result of an ask request if necessary
+        # validates that is has single quotes around each allowed hostname, and no space
+        hosts = [f"'{host.replace(' ', '')}'" for host in input_value.split(",")]
+        return ", ".join(hosts)
+
+    def NGINX_OUT_PORT(self):
+        return self.renderer.ask(
+            "Please specify a port (only integers, like 80 , or 9876) that you will use to connect to the server.",
+            self,
+            default="80",
+            password_mode=False,
+        )
+
+    def NGINX_RABBITMQ_PORT(self):
+        return "5672"
 
 
 def configure():
@@ -149,64 +187,24 @@ def configure():
         " can loose valueable settings written in the files located in the config folder.",
     )
     parser.add_argument(
-        "-i",
         "--noinput",
         action="store_true",
         help="Runs the configuration in no input mode, meaning that all operations that normally asks the user for "
         "an input will auto-complete, using default values for usernames and generated ones for passwords.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Runs the configuration asking every information that can be entered, again.",
+    )
+    parser.add_argument(
+        "--inputs-only", action="store_true", help="Makes the configuration input_fields.json file only."
+    )
+    parser.add_argument("-t", "--test", action="store_true")
     args = parser.parse_args()
 
-    if args.delete_noinput:
-        args.noinput = True
-
-    with InstallStatusRenderer(verbose=args.verbose) as renderer:
-
-        installation = InstallationManager(renderer, fixmode=args.fix, no_input_mode=args.noinput)
-        installation.header()
-
-        if args.delete or args.delete_noinput:
-            installation.delete_installation(no_input_mode=args.delete_noinput)
-
+    with DockerInstallation.from_arguments(args) as installation:
+        if installation.delete:
+            installation.delete_configuration()
+        installation.install()
         installation.create_data_folder()
-
-        installation.setup_file(
-            "db-secure-password",
-            file_class=DbPasswordFile,
-        ).setup_checker().make_install()
-
-        django_source_file = installation.install_root_path / "docker" / "templates" / "custom_settings_template.py"
-        installation.setup_file(
-            "custom_settings.py",
-            file_class=DjangoSettingsFile,
-            source_file=django_source_file,
-            replacements={
-                "%SECRET_KEY%": installation.generate_password(),
-                "%HOSTNAME%": gethostname(),
-                "%TIMEZONE%": get_localzone().key,
-            },
-        ).setup_checker(pattern=r"^ *([A-Z_]+) *=", source_file=django_source_file).make_install()
-
-        servers_json_source_file = installation.install_root_path / "docker" / "templates" / "servers.json"
-        installation.setup_file(
-            "servers.json",
-            file_class=ServersJsonFile,
-            source_file=servers_json_source_file,
-            replacements={
-                "%PG_USERNAME%": '"postgres"',
-            },
-        ).setup_checker(pattern=r"^ *([A-Z_]+) *:", source_file=servers_json_source_file).make_install()
-
-        installation.setup_file("rabbitmq.conf", file_class=RabbitmqConfFile).setup_checker(
-            keys={"default_user", "default_pass"}
-        ).make_install()
-
-        installation.setup_file("celery.env", file_class=CeleryEnvFile).setup_checker(
-            keys={"RABBITMQ_USER", "RABBITMQ_PASSWORD", "FLOWER_USER", "FLOWER_PASSWORD"}
-        ).make_install()
-
-        installation.setup_file("pgadmin.env", file_class=PgadminEnvFile).setup_checker(
-            keys={"PGADMIN_DEFAULT_EMAIL", "PGADMIN_DEFAULT_PASSWORD"}
-        ).make_install()
-
-        installation.report_status()

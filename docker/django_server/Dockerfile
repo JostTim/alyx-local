@@ -57,11 +57,11 @@ COPY ./pdm.lock /app/pdm.lock
 
 ################################################
 ## ENSURE WE ACCESS THE ENTRYPOINT CORRECTLY  ##
-COPY ./docker/django/entrypoint.sh /app/entrypoint.sh
+COPY ./config/django_server/entrypoint.sh /app/entrypoint.sh
 
 #############################################################################
 ## ENSURE WE COPY CONFIG FILES GENERATED WITH INSTALL, IN PROPER LOCATIONS ##
-COPY ./config/custom_settings.py /app/extra_configuration/custom_settings.py
+COPY ./config/django_server/custom_settings.py /app/extra_configuration/custom_settings.py
 
 ##################################################################
 ## SET USER PERMISSIONS ON THE APP FOLDER AND ENTRYPOINT SCRIPT ##

@@ -126,6 +126,8 @@ update-repo-configure-and-build = { composite = [
 delete-containers = { shell = "docker-compose down", help = "Stop and delete containers. Make sure your database is backed up before doing this !" }
 delete-images = { shell = "docker-compose down --rmi all", help = "Stop and delete built and downloaded container images. Make sure your database is backed up before doing this !" }
 delete-volumes = { shell = "docker-compose down -v", help = "Stop and delete volumes. Make sure your database is backed up before doing this !" }
+docker-cleanup = { shell = "docker system prune", help = "Remove all mess and unused images / volumes / etc that are left dangling around. Loss of data danger !" }
+
 
 start = { shell = "docker compose restart", help = "Start containers (if stopped, or restart if they are currentely running) containers for alyx that have already been built" }
 stop = { shell = "docker-compose stop", help = "Stop running containers without removing them" }

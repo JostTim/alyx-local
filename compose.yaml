@@ -1,25 +1,16 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker Compose reference guide at
-# https://docs.docker.com/go/compose-spec-reference/
-
-# Here the instructions define your application as a service called "server".
-# This service is built from the Dockerfile in the current directory.
-# You can add other services your application may depend on here, such as a
-# database or a cache. For examples, see the Awesome Compose repository:
-# https://github.com/docker/awesome-compose
 services:
 
   django_server:
     restart: always
     build:
       context: .
-      dockerfile: ./docker/django/Dockerfile
+      dockerfile: ./config/django_server/Dockerfile
     image: alyx_django_server:latest
     container_name: django_server
     hostname: 'django_server'
     volumes :
       - uploaded-data:/app/uploaded
-      - ./config/db-secure-password:/run/secrets/db-secure-password:ro
+      - ./config/postgres_db/db-secure-password:/run/secrets/db-secure-password:ro
       - ./src:/app/src:rw
       - ./data:/app/data:rw
     environment : 
@@ -35,10 +26,10 @@ services:
     container_name: nginx_server
     hostname: 'nginx_server'
     ports:
-      - "80:80"
+      - "${NGINX_PORT:-80}:80"
     volumes:
       - uploaded-data:/app/uploaded
-      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx_server/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - django_server
 
@@ -50,12 +41,10 @@ services:
     user: postgres
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./config/db-secure-password:/run/secrets/db-secure-password:ro
+      - ./config/postgres_db/db-secure-password:/run/secrets/db-secure-password:ro
     environment:
       - POSTGRES_DB=alyx
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-secure-password
-    ports:
-      - "5432:5432"
     expose:
       - 5432
     healthcheck:
@@ -72,14 +61,12 @@ services:
       - SCRIPT_NAME=/services/pgadmin
       - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
     env_file:
-      - ./config/pgadmin.env
-    # ports:
-    #   - "8888:80"
+      - ./config/pgadmin/pgadmin.env
     expose:
       - 80
     volumes:
       - pgadmin-data:/var/lib/pgadmin
-      - ./config/servers.json:/pgadmin4/servers.json:ro
+      - ./config/pgadmin/servers.json:/pgadmin4/servers.json:ro
     depends_on:
       db:
         condition: service_healthy
@@ -89,30 +76,27 @@ services:
     container_name: rabbitmq
     hostname: 'rabbitmq'
     ports: 
-      - "5672:5672"
+      - "${RABBITMQ_PORT:-5672}:5672"
     expose :
       - 15672
     environment:
       - RABBITMQ_MANAGEMENT_PATH_PREFIX=/services/rabbitmq
     volumes: 
       - rabbitmq-data:/var/lib/rabbitmq
-      - ./config/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./config/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
   celery_server:
     build:
         context: .
-        dockerfile: ./docker/celery/Dockerfile
+        dockerfile: ./config/celery_server/Dockerfile
     image: celery_flower:latest
     container_name: celery_server
     hostname: 'celery_server'
     expose:
       - 5001
       - 5555
-    ports:
-      - "5001:5001"
-      - "5555:5555"
     env_file:
-      - ./config/celery.env
+      - ./config/celery_server/celery.env
     depends_on:
       - rabbitmq
 

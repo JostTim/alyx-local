@@ -5,7 +5,7 @@
             "Group": "Servers",
             "Host": "postgres_db",
             "Port": 5432,
-            "Username": %PG_USERNAME%,
+            "Username": "%%POSTGRES_DB_USERNAME%%",
             "SSLMode": "prefer",
             "MaintenanceDB": "alyx"
         }
